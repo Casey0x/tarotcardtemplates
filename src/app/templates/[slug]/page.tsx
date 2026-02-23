@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getTemplateBySlug } from "@/data/templates";
+import { getTemplateBySlugFromSanity } from "@/lib/sanity";
 
-export default function TemplateDetailPage({
+export const dynamic = 'force-dynamic';
+
+export default async function TemplateDetailPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const template = getTemplateBySlug(params.slug);
+  const template = await getTemplateBySlugFromSanity(params.slug);
 
   if (!template) {
     notFound();
