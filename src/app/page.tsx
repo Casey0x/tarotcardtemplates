@@ -1,8 +1,12 @@
 import Link from 'next/link';
-import { tarotTemplates } from '@/data/templates';
 import { TemplateCard } from '@/components/template-card';
+import { getFeaturedTemplates } from '@/lib/sanity';
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const featuredTemplates = await getFeaturedTemplates(3);
+
   return (
     <div className="space-y-16">
       <section className="space-y-6">
@@ -52,9 +56,11 @@ export default function HomePage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          {tarotTemplates.map((template) => (
-            <TemplateCard key={template.slug} template={template} />
-          ))}
+          {featuredTemplates.length > 0 ? (
+            featuredTemplates.map((template) => <TemplateCard key={template.slug} template={template} />)
+          ) : (
+            <p className="text-charcoal/80">Templates are being added. Check back shortly.</p>
+          )}
         </div>
       </section>
     </div>
