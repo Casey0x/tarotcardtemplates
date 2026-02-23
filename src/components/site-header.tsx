@@ -4,6 +4,7 @@ const navItems = [
   { href: '/templates', label: 'Templates' },
   { href: '/how-it-works', label: 'How it works' },
   { href: '/custom-printing', label: 'Custom printing' },
+  { href: '/blog', label: 'Blog' },
   { href: '/account', label: 'My account' }
 ];
 
