@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { TemplateCard } from '@/components/template-card';
-import { getFeaturedTemplates } from '@/lib/sanity';
+import { getAllTemplates } from '@/lib/templates';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const featuredTemplates = await getFeaturedTemplates(3);
+  const featuredTemplates = (await getAllTemplates()).filter((template) => template.featured).slice(0, 3);
 
   return (
     <div className="space-y-16">

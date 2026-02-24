@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { TarotTemplate } from '@/data/templates';
+import type { TarotTemplate } from '@/lib/templates';
 
 export function TemplateCard({ template }: { template: TarotTemplate }) {
   return (

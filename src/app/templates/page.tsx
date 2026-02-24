@@ -1,8 +1,12 @@
 import Link from 'next/link';
-import { tarotTemplates } from '@/data/templates';
 import { TemplateCard } from '@/components/template-card';
+import { getAllTemplates } from '@/lib/templates';
 
-export default function TemplatesPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function TemplatesPage() {
+  const templates = await getAllTemplates();
+
   return (
     <div className="space-y-10">
       <header className="space-y-4">
@@ -22,9 +26,11 @@ export default function TemplatesPage() {
 
       <section>
         <div className="grid gap-6 md:grid-cols-3">
-          {tarotTemplates.map((template) => (
-            <TemplateCard key={template.slug} template={template} />
-          ))}
+          {templates.length > 0 ? (
+            templates.map((template) => <TemplateCard key={template.slug} template={template} />)
+          ) : (
+            <p className="text-charcoal/80">Templates are being added. Check back shortly.</p>
+          )}
         </div>
       </section>
     </div>

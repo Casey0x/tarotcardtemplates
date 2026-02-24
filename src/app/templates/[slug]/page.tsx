@@ -1,18 +1,15 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getTemplateBySlug, tarotTemplates } from '@/data/templates';
+import { getTemplateBySlug } from '@/lib/templates';
 
-export async function generateStaticParams() {
-  // Ensures /templates/[slug] pages exist in production builds
-  return tarotTemplates.map((t) => ({ slug: t.slug }));
-}
+export const dynamic = 'force-dynamic';
 
-export default function TemplateDetailPage({
+export default async function TemplateDetailPage({
   params,
 }: {
   params: { slug: string };
 }) {
-  const template = getTemplateBySlug(params.slug);
+  const template = await getTemplateBySlug(params.slug);
 
   if (!template) {
     notFound();
