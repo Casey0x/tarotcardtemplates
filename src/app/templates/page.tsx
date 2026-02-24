@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { TemplateCard } from '@/components/template-card';
+import TemplateCard from '@/components/template-card';
 import { getAllTemplates } from '@/lib/templates';
 
 export const dynamic = 'force-dynamic';
