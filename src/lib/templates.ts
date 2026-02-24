@@ -1,70 +1,36 @@
-import { supabaseRestFetch } from '@/lib/supabase-rest';
+import Link from "next/link";
+import type { TarotTemplate } from "@/lib/templates";
 
-export type TarotTemplate = {
-  slug: string;
-  name: string;
-  description: string;
-  styleNote: string;
-  includes: string[];
-  templatePrice: number;
-  printPrice: number;
-  featured: boolean;
-  previewImages?: string[];
-};
+export function TemplateCard({ template }: { template: TarotTemplate }) {
+  const thumbUrl = template.previewImages?.[0];
 
-type TemplateRow = {
-  slug: string;
-  name: string;
-  description: string;
-  style_note: string;
-  includes: string[] | null;
-  template_price: number | string;
-  print_price: number | string;
-  featured: boolean | null;
-  preview_images: string[] | null;
-};
+  return (
+    <article className="border border-charcoal/10 bg-white p-6">
+      {thumbUrl ? (
+        <div className="mb-5 aspect-[4/3] w-full overflow-hidden bg-parchment">
+          <img
+            src={thumbUrl}
+            alt={`${template.name} thumbnail`}
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      ) : (
+        <div className="mb-5 aspect-[4/3] w-full bg-parchment" />
+      )}
 
-export function mapTemplateRow(row: TemplateRow): TarotTemplate {
-  return {
-    slug: row.slug,
-    name: row.name,
-    description: row.description,
-    styleNote: row.style_note,
-    includes: row.includes ?? [],
-    templatePrice: Number(row.template_price),
-    printPrice: Number(row.print_price),
-    featured: Boolean(row.featured),
-    previewImages: row.preview_images ?? undefined,
-  };
-}
+      <h3 className="text-xl font-semibold">{template.name}</h3>
+      <p className="mt-2 text-sm text-charcoal/80">{template.description}</p>
+      <p className="mt-3 text-sm">
+        Template download: ${template.templatePrice.toFixed(2)}
+      </p>
 
-const selectFields =
-  'slug,name,description,style_note,includes,template_price,print_price,featured,preview_images';
-
-export async function getAllTemplates(): Promise<TarotTemplate[]> {
-  const response = await supabaseRestFetch(
-    `templates?select=${selectFields}&order=featured.desc,name.asc`,
-    { cache: 'no-store' }
+      <Link
+        href={`/templates/${template.slug}`}
+        className="mt-5 inline-block border border-charcoal px-4 py-2 text-sm hover:bg-charcoal hover:text-cream"
+      >
+        View template
+      </Link>
+    </article>
   );
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch templates (${response.status})`);
-  }
-
-  const rows = (await response.json()) as TemplateRow[];
-  return rows.map(mapTemplateRow);
-}
-
-export async function getTemplateBySlug(slug: string): Promise<TarotTemplate | null> {
-  const response = await supabaseRestFetch(
-    `templates?select=${selectFields}&slug=eq.${encodeURIComponent(slug)}&limit=1`,
-    { cache: 'no-store' }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch template "${slug}" (${response.status})`);
-  }
-
-  const rows = (await response.json()) as TemplateRow[];
-  return rows.length > 0 ? mapTemplateRow(rows[0]) : null;
 }
