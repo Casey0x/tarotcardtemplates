@@ -1,151 +1,72 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { getTemplateBySlug } from '@/lib/templates';
+import { getAllTemplates } from '@/lib/templates';
+import { TemplateCard } from '@/components/template-card';
 
 export const dynamic = 'force-dynamic';
 
-export default async function TemplateDetailPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const template = await getTemplateBySlug(params.slug);
-
-  if (!template) {
-    notFound();
-  }
-
-  const heroImage = template.previewImages?.[0];
-  const additionalImages = template.previewImages?.slice(1) ?? [];
+export default async function HomePage() {
+  const templates = await getAllTemplates();
+  const featuredTemplate = templates.find((t) => t.featured) ?? templates[0];
 
   return (
-    <article className="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
-      <section>
-        <div className="w-full max-w-md">
-          {heroImage && (
-            <img
-              src={heroImage}
-              alt={template.name}
-              className="w-full h-auto"
-            />
-          )}
+    <main className="space-y-20">
+      {/* Hero */}
+      <section className="max-w-3xl space-y-6">
+        <p className="text-xs tracking-widest text-charcoal/60">
+          TAROTCARDTEMPLATES.COM
+        </p>
 
-          {additionalImages.length > 0 && (
-            <div className="mt-6 grid grid-cols-2 gap-4">
-              {additionalImages.map((img, index) => (
-                <img
-                  key={index}
-                  src={img}
-                  alt={`${template.name} preview ${index + 1}`}
-                  className="w-full h-auto border border-charcoal/10"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <h1 className="mt-8 text-4xl font-semibold">
-          {template.name}
+        <h1 className="text-5xl font-semibold leading-tight">
+          Tarot Card Templates + Deck Printing
         </h1>
 
-        <p className="mt-3 text-charcoal/80">
-          {template.description}
+        <p className="text-lg text-charcoal/80">
+          Download print-ready tarot templates instantly — or order a
+          professionally printed deck from any template.
         </p>
 
-        <p className="mt-4 text-sm">
-          {template.styleNote}
+        <p className="text-sm text-charcoal/60">
+          Templates from $18.95. Printed decks from $45.
         </p>
 
-        <ul className="mt-6 space-y-2 text-sm">
-          {template.includes.map((item) => (
-            <li key={item}>• {item}</li>
-          ))}
-        </ul>
+        <div className="flex gap-4">
+          <Link
+            href="/templates"
+            className="border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream"
+          >
+            Browse templates
+          </Link>
+
+          <Link
+            href="/how-it-works"
+            className="border border-charcoal px-6 py-3 text-sm"
+          >
+            How it works
+          </Link>
+        </div>
       </section>
 
-      <aside className="h-fit border border-charcoal/15 bg-white p-6">
-        <h2 className="text-xl font-semibold">
-          Purchase options
-        </h2>
+      {/* Featured */}
+      {featuredTemplate && (
+        <section className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">
+              Featured template
+            </h2>
 
-        <div className="mt-6 space-y-4">
-          <form
-            action="/api/checkout"
-            method="post"
-            className="space-y-2 border border-charcoal/10 p-4"
-          >
-            <input
-              type="hidden"
-              name="templateSlug"
-              value={template.slug}
-            />
-            <input
-              type="hidden"
-              name="purchaseType"
-              value="template"
-            />
-
-            <p className="font-medium">
-              Buy template (${template.templatePrice.toFixed(2)})
-            </p>
-
-            <button
-              type="submit"
-              className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream"
+            <Link
+              href="/templates"
+              className="text-sm underline underline-offset-4"
             >
-              Continue to checkout
-            </button>
+              View all
+            </Link>
+          </div>
 
-            <p className="mt-2 text-sm text-neutral-500">
-              Instant digital download. Print-ready files included.
-            </p>
-          </form>
-
-          <form
-            action="/api/checkout"
-            method="post"
-            className="space-y-2 border border-charcoal/10 p-4"
-          >
-            <input
-              type="hidden"
-              name="templateSlug"
-              value={template.slug}
-            />
-            <input
-              type="hidden"
-              name="purchaseType"
-              value="print"
-            />
-
-            <p className="font-medium">
-              Buy printed deck from template (${template.printPrice.toFixed(2)})
-            </p>
-
-            <button
-              type="submit"
-              className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream"
-            >
-              Continue to checkout
-            </button>
-
-            <p className="mt-2 text-sm text-neutral-500">
-              Professionally printed and shipped. Single deck only in Phase 1.
-            </p>
-          </form>
-        </div>
-
-        <p className="mt-6 text-xs text-charcoal/70">
-          Stripe integration placeholder: set `STRIPE_SECRET_KEY`
-          and replace TODO redirect in checkout handler.
-        </p>
-
-        <Link
-          href="/how-it-works"
-          className="mt-4 inline-block text-sm underline underline-offset-4"
-        >
-          Review how purchasing works
-        </Link>
-      </aside>
-    </article>
+          <div className="max-w-md">
+            <TemplateCard template={featuredTemplate} />
+          </div>
+        </section>
+      )}
+    </main>
   );
 }
