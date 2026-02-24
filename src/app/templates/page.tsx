@@ -1,38 +1,126 @@
-import Link from 'next/link';
-import TemplateCard from '@/components/template-card';
-import { getAllTemplates } from '@/lib/templates';
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getTemplateBySlug } from "@/lib/templates";
+import TemplateGallery from "@/components/template-gallery";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-export default async function TemplatesPage() {
-  const templates = await getAllTemplates();
+export default async function TemplateDetailPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const template = await getTemplateBySlug(params.slug);
+
+  if (!template) {
+    notFound();
+  }
 
   return (
-    <div className="space-y-10">
-      <header className="space-y-4">
-        <h1 className="text-4xl font-semibold">Templates gallery</h1>
-        <p className="max-w-2xl text-charcoal/80">
-          Phase 1 includes a focused library of print-ready tarot template layouts.
-        </p>
-        <div className="flex gap-4">
-          <Link href="/how-it-works" className="border border-charcoal px-5 py-3 text-sm">
-            How it works
-          </Link>
-          <Link href="/custom-printing" className="border border-charcoal px-5 py-3 text-sm">
-            Custom printing
-          </Link>
-        </div>
-      </header>
-
+    <article className="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
       <section>
-        <div className="grid gap-6 md:grid-cols-3">
-          {templates.length > 0 ? (
-            templates.map((template) => <TemplateCard key={template.slug} template={template} />)
-          ) : (
-            <p className="text-charcoal/80">Templates are being added. Check back shortly.</p>
-          )}
-        </div>
+        <TemplateGallery
+          images={template.previewImages ?? []}
+          templateName={template.name}
+        />
+
+        <h1 className="mt-8 text-4xl font-semibold">
+          {template.name}
+        </h1>
+
+        <p className="mt-3 text-charcoal/80">
+          {template.description}
+        </p>
+
+        <p className="mt-4 text-sm">
+          {template.styleNote}
+        </p>
+
+        <ul className="mt-6 space-y-2 text-sm">
+          {template.includes.map((item) => (
+            <li key={item}>• {item}</li>
+          ))}
+        </ul>
       </section>
-    </div>
+
+      <aside className="h-fit border border-charcoal/15 bg-white p-6">
+        <h2 className="text-xl font-semibold">
+          Purchase options
+        </h2>
+
+        <div className="mt-6 space-y-4">
+          <form
+            action="/api/checkout"
+            method="post"
+            className="space-y-2 border border-charcoal/10 p-4"
+          >
+            <input
+              type="hidden"
+              name="templateSlug"
+              value={template.slug}
+            />
+            <input
+              type="hidden"
+              name="purchaseType"
+              value="template"
+            />
+
+            <p className="font-medium">
+              Buy template (${template.templatePrice.toFixed(2)})
+            </p>
+
+            <button
+              type="submit"
+              className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream"
+            >
+              Continue to checkout
+            </button>
+
+            <p className="mt-2 text-sm text-neutral-500">
+              Instant digital download. Print-ready files included.
+            </p>
+          </form>
+
+          <form
+            action="/api/checkout"
+            method="post"
+            className="space-y-2 border border-charcoal/10 p-4"
+          >
+            <input
+              type="hidden"
+              name="templateSlug"
+              value={template.slug}
+            />
+            <input
+              type="hidden"
+              name="purchaseType"
+              value="print"
+            />
+
+            <p className="font-medium">
+              Buy printed deck from template (${template.printPrice.toFixed(2)})
+            </p>
+
+            <button
+              type="submit"
+              className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream"
+            >
+              Continue to checkout
+            </button>
+
+            <p className="mt-2 text-sm text-neutral-500">
+              Professionally printed and shipped. Single deck only in Phase 1.
+            </p>
+          </form>
+        </div>
+
+        <Link
+          href="/how-it-works"
+          className="mt-6 inline-block text-sm underline underline-offset-4"
+        >
+          Review how purchasing works
+        </Link>
+      </aside>
+    </article>
   );
 }
