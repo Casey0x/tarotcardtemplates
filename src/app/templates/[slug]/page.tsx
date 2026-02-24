@@ -16,17 +16,31 @@ export default async function TemplateDetailPage({
   }
 
   const heroImage = template.previewImages?.[0];
+  const additionalImages = template.previewImages?.slice(1) ?? [];
 
   return (
     <article className="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
       <section>
-        <div className="w-full max-w-md bg-parchment">
+        <div className="w-full max-w-md">
           {heroImage && (
             <img
               src={heroImage}
               alt={template.name}
               className="w-full h-auto"
             />
+          )}
+
+          {additionalImages.length > 0 && (
+            <div className="mt-6 grid grid-cols-2 gap-4">
+              {additionalImages.map((img, index) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt={`${template.name} preview ${index + 1}`}
+                  className="w-full h-auto border border-charcoal/10"
+                />
+              ))}
+            </div>
           )}
         </div>
 
