@@ -16,6 +16,9 @@ export default async function TemplateDetailPage({
     notFound();
   }
 
+  // Physical deck image
+  const physicalDeckImage = "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/physical%20deck.png";
+
   return (
     <article className="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
       <section>
@@ -49,6 +52,7 @@ export default async function TemplateDetailPage({
         </h2>
 
         <div className="mt-6 space-y-4">
+          {/* Template download option */}
           <form
             action="/api/checkout"
             method="post"
@@ -81,6 +85,22 @@ export default async function TemplateDetailPage({
             </p>
           </form>
 
+          {/* Physical deck preview */}
+          <div className="border border-charcoal/10 p-4">
+            <p className="mb-3 text-sm font-medium text-charcoal/70">
+              The Printed Deck
+            </p>
+            <img
+              src={physicalDeckImage}
+              alt="Astral-Dominion printed deck"
+              className="w-full h-auto mb-3"
+            />
+            <p className="text-xs text-charcoal/60">
+              Professionally printed with premium card stock and luxe finishes
+            </p>
+          </div>
+
+          {/* Printed deck purchase option */}
           <form
             action="/api/checkout"
             method="post"
