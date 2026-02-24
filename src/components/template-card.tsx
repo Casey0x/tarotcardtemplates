@@ -1,32 +1,34 @@
 import Link from "next/link";
 import type { TarotTemplate } from "@/lib/templates";
 
-export function TemplateCard({ template }: { template: TarotTemplate }) {
-  // Support a few possible field names so you don't have to fight types right now.
-  const thumbUrl =
-    (template as any).thumbUrl ||
-    (template as any).thumbnailUrl ||
-    (template as any).thumb ||
-    (template as any).imageUrl ||
-    "";
+export default function TemplateCard({
+  template,
+}: {
+  template: TarotTemplate;
+}) {
+  const thumbUrl = template.previewImages?.[0];
 
   return (
     <article className="border border-charcoal/10 bg-white p-6">
-      {thumbUrl ? (
-        <div className="mb-5 aspect-[4/3] w-full overflow-hidden bg-parchment">
+      <div className="mb-5 aspect-[3/4] w-full overflow-hidden bg-parchment">
+        {thumbUrl ? (
           <img
             src={thumbUrl}
-            alt={`${template.name} thumbnail`}
+            alt={`${template.name} preview`}
             className="h-full w-full object-cover"
             loading="lazy"
           />
-        </div>
-      ) : (
-        <div className="mb-5 aspect-[4/3] w-full bg-parchment" />
-      )}
+        ) : (
+          <div className="h-full w-full bg-parchment" />
+        )}
+      </div>
 
       <h3 className="text-xl font-semibold">{template.name}</h3>
-      <p className="mt-2 text-sm text-charcoal/80">{template.description}</p>
+
+      <p className="mt-2 text-sm text-charcoal/80">
+        {template.description}
+      </p>
+
       <p className="mt-3 text-sm">
         Template download: ${template.templatePrice.toFixed(2)}
       </p>
