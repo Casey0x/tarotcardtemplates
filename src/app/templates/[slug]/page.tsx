@@ -182,7 +182,7 @@ export default async function TemplateDetailPage({
               </button>
 
               <p className="mt-2 text-sm text-neutral-500">
-                Professionally printed and shipped. Single deck only in Phase 1.
+                Professionally printed and shipped.
               </p>
             </form>
           </div>
@@ -210,7 +210,7 @@ export default async function TemplateDetailPage({
             
             <div className="mt-4 pt-4 border-t border-charcoal/10">
               <p className="font-medium text-charcoal mb-2">Size</p>
-              <ul className="space-y-1">
+              <ul className="space-y-1 list-disc pl-5">
                 <li>Cards: 70 x 120mm (L×H)</li>
                 <li>Box: 74 x 124 x 28mm (L×H×D)</li>
               </ul>
