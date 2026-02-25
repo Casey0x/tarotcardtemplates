@@ -16,11 +16,10 @@ export default async function TemplateDetailPage({
     notFound();
   }
 
-  // Physical deck image
   const physicalDeckImage = "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/physical%20deck.png";
 
   return (
-    <article className="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
+    <article className="grid gap-10 lg:grid-cols-2">
       <section>
         <TemplateGallery
           images={template.previewImages ?? []}
@@ -47,14 +46,12 @@ export default async function TemplateDetailPage({
       </section>
 
       <aside className="space-y-6">
-        {/* Purchase Options */}
         <div className="border border-charcoal/15 bg-white p-6">
           <h2 className="text-xl font-semibold">
             Purchase options
           </h2>
 
           <div className="mt-6 space-y-4">
-            {/* Template download option */}
             <form
               action="/api/checkout"
               method="post"
@@ -87,7 +84,6 @@ export default async function TemplateDetailPage({
               </p>
             </form>
 
-            {/* Physical deck preview with hover zoom */}
             <div className="border border-charcoal/10 p-4 overflow-hidden">
               <p className="mb-3 text-sm font-medium text-charcoal/70">
                 The Printed Deck
@@ -104,7 +100,6 @@ export default async function TemplateDetailPage({
               </p>
             </div>
 
-            {/* Printed deck purchase option */}
             <form
               action="/api/checkout"
               method="post"
@@ -146,7 +141,6 @@ export default async function TemplateDetailPage({
           </Link>
         </div>
 
-        {/* TheNextCard.app Promotion */}
         <div className="border border-charcoal/15 bg-cream p-6">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <span>✨</span>
@@ -163,11 +157,10 @@ export default async function TemplateDetailPage({
             <li>• Reflect and save readings in your journal</li>
           </ul>
 
-          {/* Phone mockup */}
           <div className="mt-6 flex justify-center">
             <img 
               src="https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/shared/thenextcard-mockup.png"
-              alt="TheNextCard.app interface showing tarot reading" 
+              alt="TheNextCard.app interface" 
               className="w-48 h-auto"
             />
           </div>
