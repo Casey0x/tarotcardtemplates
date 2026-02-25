@@ -85,16 +85,18 @@ export default async function TemplateDetailPage({
             </p>
           </form>
 
-          {/* Physical deck preview */}
-          <div className="border border-charcoal/10 p-4">
+          {/* Physical deck preview with hover zoom */}
+          <div className="border border-charcoal/10 p-4 overflow-hidden">
             <p className="mb-3 text-sm font-medium text-charcoal/70">
               The Printed Deck
             </p>
-            <img
-              src={physicalDeckImage}
-              alt="Astral-Dominion printed deck"
-              className="w-full h-auto mb-3"
-            />
+            <div className="overflow-hidden mb-3">
+              <img
+                src={physicalDeckImage}
+                alt="Astral-Dominion printed deck"
+                className="w-full h-auto transition-transform duration-300 hover:scale-110 cursor-pointer"
+              />
+            </div>
             <p className="text-xs text-charcoal/60">
               Professionally printed with premium card stock and luxe finishes
             </p>
