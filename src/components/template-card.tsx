@@ -1,40 +1,47 @@
 import Link from "next/link";
-import type { TarotTemplate } from "@/lib/templates";
+import { Template } from "@/lib/templates";
 
-export default function TemplateCard({
-  template,
-}: {
-  template: TarotTemplate;
-}) {
-  const thumbUrl = template.previewImages?.[0];
+interface TemplateCardProps {
+  template: Template;
+}
+
+export default function TemplateCard({ template }: TemplateCardProps) {
+  const thumbnailUrl = template.previewImages?.[0];
 
   return (
-    <article className="border border-charcoal/10 bg-white p-6">
-      <div className="mb-5 aspect-[2/3] w-full max-h-96 overflow-hidden bg-parchment">
-        {thumbUrl ? (
+    <article className="border border-charcoal/10 bg-white flex flex-col h-full">
+      {thumbnailUrl && (
+        <Link href={`/templates/${template.slug}`}>
           <img
-            src={thumbUrl}
-            alt={`${template.name} preview`}
-            className="h-full w-full object-cover"
-            loading="lazy"
+            src={thumbnailUrl}
+            alt={template.name}
+            className="aspect-[2/3] w-full max-h-96 object-cover"
           />
-        ) : (
-          <div className="h-full w-full bg-parchment" />
-        )}
+        </Link>
+      )}
+
+      <div className="p-6 flex flex-col flex-grow">
+        <h2 className="text-xl font-semibold">
+          <Link href={`/templates/${template.slug}`}>
+            {template.name}
+          </Link>
+        </h2>
+
+        <p className="mt-3 text-sm text-charcoal/80 flex-grow">
+          {template.description}
+        </p>
+
+        <p className="mt-4 text-sm font-medium">
+          Template download: ${template.templatePrice.toFixed(2)}
+        </p>
+
+        <Link
+          href={`/templates/${template.slug}`}
+          className="mt-4 inline-block border border-charcoal bg-white px-4 py-2 text-sm text-charcoal hover:bg-charcoal hover:text-cream transition-colors text-center"
+        >
+          View template
+        </Link>
       </div>
-      <h3 className="text-xl font-semibold">{template.name}</h3>
-      <p className="mt-2 text-sm text-charcoal/80">
-        {template.description}
-      </p>
-      <p className="mt-3 text-sm">
-        Template download: ${template.templatePrice.toFixed(2)}
-      </p>
-      <Link
-        href={`/templates/${template.slug}`}
-        className="mt-5 inline-block border border-charcoal px-4 py-2 text-sm hover:bg-charcoal hover:text-cream"
-      >
-        View template
-      </Link>
     </article>
   );
 }
