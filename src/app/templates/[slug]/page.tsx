@@ -256,18 +256,3 @@ export default async function TemplateDetailPage({
     </article>
   );
 }
-```
-
----
-
-## **Changes Made:**
-
-✅ **Line 29-38:** Updated keywords to generic ones that work for ALL templates (removed "art nouveau tarot", added "print ready tarot template" and "commercial use tarot deck")
-
-✅ **Line 74:** Already has the dynamic physical deck image (perfect!)
-
----
-
-**Copy this entire code, paste it into GitHub, commit with message:**
-```
-Update SEO keywords to generic terms and make physical deck images dynamic
