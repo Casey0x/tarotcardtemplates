@@ -45,135 +45,99 @@ export default async function TemplateDetailPage({
         </ul>
       </section>
 
-      <aside className="space-y-6">
-        <div className="border border-charcoal/15 bg-white p-6">
-          <h2 className="text-xl font-semibold">
-            Purchase options
-          </h2>
+      <aside className="h-fit border border-charcoal/15 bg-white p-6">
+        <h2 className="text-xl font-semibold">
+          Purchase options
+        </h2>
 
-          <div className="mt-6 space-y-4">
-            <form
-              action="/api/checkout"
-              method="post"
-              className="space-y-2 border border-charcoal/10 p-4"
-            >
-              <input
-                type="hidden"
-                name="templateSlug"
-                value={template.slug}
-              />
-              <input
-                type="hidden"
-                name="purchaseType"
-                value="template"
-              />
-
-              <p className="font-medium">
-                Buy template (${template.templatePrice.toFixed(2)})
-              </p>
-
-              <button
-                type="submit"
-                className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream"
-              >
-                Continue to checkout
-              </button>
-
-              <p className="mt-2 text-sm text-neutral-500">
-                Instant digital download. Print-ready files included.
-              </p>
-            </form>
-
-            <div className="border border-charcoal/10 p-4 overflow-hidden">
-              <p className="mb-3 text-sm font-medium text-charcoal/70">
-                The Printed Deck
-              </p>
-              <div className="overflow-hidden mb-3">
-                <img
-                  src={physicalDeckImage}
-                  alt="Astral-Dominion printed deck"
-                  className="w-full h-auto transition-transform duration-300 hover:scale-110 cursor-pointer"
-                />
-              </div>
-              <p className="text-xs text-charcoal/60">
-                Professionally printed with premium card stock and luxe finishes
-              </p>
-            </div>
-
-            <form
-              action="/api/checkout"
-              method="post"
-              className="space-y-2 border border-charcoal/10 p-4"
-            >
-              <input
-                type="hidden"
-                name="templateSlug"
-                value={template.slug}
-              />
-              <input
-                type="hidden"
-                name="purchaseType"
-                value="print"
-              />
-
-              <p className="font-medium">
-                Buy printed deck from template (${template.printPrice.toFixed(2)})
-              </p>
-
-              <button
-                type="submit"
-                className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream"
-              >
-                Continue to checkout
-              </button>
-
-              <p className="mt-2 text-sm text-neutral-500">
-                Professionally printed and shipped. Single deck only in Phase 1.
-              </p>
-            </form>
-          </div>
-
-          <Link
-            href="/how-it-works"
-            className="mt-6 inline-block text-sm underline underline-offset-4"
+        <div className="mt-6 space-y-4">
+          <form
+            action="/api/checkout"
+            method="post"
+            className="space-y-2 border border-charcoal/10 p-4"
           >
-            Review how purchasing works
-          </Link>
-        </div>
-
-        <div className="border border-charcoal/15 bg-cream p-6">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <span>✨</span>
-            <span>Use This Deck With TheNextCard.app</span>
-          </h3>
-
-          <p className="mt-3 text-sm text-charcoal/80">
-            Power your printed or digital deck with AI-assisted readings.
-          </p>
-
-          <ul className="mt-4 space-y-2 text-sm text-charcoal/80">
-            <li>• Ask questions and select your drawn cards</li>
-            <li>• Get deeper interpretations instantly</li>
-            <li>• Reflect and save readings in your journal</li>
-          </ul>
-
-          <div className="mt-6 flex justify-center">
-            <img 
-              src="https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/shared/thenextcard-mockup.png"
-              alt="TheNextCard.app interface" 
-              className="w-48 h-auto"
+            <input
+              type="hidden"
+              name="templateSlug"
+              value={template.slug}
             />
+            <input
+              type="hidden"
+              name="purchaseType"
+              value="template"
+            />
+
+            <p className="font-medium">
+              Buy template (${template.templatePrice.toFixed(2)})
+            </p>
+
+            <button
+              type="submit"
+              className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream"
+            >
+              Continue to checkout
+            </button>
+
+            <p className="mt-2 text-sm text-neutral-500">
+              Instant digital download. Print-ready files included.
+            </p>
+          </form>
+
+          <div className="border border-charcoal/10 p-4 overflow-hidden">
+            <p className="mb-3 text-sm font-medium text-charcoal/70">
+              The Printed Deck
+            </p>
+            <div className="overflow-hidden mb-3">
+              <img
+                src={physicalDeckImage}
+                alt="Astral-Dominion printed deck"
+                className="w-full h-auto transition-transform duration-300 hover:scale-110 cursor-pointer"
+              />
+            </div>
+            <p className="text-xs text-charcoal/60">
+              Professionally printed with premium card stock and luxe finishes
+            </p>
           </div>
 
-          
-            href="https://www.thenextcard.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 inline-block w-full text-center border border-charcoal bg-charcoal px-5 py-3 text-sm text-cream hover:bg-charcoal/90 transition-colors"
+          <form
+            action="/api/checkout"
+            method="post"
+            className="space-y-2 border border-charcoal/10 p-4"
           >
-            Explore the AI Companion →
-          </a>
+            <input
+              type="hidden"
+              name="templateSlug"
+              value={template.slug}
+            />
+            <input
+              type="hidden"
+              name="purchaseType"
+              value="print"
+            />
+
+            <p className="font-medium">
+              Buy printed deck from template (${template.printPrice.toFixed(2)})
+            </p>
+
+            <button
+              type="submit"
+              className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream"
+            >
+              Continue to checkout
+            </button>
+
+            <p className="mt-2 text-sm text-neutral-500">
+              Professionally printed and shipped. Single deck only in Phase 1.
+            </p>
+          </form>
         </div>
+
+        <Link
+          href="/how-it-works"
+          className="mt-6 inline-block text-sm underline underline-offset-4"
+        >
+          Review how purchasing works
+        </Link>
       </aside>
     </article>
   );
