@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Template } from "@/lib/templates";
+import { TarotTemplate } from "@/lib/templates";
 
 interface TemplateCardProps {
-  template: Template;
+  template: TarotTemplate;
 }
 
 export default function TemplateCard({ template }: TemplateCardProps) {
