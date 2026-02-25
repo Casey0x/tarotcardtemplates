@@ -70,7 +70,7 @@ export default async function TemplateDetailPage({
     notFound();
   }
 
-  const physicalDeckImage = "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/physical%20deck.png";
+  const physicalDeckImage = `https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/${template.slug.toUpperCase()}/physical-deck.png`;
 
   return (
     <article className="grid gap-10 lg:grid-cols-2">
