@@ -225,28 +225,19 @@ export default async function TemplateDetailPage({
               </p>
             </div>
 
-            {/* About Custom Tarot Cards - MOVED HERE */}
+            {/* About the Printed Deck - UPDATED WITH BULLETS */}
             <div className="border border-charcoal/10 p-4 bg-white">
               <h3 className="text-sm font-semibold mb-3">
-                About Custom Tarot Cards (70 x 120mm)
+                About the Printed Deck
               </h3>
 
-              <div className="space-y-2 text-xs text-charcoal/80">
-                <p>
-                  Custom Tarot Cards (70 x 120mm) printed 300gsm with 350gsm printed (TUCK) box.
-                </p>
-                <p>
-                  Each custom tarot cards Deck is up to 78 cards.
-                </p>
-                
-                <div className="mt-3 pt-3 border-t border-charcoal/10">
-                  <p className="font-medium text-charcoal mb-2 text-xs">Size</p>
-                  <ul className="space-y-1 list-disc pl-4 text-xs">
-                    <li>Cards: 70 x 120mm (L×H)</li>
-                    <li>Box: 74 x 124 x 28mm (L×H×D)</li>
-                  </ul>
-                </div>
-              </div>
+              <ul className="space-y-1 text-xs text-charcoal/80">
+                <li>• Premium 300gsm card stock</li>
+                <li>• 350gsm printed tuck box included</li>
+                <li>• Complete 78-card deck</li>
+                <li>• Standard size: 70 x 120mm</li>
+                <li>• Professional print quality</li>
+              </ul>
             </div>
 
             <form
