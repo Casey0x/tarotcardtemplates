@@ -96,12 +96,6 @@ export default async function TemplateDetailPage({
               The Astral-Dominion tarot deck template is inspired by classic Art Nouveau design — flowing organic forms, ornate borders, and elegant gold embellishments. This printable tarot deck template blends celestial motifs with refined illustration to create a luxurious reading aesthetic. Unlike minimalist tarot layouts, this design embraces intricate detailing, layered symbolism, and symmetrical composition.
             </p>
 
-            <ul className="mt-6 space-y-2 text-sm">
-              {template.includes.map((item) => (
-                <li key={item}>• {item}</li>
-              ))}
-            </ul>
-
             {/* Perfect For */}
             <div className="mt-8">
               <h3 className="text-lg font-semibold mb-3">Perfect for:</h3>
