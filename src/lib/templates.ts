@@ -1,4 +1,4 @@
-ximport { supabaseRestFetch } from '@/lib/supabase-rest';
+import { supabaseRestFetch } from '@/lib/supabase-rest';
 
 export type TarotTemplate = {
   slug: string;
