@@ -293,7 +293,7 @@ export default async function TemplateDetailPage({
               
               <p className="text-charcoal/80 mb-6 leading-relaxed">
                 Unlike traditional Rider-Waite interpretations, this deck presents The Fool suspended 
-                within a celestial wheel—symbolizing destiny's gentle guidance rather than 
+                within a celestial wheel—symbolizing destiny&apos;s gentle guidance rather than 
                 impulsive leaps into the unknown.
               </p>
 
@@ -382,9 +382,9 @@ export default async function TemplateDetailPage({
               </p>
               
               <p className="text-charcoal/80 leading-relaxed">
-                Unlike the traditional Rider-Waite Fool standing at a cliff's edge, this interpretation 
+                Unlike the traditional Rider-Waite Fool standing at a cliff&apos;s edge, this interpretation 
                 suggests movement guided by fate rather than reckless spontaneity. The Fool dances 
-                with cosmic forces, trusting in the universe's grand design.
+                with cosmic forces, trusting in the universe&apos;s grand design.
               </p>
             </div>
           </div>
