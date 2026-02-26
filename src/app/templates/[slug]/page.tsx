@@ -183,7 +183,7 @@ export default async function TemplateDetailPage({
 
               <button
                 type="submit"
-                className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream"
+                className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream hover:bg-charcoal/90 transition-colors"
               >
                 Continue to checkout
               </button>
@@ -196,12 +196,16 @@ export default async function TemplateDetailPage({
             {/* Template Specs Box - Astral-Dominion Only */}
             {template.slug === "Astral-Dominion" && (
               <div className="border border-charcoal/10 p-4 bg-cream/30">
-                <h3 className="text-sm font-semibold mb-2">
-                  Luxury Printable Tarot Deck Template (300 DPI, Print-Ready)
+                <h3 className="text-sm font-semibold mb-3">
+                  Luxury Printable Tarot Deck Template
                 </h3>
-                <p className="text-xs text-charcoal/80">
-                  This tarot card template includes 78 high-resolution card fronts prepared for professional printing. Each file is delivered at 300 DPI with bleed settings suitable for standard tarot card dimensions (70 x 120mm). Perfect for independent publishers, Etsy sellers, spiritual entrepreneurs, or custom tarot deck creators seeking production-ready artwork.
-                </p>
+                <ul className="space-y-1 text-xs text-charcoal/80">
+                  <li>• 78 high-resolution card fronts (300 DPI)</li>
+                  <li>• Print-ready with bleed settings</li>
+                  <li>• Standard size: 70 x 120mm</li>
+                  <li>• Perfect for independent publishers & Etsy sellers</li>
+                  <li>• Instant digital download</li>
+                </ul>
               </div>
             )}
 
@@ -219,6 +223,30 @@ export default async function TemplateDetailPage({
               <p className="text-xs text-charcoal/60">
                 Professionally printed with premium card stock and luxe finishes
               </p>
+            </div>
+
+            {/* About Custom Tarot Cards - MOVED HERE */}
+            <div className="border border-charcoal/10 p-4 bg-white">
+              <h3 className="text-sm font-semibold mb-3">
+                About Custom Tarot Cards (70 x 120mm)
+              </h3>
+
+              <div className="space-y-2 text-xs text-charcoal/80">
+                <p>
+                  Custom Tarot Cards (70 x 120mm) printed 300gsm with 350gsm printed (TUCK) box.
+                </p>
+                <p>
+                  Each custom tarot cards Deck is up to 78 cards.
+                </p>
+                
+                <div className="mt-3 pt-3 border-t border-charcoal/10">
+                  <p className="font-medium text-charcoal mb-2 text-xs">Size</p>
+                  <ul className="space-y-1 list-disc pl-4 text-xs">
+                    <li>Cards: 70 x 120mm (L×H)</li>
+                    <li>Box: 74 x 124 x 28mm (L×H×D)</li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
             <form
@@ -243,7 +271,7 @@ export default async function TemplateDetailPage({
 
               <button
                 type="submit"
-                className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream"
+                className="w-full border-2 border-charcoal bg-white px-4 py-2 text-sm text-charcoal hover:bg-charcoal hover:text-cream transition-colors"
               >
                 Continue to checkout
               </button>
@@ -260,29 +288,6 @@ export default async function TemplateDetailPage({
           >
             Review how purchasing works
           </Link>
-        </div>
-
-        <div className="border border-charcoal/15 bg-white p-6">
-          <h3 className="text-lg font-semibold">
-            About Custom Tarot Cards (70 x 120mm)
-          </h3>
-
-          <div className="mt-4 space-y-3 text-sm text-charcoal/80">
-            <p>
-              Custom Tarot Cards (70 x 120mm) printed 300gsm with 350gsm printed (TUCK) box.
-            </p>
-            <p>
-              Each custom tarot cards Deck is up to 78 cards.
-            </p>
-            
-            <div className="mt-4 pt-4 border-t border-charcoal/10">
-              <p className="font-medium text-charcoal mb-2">Size</p>
-              <ul className="space-y-1 list-disc pl-5">
-                <li>Cards: 70 x 120mm (L×H)</li>
-                <li>Box: 74 x 124 x 28mm (L×H×D)</li>
-              </ul>
-            </div>
-          </div>
         </div>
 
         <div className="border border-charcoal/15 bg-cream p-6">
