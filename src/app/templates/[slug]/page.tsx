@@ -86,55 +86,57 @@ export default async function TemplateDetailPage({
             {template.name}
           </h1>
 
-          {/* SEO Content Section - Astral-Dominion Only */}
-          {template.slug === "Astral-Dominion" ? (
+          {/* Dynamic SEO Content — rendered only when populated in DB */}
+          {template.seoHeading ? (
             <>
               <h2 className="mt-6 text-xl font-semibold">
-                Art Nouveau Tarot Deck Design with Celestial Gold Detailing
+                {template.seoHeading}
               </h2>
-              
+
               <p className="mt-3 text-charcoal/80">
-                The Astral-Dominion tarot deck template is inspired by classic Art Nouveau design — flowing organic forms, ornate borders, and elegant gold embellishments. This printable tarot deck template blends celestial motifs with refined illustration to create a luxurious reading aesthetic. Unlike minimalist tarot layouts, this design embraces intricate detailing, layered symbolism, and symmetrical composition.
+                {template.seoDescription}
               </p>
 
-              {/* Perfect For */}
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-3">Perfect for:</h3>
-                <ul className="space-y-1 text-sm text-charcoal/80">
-                  <li>• Tarot deck creators</li>
-                  <li>• Spiritual coaches & readers</li>
-                  <li>• Luxury tarot brands</li>
-                  <li>• Independent publishers</li>
-                  <li>• Artists launching their own tarot deck</li>
-                </ul>
-              </div>
-
-              {/* Additional SEO Sections */}
-              <div className="mt-10 space-y-8">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">
-                    Celestial & Cosmic Tarot Symbolism
-                  </h3>
-                  <p className="text-charcoal/80">
-                    At the heart of this deck is a strong celestial theme — circular cosmic framing, planetary references, and symbolic motion within a divine wheel. This cosmic tarot design evokes themes of destiny, movement, and spiritual alignment. The Astral-Dominion layout is ideal for those creating astrology-inspired tarot decks or celestial-themed spiritual products.
-                  </p>
+              {template.seoPerfectFor && (
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold mb-3">Perfect for:</h3>
+                  <ul className="space-y-1 text-sm text-charcoal/80">
+                    {template.seoPerfectFor.map((item) => (
+                      <li key={item}>• {item}</li>
+                    ))}
+                  </ul>
                 </div>
+              )}
 
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">
-                    The Fool in the Astral-Dominion Tarot Deck
-                  </h3>
-                  <p className="text-charcoal/80 mb-3">
-                    In this deck, The Fool is depicted suspended within a celestial wheel — symbolising movement within destiny rather than naive risk. The circular composition and gold ornamentation transform the traditional Rider-Waite narrative into a cosmic journey motif.
-                  </p>
-                  <Link 
-                    href="/card-meanings/the-fool"
-                    className="inline-block text-sm text-charcoal underline underline-offset-4 hover:text-charcoal/60 transition-colors"
-                  >
-                    Explore the full interpretation of The Fool →
-                  </Link>
+              {template.seoSymbolismHeading && (
+                <div className="mt-10 space-y-8">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">
+                      {template.seoSymbolismHeading}
+                    </h3>
+                    <p className="text-charcoal/80">{template.seoSymbolismBody}</p>
+                  </div>
+
+                  {template.seoCardSpotlightHeading && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">
+                        {template.seoCardSpotlightHeading}
+                      </h3>
+                      <p className="text-charcoal/80 mb-3">
+                        {template.seoCardSpotlightBody}
+                      </p>
+                      {template.seoCardSpotlightLink && (
+                        <Link
+                          href={template.seoCardSpotlightLink}
+                          className="inline-block text-sm text-charcoal underline underline-offset-4 hover:text-charcoal/60 transition-colors"
+                        >
+                          Explore the full interpretation →
+                        </Link>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </>
           ) : (
             <>
@@ -193,22 +195,6 @@ export default async function TemplateDetailPage({
                   Instant digital download. Print-ready files included.
                 </p>
               </form>
-
-              {/* Template Specs Box - Astral-Dominion Only */}
-              {template.slug === "Astral-Dominion" && (
-                <div className="border border-charcoal/10 p-4 bg-cream/30">
-                  <h3 className="text-sm font-semibold mb-3">
-                    Luxury Printable Tarot Deck Template
-                  </h3>
-                  <ul className="space-y-1 text-xs text-charcoal/80">
-                    <li>• 78 high-resolution card fronts (300 DPI)</li>
-                    <li>• Print-ready with bleed settings</li>
-                    <li>• Standard size: 70 x 120mm</li>
-                    <li>• Perfect for independent publishers & Etsy sellers</li>
-                    <li>• Instant digital download</li>
-                  </ul>
-                </div>
-              )}
 
               <div className="border border-charcoal/10 p-4 overflow-hidden">
                 <p className="mb-3 text-sm font-medium text-charcoal/70">
@@ -299,9 +285,9 @@ export default async function TemplateDetailPage({
             </ul>
 
             <div className="mt-6 flex justify-center">
-              <img 
+              <img
                 src="https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/shared/thenextcard-mockup.png"
-                alt="TheNextCard.app interface" 
+                alt="TheNextCard.app interface"
                 className="w-48 h-auto"
               />
             </div>
