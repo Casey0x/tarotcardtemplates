@@ -114,17 +114,14 @@ export default async function TemplateDetailPage({
               </ul>
             </div>
 
-            {/* Main SEO Content */}
+            {/* Main SEO Content - Shortened */}
             <div className="mt-10 space-y-8">
               <div>
                 <h2 className="text-xl font-semibold mb-4">
                   Art Nouveau Tarot Deck Design with Celestial Gold Detailing
                 </h2>
-                <p className="text-charcoal/80 mb-3">
-                  The Astral-Dominion tarot deck template is inspired by classic Art Nouveau design — flowing organic forms, ornate borders, and elegant gold embellishments. This printable tarot deck template blends celestial motifs with refined illustration to create a luxurious reading aesthetic.
-                </p>
                 <p className="text-charcoal/80">
-                  Unlike minimalist tarot layouts, this design embraces intricate detailing, layered symbolism, and symmetrical composition. The result is a premium tarot card template ideal for creators seeking a timeless, decorative tarot deck style.
+                  The Astral-Dominion tarot deck template is inspired by classic Art Nouveau design — flowing organic forms, ornate borders, and elegant gold embellishments. This printable tarot deck template blends celestial motifs with refined illustration to create a luxurious reading aesthetic. Unlike minimalist tarot layouts, this design embraces intricate detailing, layered symbolism, and symmetrical composition.
                 </p>
               </div>
 
@@ -134,15 +131,6 @@ export default async function TemplateDetailPage({
                 </h3>
                 <p className="text-charcoal/80">
                   At the heart of this deck is a strong celestial theme — circular cosmic framing, planetary references, and symbolic motion within a divine wheel. This cosmic tarot design evokes themes of destiny, movement, and spiritual alignment. The Astral-Dominion layout is ideal for those creating astrology-inspired tarot decks or celestial-themed spiritual products.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-3">
-                  Luxury Printable Tarot Deck Template (300 DPI, Print-Ready)
-                </h3>
-                <p className="text-charcoal/80">
-                  This tarot card template includes 78 high-resolution card fronts prepared for professional printing. Each file is delivered at 300 DPI with bleed settings suitable for standard tarot card dimensions (70 x 120mm). Perfect for independent publishers, Etsy sellers, spiritual entrepreneurs, or custom tarot deck creators seeking production-ready artwork.
                 </p>
               </div>
 
@@ -203,6 +191,18 @@ export default async function TemplateDetailPage({
                 Instant digital download. Print-ready files included.
               </p>
             </form>
+
+            {/* NEW: Template Specs Box - Astral-Dominion Only */}
+            {template.slug === "Astral-Dominion" && (
+              <div className="border border-charcoal/10 p-4 bg-cream/30">
+                <h3 className="text-sm font-semibold mb-2">
+                  Luxury Printable Tarot Deck Template (300 DPI, Print-Ready)
+                </h3>
+                <p className="text-xs text-charcoal/80">
+                  This tarot card template includes 78 high-resolution card fronts prepared for professional printing. Each file is delivered at 300 DPI with bleed settings suitable for standard tarot card dimensions (70 x 120mm). Perfect for independent publishers, Etsy sellers, spiritual entrepreneurs, or custom tarot deck creators seeking production-ready artwork.
+                </p>
+              </div>
+            )}
 
             <div className="border border-charcoal/10 p-4 overflow-hidden">
               <p className="mb-3 text-sm font-medium text-charcoal/70">
