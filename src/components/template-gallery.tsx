@@ -1,7 +1,5 @@
 'use client';
-
 import { useState } from 'react';
-
 export default function TemplateGallery({
   images,
   templateName,
@@ -10,9 +8,7 @@ export default function TemplateGallery({
   templateName: string;
 }) {
   const [selectedImage, setSelectedImage] = useState(0);
-
   if (!images || images.length === 0) return null;
-
   return (
     <div className="w-full max-w-md">
       {/* Main large image */}
@@ -23,10 +19,9 @@ export default function TemplateGallery({
           className="w-full h-auto"
         />
       </div>
-
       {/* Thumbnail grid - only show if more than 1 image */}
       {images.length > 1 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {images.map((img, index) => (
             <button
               key={index}
