@@ -21,7 +21,7 @@ export default function TemplateGallery({
       </div>
       {/* Thumbnail grid - only show if more than 1 image */}
       {images.length > 1 && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           {images.map((img, index) => (
             <button
               key={index}
