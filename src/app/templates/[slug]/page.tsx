@@ -213,7 +213,7 @@ export default async function TemplateDetailPage({
               </div>
 
               {/* About the Printed Deck */}
-              <div className="border border-charcoal/10 p-4 bg-white">
+              <div className="border border-charcoal/10 p-4 bg-white">h
                 <h3 className="text-sm font-semibold mb-3">
                   About the Printed Deck
                 </h3>
@@ -326,7 +326,7 @@ export default async function TemplateDetailPage({
           ].map((card) => (
             <Link
               key={card.slug}
-              href={`/meanings/${card.slug}`}
+              href={`/card-meanings/${card.slug}`}
               className="group flex flex-col items-center gap-2"
             >
               <div className="relative" style={{ width: "105px" }}>
@@ -375,25 +375,25 @@ export default async function TemplateDetailPage({
                 "@type": "ListItem",
                 "position": 1,
                 "name": "The Star Tarot Meaning",
-                "url": "https://www.tarotcardtemplates.com/meanings/the-star"
+                "url": "https://www.tarotcardtemplates.com/card-meanings/the-star"
               },
               {
                 "@type": "ListItem",
                 "position": 2,
                 "name": "The Moon Tarot Meaning",
-                "url": "https://www.tarotcardtemplates.com/meanings/the-moon"
+                "url": "https://www.tarotcardtemplates.com/card-meanings/the-moon"
               },
               {
                 "@type": "ListItem",
                 "position": 3,
                 "name": "The Magician Tarot Meaning",
-                "url": "https://www.tarotcardtemplates.com/meanings/the-magician"
+                "url": "https://www.tarotcardtemplates.com/card-meanings/the-magician"
               },
               {
                 "@type": "ListItem",
                 "position": 4,
                 "name": "The Fool Tarot Meaning",
-                "url": "https://www.tarotcardtemplates.com/meanings/the-fool"
+                "url": "https://www.tarotcardtemplates.com/card-meanings/the-fool"
               }
             ]
           })
