@@ -6,6 +6,52 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
+// Per-template card spotlight config
+// Add an entry here whenever a template has deck-specific card artwork in storage
+const TEMPLATE_CARD_SPOTLIGHTS: Record<
+  string,
+  { name: string; slug: string; image: string; alt: string }[]
+> = {
+  "cosmic-void": [
+    {
+      name: "Three of Swords",
+      slug: "three-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/COSMIC-VOID/three-of-swords.png",
+      alt: "Three of Swords tarot card — Cosmic Void deck",
+    },
+    {
+      name: "Strength",
+      slug: "strength",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/COSMIC-VOID/strength.png",
+      alt: "Strength tarot card — Cosmic Void deck",
+    },
+    {
+      name: "Six of Cups",
+      slug: "six-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/COSMIC-VOID/six-of-cups.png",
+      alt: "Six of Cups tarot card — Cosmic Void deck",
+    },
+    {
+      name: "King of Wands",
+      slug: "king-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/COSMIC-VOID/king-of-wands.png",
+      alt: "King of Wands tarot card — Cosmic Void deck",
+    },
+  ],
+};
+
+// Fallback cards used for templates without a specific spotlight config
+const DEFAULT_CARDS = [
+  { name: "The Star", slug: "the-star", image: "/images/the-star.jpg", alt: "The Star tarot card meaning" },
+  { name: "The Moon", slug: "the-moon", image: "/images/the-moon.jpg", alt: "The Moon tarot card meaning" },
+  { name: "The Magician", slug: "the-magician", image: "/images/the-magician.jpg", alt: "The Magician tarot card meaning" },
+  { name: "The Fool", slug: "the-fool", image: "/images/the-fool.jpg", alt: "The Fool tarot card meaning" },
+];
+
 // Generate metadata for SEO
 export async function generateMetadata({
   params,
@@ -73,30 +119,35 @@ export default async function TemplateDetailPage({
 
   const physicalDeckImage = `https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/${template.slug.toUpperCase()}/physical-deck.png`;
 
+  // Pick the right card spotlight for this template (or fall back to defaults)
+  const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[template.slug] ?? DEFAULT_CARDS;
+
+  // JSON-LD items for the card spotlight
+  const jsonLdItems = spotlightCards.map((card, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: `${card.name} Tarot Meaning`,
+    url: `https://www.tarotcardtemplates.com/card-meanings/${card.slug}`,
+  }));
+
   return (
     <>
       <article className="grid gap-10 lg:grid-cols-2">
         <section>
-          <TemplateGallery
-            images={template.previewImages ?? []}
-            templateName={template.name}
-          />
-
+          <TemplateGallery images={template.previewImages ?? []} templateName={template.name} />
           <h1 className="mt-8 text-4xl font-semibold">
             {template.name}
           </h1>
 
-          {/* Dynamic SEO Content — rendered only when populated in DB */}
+          {/* Dynamic SEO Content */}
           {template.seoHeading ? (
             <>
               <h2 className="mt-6 text-xl font-semibold">
                 {template.seoHeading}
               </h2>
-
               <p className="mt-3 text-charcoal/80">
                 {template.seoDescription}
               </p>
-
               {template.seoPerfectFor && (
                 <div className="mt-8">
                   <h3 className="text-lg font-semibold mb-3">Perfect for:</h3>
@@ -107,7 +158,6 @@ export default async function TemplateDetailPage({
                   </ul>
                 </div>
               )}
-
               {template.seoSymbolismHeading && (
                 <div className="mt-10 space-y-8">
                   <div>
@@ -116,7 +166,6 @@ export default async function TemplateDetailPage({
                     </h3>
                     <p className="text-charcoal/80">{template.seoSymbolismBody}</p>
                   </div>
-
                   {template.seoCardSpotlightHeading && (
                     <div>
                       <h3 className="text-lg font-semibold mb-3">
@@ -143,11 +192,9 @@ export default async function TemplateDetailPage({
               <p className="mt-3 text-charcoal/80">
                 {template.description}
               </p>
-
               <p className="mt-4 text-sm">
                 {template.styleNote}
               </p>
-
               <ul className="mt-6 space-y-2 text-sm">
                 {template.includes.map((item) => (
                   <li key={item}>• {item}</li>
@@ -162,35 +209,23 @@ export default async function TemplateDetailPage({
             <h2 className="text-xl font-semibold">
               Purchase options
             </h2>
-
             <div className="mt-6 space-y-4">
               <form
                 action="/api/checkout"
                 method="post"
                 className="space-y-2 border border-charcoal/10 p-4"
               >
-                <input
-                  type="hidden"
-                  name="templateSlug"
-                  value={template.slug}
-                />
-                <input
-                  type="hidden"
-                  name="purchaseType"
-                  value="template"
-                />
-
+                <input type="hidden" name="templateSlug" value={template.slug} />
+                <input type="hidden" name="purchaseType" value="template" />
                 <p className="font-medium">
                   Buy template (${template.templatePrice.toFixed(2)})
                 </p>
-
                 <button
                   type="submit"
                   className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream hover:bg-charcoal/90 transition-colors"
                 >
                   Continue to checkout
                 </button>
-
                 <p className="mt-2 text-sm text-neutral-500">
                   Instant digital download. Print-ready files included.
                 </p>
@@ -213,11 +248,10 @@ export default async function TemplateDetailPage({
               </div>
 
               {/* About the Printed Deck */}
-              <div className="border border-charcoal/10 p-4 bg-white">h
+              <div className="border border-charcoal/10 p-4 bg-white">
                 <h3 className="text-sm font-semibold mb-3">
                   About the Printed Deck
                 </h3>
-
                 <ul className="space-y-1 text-xs text-charcoal/80">
                   <li>• Premium 300gsm card stock</li>
                   <li>• 350gsm printed tuck box included</li>
@@ -232,34 +266,22 @@ export default async function TemplateDetailPage({
                 method="post"
                 className="space-y-2 border border-charcoal/10 p-4"
               >
-                <input
-                  type="hidden"
-                  name="templateSlug"
-                  value={template.slug}
-                />
-                <input
-                  type="hidden"
-                  name="purchaseType"
-                  value="print"
-                />
-
+                <input type="hidden" name="templateSlug" value={template.slug} />
+                <input type="hidden" name="purchaseType" value="print" />
                 <p className="font-medium">
                   Buy printed deck from template (${template.printPrice.toFixed(2)})
                 </p>
-
                 <button
                   type="submit"
                   className="w-full border-2 border-charcoal bg-white px-4 py-2 text-sm text-charcoal hover:bg-charcoal hover:text-cream transition-colors"
                 >
                   Continue to checkout
                 </button>
-
                 <p className="mt-2 text-sm text-neutral-500">
                   Professionally printed and shipped.
                 </p>
               </form>
             </div>
-
             <Link
               href="/how-it-works"
               className="mt-6 inline-block text-sm underline underline-offset-4"
@@ -270,20 +292,17 @@ export default async function TemplateDetailPage({
 
           <div className="border border-charcoal/15 bg-cream p-6">
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              <span>✨</span>
+              <span>&#10024;</span>
               <span>Use This Deck With TheNextCard.app</span>
             </h3>
-
             <p className="mt-3 text-sm text-charcoal/80">
               Power your printed deck with AI-assisted readings.
             </p>
-
             <ul className="mt-4 space-y-2 text-sm text-charcoal/80">
               <li>• Ask questions and select your drawn cards</li>
               <li>• Get deeper interpretations instantly</li>
               <li>• Reflect and save readings in your journal</li>
             </ul>
-
             <div className="mt-6 flex justify-center">
               <img
                 src="https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/shared/thenextcard-mockup.png"
@@ -291,7 +310,6 @@ export default async function TemplateDetailPage({
                 className="w-48 h-auto"
               />
             </div>
-
             <Link
               href="https://www.thenextcard.app"
               target="_blank"
@@ -307,23 +325,18 @@ export default async function TemplateDetailPage({
       {/* Tarot Card Meanings Section */}
       <section className="mt-16 mb-10 text-center">
         <div className="flex items-center justify-center gap-3 mb-3">
-          <span className="text-[#C7A96B] text-sm">✦——✦</span>
+          <span className="text-[#C7A96B] text-sm">&#10022;&#8212;&#8212;&#10022;</span>
           <h2 className="text-xl font-semibold tracking-wide text-charcoal">
             Explore Tarot Card Meanings
           </h2>
-          <span className="text-[#C7A96B] text-sm">✦——✦</span>
+          <span className="text-[#C7A96B] text-sm">&#10022;&#8212;&#8212;&#10022;</span>
         </div>
         <p className="text-sm text-charcoal/70 mb-8 max-w-lg mx-auto">
-          Tarot cards carry symbolic meaning used in divination and storytelling. Explore the interpretations behind some classic tarot cards.
+          Tarot cards carry symbolic meaning used in divination and storytelling.
+          Explore the interpretations behind some of the cards in this deck.
         </p>
-
         <div className="flex flex-wrap justify-center gap-8">
-          {[
-            { name: "The Star", slug: "the-star", alt: "The Star tarot card meaning" },
-            { name: "The Moon", slug: "the-moon", alt: "The Moon tarot card meaning" },
-            { name: "The Magician", slug: "the-magician", alt: "The Magician tarot card meaning" },
-            { name: "The Fool", slug: "the-fool", alt: "The Fool tarot card meaning" },
-          ].map((card) => (
+          {spotlightCards.map((card) => (
             <Link
               key={card.slug}
               href={`/card-meanings/${card.slug}`}
@@ -331,7 +344,7 @@ export default async function TemplateDetailPage({
             >
               <div className="relative" style={{ width: "105px" }}>
                 <img
-                  src={`/images/${card.slug}.jpg`}
+                  src={card.image}
                   alt={card.alt}
                   width={105}
                   height={175}
@@ -349,10 +362,9 @@ export default async function TemplateDetailPage({
             </Link>
           ))}
         </div>
-
         <div className="mt-8">
           <Link
-            href="/tarot-card-meanings"
+            href="/card-meanings"
             className="text-sm text-charcoal underline underline-offset-4 hover:text-charcoal/60 transition-colors"
           >
             View All Tarot Card Meanings →
@@ -367,36 +379,12 @@ export default async function TemplateDetailPage({
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "ItemList",
-            "name": "Tarot Card Meanings",
-            "description": "Explore the symbolic meanings behind classic tarot cards used in divination and storytelling.",
-            "url": "https://www.tarotcardtemplates.com/tarot-card-meanings",
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "The Star Tarot Meaning",
-                "url": "https://www.tarotcardtemplates.com/card-meanings/the-star"
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "The Moon Tarot Meaning",
-                "url": "https://www.tarotcardtemplates.com/card-meanings/the-moon"
-              },
-              {
-                "@type": "ListItem",
-                "position": 3,
-                "name": "The Magician Tarot Meaning",
-                "url": "https://www.tarotcardtemplates.com/card-meanings/the-magician"
-              },
-              {
-                "@type": "ListItem",
-                "position": 4,
-                "name": "The Fool Tarot Meaning",
-                "url": "https://www.tarotcardtemplates.com/card-meanings/the-fool"
-              }
-            ]
-          })
+            name: "Tarot Card Meanings",
+            description:
+              "Explore the symbolic meanings behind classic tarot cards used in divination and storytelling.",
+            url: "https://www.tarotcardtemplates.com/card-meanings",
+            itemListElement: jsonLdItems,
+          }),
         }}
       />
 
