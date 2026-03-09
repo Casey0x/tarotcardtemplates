@@ -331,7 +331,7 @@ export default async function TemplateDetailPage({
             >
               <div className="relative" style={{ width: "105px" }}>
                 <img
-                  src={`/images/tarot-thumbs/${card.slug}.jpg`}
+                  src={`/images/${card.slug}.jpg`}
                   alt={card.alt}
                   width={105}
                   height={175}
