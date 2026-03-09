@@ -13,3 +13,29 @@ body {
 a {
   @apply text-inherit;
 }
+
+
+/* Celestial background — applied to hero and footer sections */
+.celestial-background {
+    position: relative;
+    background:
+          linear-gradient(180deg, #f7f3ea 0%, #efe9dc 100%),
+          url("/images/celestial-tarot-background.webp");
+    background-blend-mode: multiply;
+    background-repeat: repeat;
+    background-size: 900px;
+}
+
+.celestial-background::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.82);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.celestial-background > * {
+    position: relative;
+    z-index: 1;
+}
