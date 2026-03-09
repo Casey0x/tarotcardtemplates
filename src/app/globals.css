@@ -15,26 +15,33 @@ a {
 }
 
 
-/* Celestial background — applied to hero and footer sections */
+/* ============================================
+   Celestial background — hero & footer only
+   Soft gold on warm parchment, luxury wallpaper feel
+   ============================================ */
+
 .celestial-background {
     position: relative;
-    background:
-          linear-gradient(180deg, #f7f3ea 0%, #efe9dc 100%),
+    background-color: #F5F1EA;
+    background-image:
+          linear-gradient(180deg, rgba(245, 241, 234, 0.55) 0%, rgba(239, 233, 220, 0.55) 100%),
           url("/images/celestial-tarot-background.webp");
-    background-blend-mode: multiply;
+    background-blend-mode: normal;
     background-repeat: repeat;
-    background-size: 900px;
+    background-size: 1100px;
 }
 
+/* Soft parchment readability overlay */
 .celestial-background::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(255, 255, 255, 0.82);
+    background: rgba(245, 241, 234, 0.78);
     pointer-events: none;
     z-index: 0;
 }
 
+/* Ensure child content sits above the overlay */
 .celestial-background > * {
     position: relative;
     z-index: 1;
