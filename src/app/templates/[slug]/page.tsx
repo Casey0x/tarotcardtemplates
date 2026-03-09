@@ -304,6 +304,102 @@ export default async function TemplateDetailPage({
         </aside>
       </article>
 
+      {/* Tarot Card Meanings Section */}
+      <section className="mt-16 mb-10 text-center">
+        <div className="flex items-center justify-center gap-3 mb-3">
+          <span className="text-[#C7A96B] text-sm">✦——✦</span>
+          <h2 className="text-xl font-semibold tracking-wide text-charcoal">
+            Explore Tarot Card Meanings
+          </h2>
+          <span className="text-[#C7A96B] text-sm">✦——✦</span>
+        </div>
+        <p className="text-sm text-charcoal/70 mb-8 max-w-lg mx-auto">
+          Tarot cards carry symbolic meaning used in divination and storytelling. Explore the interpretations behind some classic tarot cards.
+        </p>
+
+        <div className="flex flex-wrap justify-center gap-8">
+          {[
+            { name: "The Star", slug: "the-star", alt: "The Star tarot card meaning" },
+            { name: "The Moon", slug: "the-moon", alt: "The Moon tarot card meaning" },
+            { name: "The Magician", slug: "the-magician", alt: "The Magician tarot card meaning" },
+            { name: "The Fool", slug: "the-fool", alt: "The Fool tarot card meaning" },
+          ].map((card) => (
+            <Link
+              key={card.slug}
+              href={`/meanings/${card.slug}`}
+              className="group flex flex-col items-center gap-2"
+            >
+              <div className="relative" style={{ width: "105px" }}>
+                <img
+                  src={`/images/tarot-thumbs/${card.slug}.jpg`}
+                  alt={card.alt}
+                  width={105}
+                  height={175}
+                  className="rounded-md object-cover transition-transform duration-200 group-hover:-translate-y-1"
+                  style={{ width: "105px", height: "175px" }}
+                />
+                <div
+                  className="absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
+                  style={{ border: "2px solid #C7A96B", borderRadius: "7px" }}
+                />
+              </div>
+              <span className="text-xs text-charcoal/70 text-center leading-tight">
+                {card.name} Tarot Meaning
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-8">
+          <Link
+            href="/tarot-card-meanings"
+            className="text-sm text-charcoal underline underline-offset-4 hover:text-charcoal/60 transition-colors"
+          >
+            View All Tarot Card Meanings →
+          </Link>
+        </div>
+      </section>
+
+      {/* JSON-LD Structured Data for Tarot Card Meanings */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            "name": "Tarot Card Meanings",
+            "description": "Explore the symbolic meanings behind classic tarot cards used in divination and storytelling.",
+            "url": "https://www.tarotcardtemplates.com/tarot-card-meanings",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "The Star Tarot Meaning",
+                "url": "https://www.tarotcardtemplates.com/meanings/the-star"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "The Moon Tarot Meaning",
+                "url": "https://www.tarotcardtemplates.com/meanings/the-moon"
+              },
+              {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "The Magician Tarot Meaning",
+                "url": "https://www.tarotcardtemplates.com/meanings/the-magician"
+              },
+              {
+                "@type": "ListItem",
+                "position": 4,
+                "name": "The Fool Tarot Meaning",
+                "url": "https://www.tarotcardtemplates.com/meanings/the-fool"
+              }
+            ]
+          })
+        }}
+      />
+
       {/* Sticky Mobile Purchase Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-charcoal/20 p-3 lg:hidden z-50 shadow-lg">
         <div className="max-w-md mx-auto flex gap-2">
