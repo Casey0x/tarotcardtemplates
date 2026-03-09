@@ -12,7 +12,7 @@ const TEMPLATE_CARD_SPOTLIGHTS: Record<
   string,
   { name: string; slug: string; image: string; alt: string }[]
 > = {
-  "cosmic-void": [
+  "Cosmic-Void": [
     {
       name: "Three of Swords",
       slug: "three-of-swords",
