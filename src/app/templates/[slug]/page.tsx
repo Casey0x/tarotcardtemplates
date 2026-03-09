@@ -42,6 +42,36 @@ const TEMPLATE_CARD_SPOTLIGHTS: Record<
       alt: "King of Wands tarot card — Cosmic Void deck",
     },
   ],
+  "Dream-Scape": [
+    {
+      name: "The Hermit",
+      slug: "the-hermit",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DREAM-SCAPE/the-hermit.jpg",
+      alt: "The Hermit tarot card — Dream-Scape deck",
+    },
+    {
+      name: "Nine of Cups",
+      slug: "nine-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DREAM-SCAPE/nine-of-cups.jpg",
+      alt: "Nine of Cups tarot card — Dream-Scape deck",
+    },
+    {
+      name: "Seven of Pentacles",
+      slug: "seven-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DREAM-SCAPE/seven-of-pentacles.jpg",
+      alt: "Seven of Pentacles tarot card — Dream-Scape deck",
+    },
+    {
+      name: "Page of Pentacles",
+      slug: "page-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DREAM-SCAPE/page-of-pentacles.jpg",
+      alt: "Page of Pentacles tarot card — Dream-Scape deck",
+    },
+  ],
 };
 
 // Fallback cards used for templates without a specific spotlight config
@@ -332,8 +362,7 @@ export default async function TemplateDetailPage({
           <span className="text-[#C7A96B] text-sm">&#10022;&#8212;&#8212;&#10022;</span>
         </div>
         <p className="text-sm text-charcoal/70 mb-8 max-w-lg mx-auto">
-          Tarot cards carry symbolic meaning used in divination and storytelling.
-          Explore the interpretations behind some of the cards in this deck.
+          Tarot cards carry symbolic meaning used in divination and storytelling. Explore the interpretations behind some of the cards in this deck.
         </p>
         <div className="flex flex-wrap justify-center gap-8">
           {spotlightCards.map((card) => (
