@@ -16,36 +16,34 @@ a {
 
 
 /* ============================================
-   Celestial background — hero & footer only
-   Uses original illustration with CSS softening
+   Celestial background — hero & footer
+   Designer illustration: hero-celestial-parchment.webp
+   Large single image, covers the section, softened with opacity
    ============================================ */
 
 .celestial-background {
     position: relative;
-    /* Parchment fallback colour */
-  background-color: #F5F1EA;
-    /* The illustration sits on top of the parchment colour.
-       multiply blend makes the cream background of the image
-       transparent so only the gold lines show through. */
-  background-image: url("/images/celestial-tarot-background.webp");
-    background-repeat: repeat;
-    background-size: 1100px;
-    /* multiply removes the image's own white/cream bg,
-       leaving only the gold linework visible */
-  background-blend-mode: multiply;
+    /* Warm parchment fallback */
+  background-color: #EDE5D8;
+    /* Single illustration, scaled to cover, no repeat */
+  background-image: url("/images/hero-celestial-parchment.webp");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
 }
 
-/* Soft white-parchment veil for readability — keep low so pattern shows */
+/* Semi-transparent parchment overlay for readability */
 .celestial-background::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(245, 241, 234, 0.55);
+    /* Light parchment wash — keeps illustration visible but soft */
+  background: rgba(245, 241, 234, 0.45);
     pointer-events: none;
     z-index: 0;
 }
 
-/* Ensure all child content sits above the overlay */
+/* All child content sits above the overlay */
 .celestial-background > * {
     position: relative;
     z-index: 1;
