@@ -9,7 +9,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-16">
-      <section className="space-y-6">
+              <section className="celestial-background space-y-6 px-8 py-12 rounded-sm -mx-8">
         <p className="text-sm uppercase tracking-[0.2em] text-charcoal/70">
           TarotCardTemplates.com
         </p>
@@ -35,7 +35,7 @@ export default async function HomePage() {
           >
             How it works
           </Link>
-        </div>
+        </div>h
       </section>
 
       <section>
