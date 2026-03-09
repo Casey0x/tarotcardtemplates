@@ -1,10 +1,10 @@
 'use client';
-
 import Link from 'next/link';
 import { useState } from 'react';
 
 const navItems = [
   { href: '/templates', label: 'Templates' },
+  { href: '/card-meanings', label: 'Card Meanings' },
   { href: '/how-it-works', label: 'How it works' },
   { href: '/custom-printing', label: 'Custom printing' },
   { href: '/blog', label: 'Blog' },
