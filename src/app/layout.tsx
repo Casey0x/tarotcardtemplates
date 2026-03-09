@@ -21,7 +21,7 @@ export default function RootLayout({
           {children}
         </main>
 
-        <footer className="mt-8 pb-8 text-center text-xs text-neutral-500">
+                    <footer className="celestial-background mt-8 py-8 text-center text-xs text-neutral-500">
           Designed for modern tarot publishing workflows.
         </footer>
       </body>
