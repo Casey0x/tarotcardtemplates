@@ -17,31 +17,35 @@ a {
 
 /* ============================================
    Celestial background — hero & footer only
-   Soft gold on warm parchment, luxury wallpaper feel
+   Uses original illustration with CSS softening
    ============================================ */
 
 .celestial-background {
     position: relative;
-    background-color: #F5F1EA;
-    background-image:
-          linear-gradient(180deg, rgba(245, 241, 234, 0.55) 0%, rgba(239, 233, 220, 0.55) 100%),
-          url("/images/celestial-tarot-background.webp");
-    background-blend-mode: normal;
+    /* Parchment fallback colour */
+  background-color: #F5F1EA;
+    /* The illustration sits on top of the parchment colour.
+       multiply blend makes the cream background of the image
+       transparent so only the gold lines show through. */
+  background-image: url("/images/celestial-tarot-background.webp");
     background-repeat: repeat;
     background-size: 1100px;
+    /* multiply removes the image's own white/cream bg,
+       leaving only the gold linework visible */
+  background-blend-mode: multiply;
 }
 
-/* Soft parchment readability overlay */
+/* Soft white-parchment veil for readability — keep low so pattern shows */
 .celestial-background::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(245, 241, 234, 0.78);
+    background: rgba(245, 241, 234, 0.55);
     pointer-events: none;
     z-index: 0;
 }
 
-/* Ensure child content sits above the overlay */
+/* Ensure all child content sits above the overlay */
 .celestial-background > * {
     position: relative;
     z-index: 1;
