@@ -3,9 +3,7 @@ import { notFound } from "next/navigation";
 import { getTemplateBySlug } from "@/lib/templates";
 import TemplateGallery from "@/components/template-gallery";
 import type { Metadata } from "next";
-
 export const dynamic = "force-dynamic";
-
 // Per-template card spotlight config
 // Add an entry here whenever a template has deck-specific card artwork in storage
 const TEMPLATE_CARD_SPOTLIGHTS: Record<
@@ -72,8 +70,37 @@ const TEMPLATE_CARD_SPOTLIGHTS: Record<
       alt: "Page of Pentacles tarot card — Dream-Scape deck",
     },
   ],
+  "The-Gatsby": [
+    {
+      name: "Three of Cups",
+      slug: "three-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/THE-GATSBY/three-of-cups.jpg",
+      alt: "Three of Cups tarot card — The Gatsby deck",
+    },
+    {
+      name: "Five of Swords",
+      slug: "five-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/THE-GATSBY/five-of-swords.jpg",
+      alt: "Five of Swords tarot card — The Gatsby deck",
+    },
+    {
+      name: "Ace of Wands",
+      slug: "ace-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/THE-GATSBY/ace-of-wands.jpg",
+      alt: "Ace of Wands tarot card — The Gatsby deck",
+    },
+    {
+      name: "King of Swords",
+      slug: "king-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/THE-GATSBY/king-of-swords.jpg",
+      alt: "King of Swords tarot card — The Gatsby deck",
+    },
+  ],
 };
-
 // Fallback cards used for templates without a specific spotlight config
 const DEFAULT_CARDS = [
   { name: "The Star", slug: "the-star", image: "/images/the-star.jpg", alt: "The Star tarot card meaning" },
@@ -81,7 +108,6 @@ const DEFAULT_CARDS = [
   { name: "The Magician", slug: "the-magician", image: "/images/the-magician.jpg", alt: "The Magician tarot card meaning" },
   { name: "The Fool", slug: "the-fool", image: "/images/the-fool.jpg", alt: "The Fool tarot card meaning" },
 ];
-
 // Generate metadata for SEO
 export async function generateMetadata({
   params,
@@ -89,17 +115,14 @@ export async function generateMetadata({
   params: { slug: string };
 }): Promise<Metadata> {
   const template = await getTemplateBySlug(params.slug);
-
   if (!template) {
     return {
       title: "Template Not Found",
     };
   }
-
   const templateTitle = `${template.name} - Tarot Card Template | TarotCardTemplates.com`;
   const templateDescription = `${template.description} Download print-ready tarot deck templates. 78 card fronts included. Perfect for professional tarot readers and deck creators.`;
   const thumbnailUrl = template.previewImages?.[0] || "";
-
   return {
     title: templateTitle,
     description: templateDescription,
@@ -135,23 +158,18 @@ export async function generateMetadata({
     },
   };
 }
-
 export default async function TemplateDetailPage({
   params,
 }: {
   params: { slug: string };
 }) {
   const template = await getTemplateBySlug(params.slug);
-
   if (!template) {
     notFound();
   }
-
   const physicalDeckImage = `https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/${template.slug.toUpperCase()}/physical-deck.png`;
-
   // Pick the right card spotlight for this template (or fall back to defaults)
   const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[template.slug] ?? DEFAULT_CARDS;
-
   // JSON-LD items for the card spotlight
   const jsonLdItems = spotlightCards.map((card, i) => ({
     "@type": "ListItem",
@@ -159,7 +177,6 @@ export default async function TemplateDetailPage({
     name: `${card.name} Tarot Meaning`,
     url: `https://www.tarotcardtemplates.com/card-meanings/${card.slug}`,
   }));
-
   return (
     <>
       <article className="grid gap-10 lg:grid-cols-2">
@@ -168,7 +185,6 @@ export default async function TemplateDetailPage({
           <h1 className="mt-8 text-4xl font-semibold">
             {template.name}
           </h1>
-
           {/* Dynamic SEO Content */}
           {template.seoHeading ? (
             <>
@@ -233,7 +249,6 @@ export default async function TemplateDetailPage({
             </>
           )}
         </section>
-
         <aside className="space-y-6">
           <div className="border border-charcoal/15 bg-white p-6">
             <h2 className="text-xl font-semibold">
@@ -260,7 +275,6 @@ export default async function TemplateDetailPage({
                   Instant digital download. Print-ready files included.
                 </p>
               </form>
-
               <div className="border border-charcoal/10 p-4 overflow-hidden">
                 <p className="mb-3 text-sm font-medium text-charcoal/70">
                   The Printed Deck
@@ -276,7 +290,6 @@ export default async function TemplateDetailPage({
                   Professionally printed with premium card stock and luxe finishes
                 </p>
               </div>
-
               {/* About the Printed Deck */}
               <div className="border border-charcoal/10 p-4 bg-white">
                 <h3 className="text-sm font-semibold mb-3">
@@ -290,7 +303,6 @@ export default async function TemplateDetailPage({
                   <li>• Professional print quality</li>
                 </ul>
               </div>
-
               <form
                 action="/api/checkout"
                 method="post"
@@ -319,7 +331,6 @@ export default async function TemplateDetailPage({
               Review how purchasing works
             </Link>
           </div>
-
           <div className="border border-charcoal/15 bg-cream p-6">
             <h3 className="text-lg font-semibold flex items-center gap-2">
               <span>&#10024;</span>
@@ -351,7 +362,6 @@ export default async function TemplateDetailPage({
           </div>
         </aside>
       </article>
-
       {/* Tarot Card Meanings Section */}
       <section className="mt-16 mb-10 text-center">
         <div className="flex items-center justify-center gap-3 mb-3">
@@ -400,7 +410,6 @@ export default async function TemplateDetailPage({
           </Link>
         </div>
       </section>
-
       {/* JSON-LD Structured Data for Tarot Card Meanings */}
       <script
         type="application/ld+json"
@@ -416,32 +425,9 @@ export default async function TemplateDetailPage({
           }),
         }}
       />
-
       {/* Sticky Mobile Purchase Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-charcoal/20 p-3 lg:hidden z-50 shadow-lg">
         <div className="max-w-md mx-auto flex gap-2">
           <form action="/api/checkout" method="post" className="flex-1">
             <input type="hidden" name="templateSlug" value={template.slug} />
             <input type="hidden" name="purchaseType" value="template" />
-            <button
-              type="submit"
-              className="w-full bg-charcoal text-cream py-3 px-3 text-xs font-semibold hover:bg-charcoal/90 transition-colors"
-            >
-              Template ${template.templatePrice.toFixed(2)}
-            </button>
-          </form>
-          <form action="/api/checkout" method="post" className="flex-1">
-            <input type="hidden" name="templateSlug" value={template.slug} />
-            <input type="hidden" name="purchaseType" value="print" />
-            <button
-              type="submit"
-              className="w-full border-2 border-charcoal bg-white text-charcoal py-3 px-3 text-xs font-semibold hover:bg-charcoal hover:text-cream transition-colors"
-            >
-              Printed ${template.printPrice.toFixed(2)}
-            </button>
-          </form>
-        </div>
-      </div>
-    </>
-  );
-}
