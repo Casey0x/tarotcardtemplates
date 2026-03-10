@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { TarotTemplate } from "@/lib/templates";
 
 interface TemplateCardProps {
@@ -12,11 +13,14 @@ export default function TemplateCard({ template }: TemplateCardProps) {
     <article className="border border-charcoal/10 bg-white flex flex-col h-full">
       {thumbnailUrl && (
         <Link href={`/templates/${template.slug}`}>
-          <img
-            src={thumbnailUrl}
-            alt={template.name}
-            className="aspect-[2/3] w-full max-h-96 object-cover"
-          />
+          <div className="relative aspect-[2/3] w-full max-h-96">
+            <Image
+              src={thumbnailUrl}
+              alt={template.name}
+              fill
+              className="object-contain p-3"
+            />
+          </div>
         </Link>
       )}
 
