@@ -73,10 +73,10 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Five of Swords tarot card — The Gatsby deck",
     },
     {
-      name: "Ace of Wands",
-      slug: "ace-of-wands",
-      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/THE-GATSBY/ace-of-wands.jpg",
-      alt: "Ace of Wands tarot card — The Gatsby deck",
+      name: "Ace of Swords",
+      slug: "ace-of-swords",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/THE-GATSBY/ace-of-swords.jpg",
+      alt: "Ace of Swords tarot card — The Gatsby deck",
     },
     {
       name: "King of Swords",
@@ -159,7 +159,7 @@ export default async function TemplateDetailPage({
   const physicalDeckImage = "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/" + template.slug.toUpperCase() + "/physical-deck.png";
 
   const slugKey = template.slug as keyof typeof TEMPLATE_CARD_SPOTLIGHTS;
-const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[slugKey] ?? DEFAULT_CARDS;
+  const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[slugKey] ?? DEFAULT_CARDS;
 
   const jsonLdItems = spotlightCards.map((card, i) => ({
     "@type": "ListItem",
