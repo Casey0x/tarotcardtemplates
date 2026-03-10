@@ -158,7 +158,8 @@ export default async function TemplateDetailPage({
 
   const physicalDeckImage = "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/" + template.slug.toUpperCase() + "/physical-deck.png";
 
-  const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[template.slug] ?? DEFAULT_CARDS;
+  const slugKey = template.slug as keyof typeof TEMPLATE_CARD_SPOTLIGHTS;
+const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[slugKey] ?? DEFAULT_CARDS;
 
   const jsonLdItems = spotlightCards.map((card, i) => ({
     "@type": "ListItem",
