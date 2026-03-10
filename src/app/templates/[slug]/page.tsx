@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const TEMPLATE_CARD_SPOTLIGHTS: Record<
   string,
   { name: string; slug: string; image: string; alt: string }[]
-> = {
+> = {h
   "Cosmic-Void": [
     {
       name: "Three of Swords",
@@ -69,7 +69,7 @@ const TEMPLATE_CARD_SPOTLIGHTS: Record<
       slug: "page-of-pentacles",
       image:
         "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DREAM-SCAPE/page-of-pentacles.jpg",
-      alt: "Page of Pentacles tarot card — Dream-Scape deck",
+      alt: "Page of Pentacles tarot card — Dream-Scape deck",        },      ],    "The-Gatsby": [      {        name: "Three of Cups",        slug: "three-of-cups",        image:          "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/THE-GATSBY/three-of-cups.jpg",        alt: "Three of Cups tarot card — The Gatsby deck",      },      {        name: "Five of Swords",        slug: "five-of-swords",        image:          "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/THE-GATSBY/five-of-swords.jpg",        alt: "Five of Swords tarot card — The Gatsby deck",      },      {        name: "Ace of Wands",        slug: "ace-of-wands",        image:          "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/THE-GATSBY/ace-of-wands.jpg",        alt: "Ace of Wands tarot card — The Gatsby deck",      },      {        name: "King of Swords",        slug: "king-of-swords",        image:          "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/THE-GATSBY/king-of-swords.jpg",        alt: "King of Swords tarot card — The Gatsby deck",      },    ],
     },
   ],
 };
