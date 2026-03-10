@@ -6,10 +6,7 @@ import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
-const TEMPLATE_CARD_SPOTLIGHTS: Record
-  string,
-  { name: string; slug: string; image: string; alt: string }[]
-> = {
+const TEMPLATE_CARD_SPOTLIGHTS = {
   "Cosmic-Void": [
     {
       name: "Three of Swords",
