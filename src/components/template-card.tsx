@@ -6,7 +6,7 @@ interface TemplateCardProps {
 }
 
 export default function TemplateCard({ template }: TemplateCardProps) {
-  const thumbnailUrl = template.previewImages?.[0];
+  const thumbnailUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/template-previews/${template.slug.toUpperCase()}/thumb.png`;
 
   return (
     <article className="border border-charcoal/10 bg-white flex flex-col h-full">
