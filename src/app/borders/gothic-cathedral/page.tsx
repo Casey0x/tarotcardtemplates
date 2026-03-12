@@ -1,0 +1,171 @@
+import Image from "next/image";
+import Link from "next/link";
+import type { Metadata } from "next";
+
+const border = {
+  name: "Gothic Cathedral Tarot Border",
+  image: "/images/templates/gothic-cathedral-tarot-border.png",
+  description:
+    "A gothic cathedral inspired tarot card border featuring elegant pointed arches and delicate medieval tracery. The center artwork window is transparent and designed for inserting tarot illustrations.",
+};
+
+const TUTORIAL_LINKS = [
+  { label: "How to Create Tarot Cards in Canva", href: "/blog/create-tarot-cards-canva" },
+  { label: "How to Design a Tarot Deck in Photoshop", href: "/blog/design-your-own-tarot-deck" },
+];
+
+export const metadata: Metadata = {
+  title: border.name,
+  description: border.description,
+};
+
+export default function GothicCathedralBorderPage() {
+  const videoTitle = `How to Design Tarot Cards Using the ${border.name}`;
+
+  return (
+    <div className="space-y-10">
+      <Link
+        href="/"
+        className="inline-block text-sm underline underline-offset-4 text-charcoal/80 hover:text-charcoal"
+      >
+        ← Back to home
+      </Link>
+
+      <header>
+        <h1 className="text-3xl font-semibold text-charcoal">{border.name}</h1>
+      </header>
+
+      <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+        <div className="relative aspect-[3/5] w-full max-w-sm overflow-hidden rounded-sm border border-charcoal/10 bg-cream p-4">
+          <Image src={border.image} alt={border.name} fill className="object-contain" />
+        </div>
+
+        <div className="space-y-6">
+          <p className="text-charcoal/90">{border.description}</p>
+
+          <div>
+            <h2 className="mb-2 text-lg font-semibold text-charcoal">Perfect for:</h2>
+            <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
+              <li>tarot decks</li>
+              <li>oracle decks</li>
+              <li>affirmation cards</li>
+              <li>printable spiritual products</li>
+            </ul>
+          </div>
+
+          <div>
+            <h2 className="mb-2 text-lg font-semibold text-charcoal">Included files:</h2>
+            <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
+              <li>PNG border</li>
+              <li>PSD layered file</li>
+              <li>Canva compatible</li>
+              <li>70×120mm tarot card size</li>
+              <li>3mm bleed included</li>
+            </ul>
+          </div>
+
+          <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
+            <h2 className="mb-4 text-lg font-semibold text-charcoal">Border Template Download</h2>
+            <p className="mb-4 text-charcoal/90">
+              <span className="font-medium">Price: $9.95</span>
+            </p>
+            <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
+            <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
+              <li>PNG border</li>
+              <li>PSD layered file</li>
+              <li>Canva compatible</li>
+              <li>70×120mm tarot card size</li>
+              <li>3mm bleed included</li>
+            </ul>
+            <a
+              href={border.image}
+              download
+              className="inline-block border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream hover:bg-charcoal/90 transition-colors"
+            >
+              Download Border
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold text-charcoal">Example Usage</h2>
+        <p className="text-sm text-charcoal/80">See how this border looks on finished tarot cards.</p>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
+            >
+              <Image src={border.image} alt={`${border.name} example ${i}`} fill className="object-contain" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4 border-t border-charcoal/10 pt-10">
+        <h2 className="text-xl font-semibold text-charcoal">Learn How to Design Tarot Cards With This Border</h2>
+        <p className="text-sm text-charcoal/80">
+          Step-by-step guides to create your own tarot deck using this border style.
+        </p>
+        <ul className="space-y-3">
+          {TUTORIAL_LINKS.map((tutorial) => (
+            <li key={tutorial.href}>
+              <p className="text-charcoal font-medium">{tutorial.label}</p>
+              <Link
+                href={tutorial.href}
+                className="text-sm underline underline-offset-4 text-charcoal/80 hover:text-charcoal"
+              >
+                Read the tutorial →
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-8">
+          <h3 className="mb-3 text-lg font-medium text-charcoal">{videoTitle}</h3>
+          <div className="relative w-full overflow-hidden rounded-md border border-charcoal/10 bg-charcoal/5 pb-[56.25%]">
+            <iframe
+              title={videoTitle}
+              className="absolute left-0 top-0 h-full w-full"
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold text-charcoal">Design Your Own Tarot Deck Using This Template</h2>
+        <p className="text-sm text-charcoal/80">
+          Creating your own tarot deck starts with a consistent card layout. A tarot card template provides the correct
+          proportions, safe areas, and border placement needed to design professional looking cards. This gothic
+          cathedral border template was designed specifically for standard tarot card dimensions and works perfectly
+          with both traditional tarot illustrations and modern digital artwork.
+        </p>
+        <p className="text-sm text-charcoal/80">
+          Whether you are designing a Rider–Waite inspired deck, an illustrated fantasy tarot deck, or experimenting
+          with AI generated artwork, this tarot card border template makes it easy to place your artwork inside a
+          finished card frame. Simply drop your illustration into the center artwork area and your tarot card is ready
+          for printing.
+        </p>
+        <div>
+          <h3 className="mb-2 text-lg font-semibold text-charcoal">This template is ideal for:</h3>
+          <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
+            <li>Designing your own tarot deck</li>
+            <li>Creating tarot cards for print-on-demand</li>
+            <li>AI generated tarot artwork</li>
+            <li>Photoshop or Canva tarot layouts</li>
+            <li>Professional tarot card publishing</li>
+          </ul>
+        </div>
+        <p className="text-sm text-charcoal/80">
+          If you are learning how to make your own tarot cards, starting with a ready-made tarot card template can save
+          hours of layout work. The Gothic Cathedral Border template ensures your artwork fits perfectly within a
+          medieval-inspired card frame while maintaining the correct proportions used by most tarot decks.
+        </p>
+      </section>
+    </div>
+  );
+}

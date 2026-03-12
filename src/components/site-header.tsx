@@ -18,8 +18,12 @@ export function SiteHeader() {
     <header className="border-b border-charcoal/10 bg-cream">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
         {/* Logo */}
-        <Link href="/" className="text-lg font-semibold tracking-wide">
-          TarotCardTemplates.com
+        <Link href="/" className="logo-link flex items-center shrink-0" aria-label="Tarot Card Templates home">
+          <img
+            src="/images/branding/tarot-card-templates-logo.png"
+            alt="Tarot Card Templates"
+            className="site-logo"
+          />
         </Link>
 
         {/* Desktop nav — visible lg and above */}
@@ -53,10 +57,15 @@ export function SiteHeader() {
           <div className="flex items-center justify-between">
             <Link
               href="/"
-              className="text-lg font-semibold tracking-wide"
+              className="logo-link flex items-center shrink-0"
               onClick={() => setMenuOpen(false)}
+              aria-label="Tarot Card Templates home"
             >
-              TarotCardTemplates.com
+              <img
+                src="/images/branding/tarot-card-templates-logo.png"
+                alt="Tarot Card Templates"
+                className="site-logo"
+              />
             </Link>
             <button
               className="flex items-center justify-center p-2 text-2xl leading-none"

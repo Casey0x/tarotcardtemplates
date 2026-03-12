@@ -14,6 +14,18 @@ a {
   @apply text-inherit;
 }
 
+.site-logo {
+  height: 48px;
+  width: auto;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .site-logo {
+    height: 36px;
+  }
+}
+
 
 /* ============================================
    Celestial background — hero & footer
