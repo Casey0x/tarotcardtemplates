@@ -111,6 +111,32 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "The High Priestess tarot card — Bloodbound Tarot deck",
     },
   ],
+  "Psychedelic-70s-Tarot": [
+    {
+      name: "The Empress",
+      slug: "the-empress",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/PSYCHEDELIC-70S-TAROT/the-empress.jpg",
+      alt: "The Empress tarot card — Psychedelic 70s Tarot deck",
+    },
+    {
+      name: "The Tower",
+      slug: "the-tower",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/PSYCHEDELIC-70S-TAROT/the-tower.jpg",
+      alt: "The Tower tarot card — Psychedelic 70s Tarot deck",
+    },
+    {
+      name: "Two of Cups",
+      slug: "two-of-cups",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/PSYCHEDELIC-70S-TAROT/two-of-cups.jpg",
+      alt: "Two of Cups tarot card — Psychedelic 70s Tarot deck",
+    },
+    {
+      name: "Ten of Pentacles",
+      slug: "ten-of-pentacles",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/PSYCHEDELIC-70S-TAROT/ten-of-pentacles.jpg",
+      alt: "Ten of Pentacles tarot card — Psychedelic 70s Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
