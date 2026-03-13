@@ -85,6 +85,32 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "King of Swords tarot card — The Gatsby deck",
     },
   ],
+  "Bloodbound-Tarot": [
+    {
+      name: "Justice",
+      slug: "justice",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/BLOODBOUND-TAROT/justice.jpg",
+      alt: "Justice tarot card — Bloodbound Tarot deck",
+    },
+    {
+      name: "Seven of Swords",
+      slug: "seven-of-swords",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/BLOODBOUND-TAROT/seven-of-swords.jpg",
+      alt: "Seven of Swords tarot card — Bloodbound Tarot deck",
+    },
+    {
+      name: "Two of Swords",
+      slug: "two-of-swords",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/BLOODBOUND-TAROT/two-of-swords.jpg",
+      alt: "Two of Swords tarot card — Bloodbound Tarot deck",
+    },
+    {
+      name: "The High Priestess",
+      slug: "high-priestess",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/BLOODBOUND-TAROT/high-priestess.jpg",
+      alt: "The High Priestess tarot card — Bloodbound Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
