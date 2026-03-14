@@ -127,14 +127,21 @@ export default async function HomePage() {
 
       {/* BORDER STYLES */}
       <section className="space-y-6">
-        <div className="flex items-end justify-between">
+        <div className="mb-8 flex items-end justify-between">
           <h2 className="text-2xl font-semibold">Tarot Card Border Styles</h2>
 
-          <p className="max-w-md text-sm text-charcoal/80">
-            Explore a few of the border design directions available for your tarot deck —
-            from minimalist line frames to richly gilded celestial borders.
-          </p>
+          <Link
+            href="/borders"
+            className="text-sm underline underline-offset-4"
+          >
+            View all →
+          </Link>
         </div>
+
+        <p className="max-w-md text-sm text-charcoal/80 mb-6">
+          Explore a few of the border design directions available for your tarot deck —
+          from minimalist line frames to richly gilded celestial borders.
+        </p>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {borderStyles.map((style) => (
