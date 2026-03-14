@@ -1,30 +1,10 @@
 import Link from 'next/link';
 import TemplateCard from '@/components/template-card';
 import { getAllTemplates } from '@/lib/templates';
+import { BORDER_STYLES } from '@/lib/borders';
 import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
-
-const borderStyles = [
-  {
-    name: 'Celestial Gilded Border',
-    slug: 'celestial-gilded',
-    description: 'Rich gold celestial motifs with stars, moons, and ornate tarot symbolism.',
-    image: '/images/template-styles/celestial-gilded.png',
-  },
-  {
-    name: 'Minimal Line Border',
-    slug: 'minimal-line',
-    description: 'Clean minimalist tarot frame with subtle corner symbols and modern spacing.',
-    image: '/images/template-styles/minimal-line-arcana.png',
-  },
-  {
-    name: 'Vintage Velvet Border',
-    slug: 'vintage-velvet',
-    description: 'Baroque-inspired gilded frame with dramatic jewel tones and theatrical ornament.',
-    image: '/images/template-styles/vintage-velvet.png',
-  },
-];
 
 export default async function HomePage() {
   const featuredTemplates = (await getAllTemplates())
@@ -87,7 +67,7 @@ export default async function HomePage() {
               style={{ animation: 'heroFloatUp 11s ease-in-out infinite', animationDelay: '0s' }}
             >
               <Image
-                src={borderStyles[0].image}
+                src={BORDER_STYLES[0].image}
                 alt="tarot card template preview"
                 width={220}
                 height={330}
@@ -101,7 +81,7 @@ export default async function HomePage() {
               style={{ animation: 'heroFloatUp 12s ease-in-out infinite', animationDelay: '0.8s' }}
             >
               <Image
-                src={borderStyles[1].image}
+                src={BORDER_STYLES[1].image}
                 alt="tarot card template preview"
                 width={220}
                 height={330}
@@ -114,7 +94,7 @@ export default async function HomePage() {
               style={{ animation: 'heroFloatUp 13s ease-in-out infinite', animationDelay: '1.6s' }}
             >
               <Image
-                src={borderStyles[2].image}
+                src={BORDER_STYLES[2].image}
                 alt="tarot card template preview"
                 width={220}
                 height={330}
@@ -144,7 +124,7 @@ export default async function HomePage() {
         </p>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {borderStyles.map((style) => (
+          {BORDER_STYLES.map((style) => (
             <Link
               key={style.name}
               href={`/borders/${style.slug}`}
