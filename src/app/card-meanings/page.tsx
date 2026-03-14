@@ -27,7 +27,7 @@ function toRoman(n: number): string {
 
 // Returns the display number for a card.
 // Major Arcana: stored as "1", "2", etc -> rendered as Roman numerals (I, II, III...)
-// Minor Arcana: return the raw number string as-is
+// Minor Arcana: numeric pip cards (1-10) show number; court cards show nothing (name already includes rank)
 function formatNumber(num: string | undefined | null, isMajor: boolean): string | null {
   if (!num) return null;
   if (isMajor) {
@@ -35,6 +35,8 @@ function formatNumber(num: string | undefined | null, isMajor: boolean): string 
     if (!isNaN(parsed)) return toRoman(parsed);
     return num; // already roman or non-numeric
   }
+  const courtRanks = ['Page', 'Knight', 'Queen', 'King'];
+  if (courtRanks.includes(num)) return null;
   return num;
 }
 
@@ -43,7 +45,7 @@ export default async function CardMeaningsIndexPage() {
 
   const majorArcanaRaw = cards.filter((c) => c.arcana === 'Major Arcana' || c.arcana === 'major');
   const majorArcana = majorArcanaRaw.filter(
-    (c, i, arr) => arr.findIndex((x) => x.slug === c.slug) === i
+    (c, i, arr) => arr.findIndex((x) => x.name === c.name) === i
   );
   const minorArcana = cards.filter((c) => c.arcana !== 'Major Arcana' && c.arcana !== 'major');
 
