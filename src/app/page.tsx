@@ -124,7 +124,7 @@ export default async function HomePage() {
         </p>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {BORDER_STYLES.map((style) => (
+          {BORDER_STYLES.slice(0, 3).map((style) => (
             <Link
               key={style.name}
               href={`/borders/${style.slug}`}
