@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase-server';
+import { TAROT_CARDS_78, TAROT_CARDS_22, getTarotDefault } from '@/lib/tarot-cards';
 
 export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -79,12 +80,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create deck' }, { status: 500 });
   }
 
-  // Seed card rows so the designer can fill them one by one
-  const cardRows = Array.from({ length: cardCount }, (_, i) => ({
-    deck_id: deck.id,
-    card_index: i,
-    status: 'empty',
-  }));
+  const defaults = cardCount === 78 ? TAROT_CARDS_78 : cardCount === 22 ? TAROT_CARDS_22 : null;
+  const cardRows = Array.from({ length: cardCount }, (_, i) => {
+    const d = defaults ? defaults[i] : getTarotDefault(i);
+    return {
+      deck_id: deck.id,
+      card_index: i,
+      card_name: d?.name ?? null,
+      numeral: d?.numeral ?? null,
+      status: 'empty',
+    };
+  });
   const { error: cardsError } = await supabase.from('cards').insert(cardRows);
   if (cardsError) {
     console.error('Cards insert failed', cardsError);

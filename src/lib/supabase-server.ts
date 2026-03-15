@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+/** Session-aware server client (reads cookies). Use in API routes and Server Components. */
 export async function createClient() {
   const cookieStore = await cookies();
   return createServerClient(
@@ -29,6 +30,9 @@ export async function createClient() {
     }
   );
 }
+
+/** Alias for createClient(); use in API routes to get session from cookies. */
+export { createClient as createServerClient };
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';

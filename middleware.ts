@@ -4,10 +4,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isStudio = path.startsWith('/studio');
-  const isAccount = path.startsWith('/account');
   const isAuth = path.startsWith('/auth');
 
-  if (!isStudio && !isAccount) {
+  if (!isStudio) {
     return NextResponse.next();
   }
 
@@ -44,7 +43,7 @@ export async function middleware(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
-    const loginUrl = new URL('/auth/login', request.url);
+    const loginUrl = new URL('/account', request.url);
     loginUrl.searchParams.set('redirect', path);
     return NextResponse.redirect(loginUrl);
   }
@@ -53,5 +52,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/studio/:path*', '/account/:path*'],
+  matcher: ['/studio/:path*'],
 };

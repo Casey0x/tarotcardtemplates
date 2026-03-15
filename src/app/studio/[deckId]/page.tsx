@@ -3,36 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import { createClient } from '@/lib/supabase-client';
-
-const MAJOR_ARCANA: { numeral: string; name: string }[] = [
-  { numeral: '0', name: 'The Fool' },
-  { numeral: 'I', name: 'The Magician' },
-  { numeral: 'II', name: 'The High Priestess' },
-  { numeral: 'III', name: 'The Empress' },
-  { numeral: 'IV', name: 'The Emperor' },
-  { numeral: 'V', name: 'The Hierophant' },
-  { numeral: 'VI', name: 'The Lovers' },
-  { numeral: 'VII', name: 'The Chariot' },
-  { numeral: 'VIII', name: 'Strength' },
-  { numeral: 'IX', name: 'The Hermit' },
-  { numeral: 'X', name: 'Wheel of Fortune' },
-  { numeral: 'XI', name: 'Justice' },
-  { numeral: 'XII', name: 'The Hanged Man' },
-  { numeral: 'XIII', name: 'Death' },
-  { numeral: 'XIV', name: 'Temperance' },
-  { numeral: 'XV', name: 'The Devil' },
-  { numeral: 'XVI', name: 'The Tower' },
-  { numeral: 'XVII', name: 'The Star' },
-  { numeral: 'XVIII', name: 'The Moon' },
-  { numeral: 'XIX', name: 'The Sun' },
-  { numeral: 'XX', name: 'Judgement' },
-  { numeral: 'XXI', name: 'The World' },
-];
-
-const NUMERALS_22 = MAJOR_ARCANA.map((a) => a.numeral);
-const NUMERALS_78 = [...NUMERALS_22, ...Array.from({ length: 56 }, (_, i) => `${i + 22}`)];
+import { TAROT_SECTIONS, getTarotDefault } from '@/lib/tarot-cards';
 
 interface Deck {
   id: string;
@@ -50,6 +22,13 @@ interface CardRow {
   artwork_url: string | null;
   render_url: string | null;
   status: string;
+}
+
+function getCardLabel(card: CardRow): string {
+  const d = getTarotDefault(card.card_index);
+  const name = card.card_name ?? d?.name ?? `Card ${card.card_index + 1}`;
+  const numeral = card.numeral ?? d?.numeral ?? '';
+  return numeral ? `${numeral}  ${name}` : name;
 }
 
 export default function StudioDeckPage() {
@@ -131,13 +110,15 @@ export default function StudioDeckPage() {
   }, [cards, currentIndex]);
 
   const currentCard = cards[currentIndex];
-  const numerals = deck?.total_cards === 22 ? NUMERALS_22 : NUMERALS_78;
-  const suggestion = deck?.total_cards === 22 && currentIndex < MAJOR_ARCANA.length ? MAJOR_ARCANA[currentIndex] : null;
+  const defaultCard = currentCard != null ? getTarotDefault(currentCard.card_index) : null;
 
   async function handleFile(file: File) {
+    if (!currentCard || !deckId) return;
     setUploading(true);
     const form = new FormData();
     form.append('file', file);
+    form.append('deckId', deckId);
+    form.append('cardId', currentCard.id);
     const res = await fetch('/api/studio/upload', { method: 'POST', body: form });
     const data = await res.json();
     setUploading(false);
@@ -151,7 +132,7 @@ export default function StudioDeckPage() {
     if (f?.type.startsWith('image/')) handleFile(f);
   }
 
-  async function handleGenerate() {
+  const handleGenerate = useCallback(async () => {
     if (!currentCard || !deck || !artworkUrl) return;
     setGenerating(true);
     const res = await fetch('/api/studio/render', {
@@ -171,7 +152,16 @@ export default function StudioDeckPage() {
     if (data.renderUrl) {
       await loadDeck();
     }
-  }
+  }, [deckId, currentCard, deck, artworkUrl, cardName, numeral, loadDeck]);
+
+  // Auto-render preview when artworkUrl, cardName, or numeral change (debounced 1s). No auto-render if no artwork.
+  useEffect(() => {
+    if (!artworkUrl) return;
+    const timer = setTimeout(() => {
+      handleGenerate();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [artworkUrl, cardName, numeral, handleGenerate]);
 
   async function goNext() {
     if (currentCard && (artworkUrl || numeral || cardName)) {
@@ -221,142 +211,132 @@ export default function StudioDeckPage() {
 
   return (
     <div className="min-h-screen bg-cream">
-      {/* Top bar: nav + title + progress pills — on page background */}
       <div className="border-b border-charcoal/10 bg-cream px-6 py-3">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Link href="/studio" className="text-charcoal/70 hover:text-charcoal">
-              ← Studio
-            </Link>
-            <h1 className="text-xl font-semibold text-charcoal">{deck.border_name}</h1>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {cards.map((c, i) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setCurrentIndex(i)}
-                className={`h-8 w-8 rounded-[2px] border text-xs transition ${
-                  i === currentIndex
-                    ? 'border-charcoal bg-charcoal text-cream'
-                    : c.status === 'rendered'
-                      ? 'border-charcoal/20 bg-charcoal text-cream'
-                      : 'border-charcoal/10 bg-charcoal/10 text-charcoal/70'
-                }`}
-                title={`Card ${i + 1}`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
+        <div className="mx-auto flex max-w-6xl items-center gap-4">
+          <Link href="/studio" className="text-charcoal/70 hover:text-charcoal">
+            ← Studio
+          </Link>
+          <h1 className="text-xl font-semibold text-charcoal">{deck.border_name}</h1>
         </div>
       </div>
 
-      {/* Workspace area: slightly darker sand */}
       <div className="bg-parchment">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 p-6 lg:grid-cols-2">
-          {/* Left: card preview — near-white container */}
-          <div className="flex items-center justify-center">
-            <div className="relative aspect-[3/5] w-full max-w-sm rounded-sm border border-charcoal/10 bg-cardBg transition-transform hover:scale-[1.01]">
-              {currentCard?.render_url ? (
-                <Image
-                  src={currentCard.render_url}
-                  alt={currentCard.card_name || `Card ${currentIndex + 1}`}
-                  fill
-                  className="rounded-sm object-contain"
-                  unoptimized
-                />
-              ) : artworkUrl ? (
-                <div className="relative h-full w-full">
-                  <Image
-                    src={artworkUrl}
-                    alt="Preview"
-                    fill
-                    className="rounded-sm object-contain"
-                    unoptimized
-                  />
-                  <div className="absolute bottom-2 left-2 right-2 rounded-sm bg-charcoal/90 px-2 py-1 text-center text-sm text-cream">
-                    {numeral} {cardName || 'Card name'}
-                  </div>
+        <div className="mx-auto flex max-w-6xl gap-6 p-6">
+          {/* Left: card selector by tarot sections */}
+          <aside className="w-56 shrink-0 overflow-y-auto rounded-sm border border-charcoal/10 bg-cardBg p-3 max-h-[calc(100vh-12rem)]">
+            {TAROT_SECTIONS.map((section) => {
+              const sectionCards = cards.filter(
+                (c) => c.card_index >= section.startIndex && c.card_index < section.endIndex
+              );
+              if (sectionCards.length === 0) return null;
+              return (
+                <div key={section.title} className="mb-4">
+                  <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-charcoal/70">
+                    {section.title}
+                  </h2>
+                  <ul className="space-y-0.5">
+                    {sectionCards.map((c) => {
+                      const i = cards.findIndex((x) => x.id === c.id);
+                      const isActive = i === currentIndex;
+                      return (
+                        <li key={c.id}>
+                          <button
+                            type="button"
+                            onClick={() => setCurrentIndex(i)}
+                            className={`w-full rounded-[2px] px-2 py-1.5 text-left text-sm transition ${
+                              isActive
+                                ? 'bg-charcoal text-cream'
+                                : c.status === 'rendered'
+                                  ? 'bg-charcoal/10 text-charcoal hover:bg-charcoal/20'
+                                  : 'text-charcoal/80 hover:bg-charcoal/10'
+                            }`}
+                          >
+                            {getCardLabel(c)}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
+              );
+            })}
+          </aside>
+
+          {/* Center: card preview — Templated render or placeholder */}
+          <div className="flex flex-1 items-start justify-center">
+            <div className="relative aspect-[3/5] w-full max-w-sm rounded-sm border border-charcoal/10 bg-cardBg shadow-md transition-transform hover:scale-[1.01]">
+              {currentCard?.render_url ? (
+                <img
+                  src={currentCard.render_url}
+                  alt={currentCard.card_name || defaultCard?.name || `Card ${currentIndex + 1}`}
+                  className="h-full w-full rounded-sm object-contain"
+                />
               ) : (
-                <div className="flex h-full items-center justify-center text-charcoal/50">
-                  Upload artwork to preview
+                <div className="flex h-full w-full flex-col items-center justify-center rounded-sm p-6 text-center text-charcoal/60">
+                  <p className="text-sm">
+                    Click Generate Preview to render this card.
+                  </p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Right: controls */}
-          <div className="space-y-6">
+          {/* Right: upload + card name + numeral only */}
+          <div className="w-80 shrink-0 space-y-6">
             <div>
-              <h2 className="text-lg font-semibold text-charcoal">Step 1 — Artwork</h2>
+              <h2 className="text-lg font-semibold text-charcoal">Artwork</h2>
               <div
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragOver={(e) => { e.preventDefault(); if (!generating) setDragOver(true); }}
                 onDragLeave={() => setDragOver(false)}
-                onDrop={onDrop}
-                className={`mt-2 rounded-sm border border-dashed p-8 text-center transition ${
+                onDrop={(e) => { if (!generating) onDrop(e); }}
+                className={`mt-2 rounded-sm border border-dashed p-6 text-center transition ${
                   dragOver ? 'border-charcoal/40 bg-charcoal/5' : 'border-charcoal/20 hover:border-charcoal/40'
-                }`}
+                } ${generating ? 'pointer-events-none opacity-60' : ''}`}
               >
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
                   id="artwork-upload"
+                  disabled={generating}
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (f) handleFile(f);
                   }}
                 />
-                <label htmlFor="artwork-upload" className="cursor-pointer text-charcoal/70 hover:text-charcoal">
-                  {uploading ? 'Uploading…' : 'Drop image here or click to upload'}
+                <label htmlFor="artwork-upload" className={generating ? 'cursor-not-allowed' : 'cursor-pointer text-charcoal/70 hover:text-charcoal'}>
+                  {uploading ? 'Uploading…' : 'Drop image or click to upload'}
                 </label>
                 {artworkUrl && <p className="mt-2 text-sm text-charcoal/70">Image added.</p>}
               </div>
             </div>
 
-            <div>
-              <h2 className="text-lg font-semibold text-charcoal">Step 2 — Numeral</h2>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {numerals.slice(0, 23).map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setNumeral(n)}
-                    className={`rounded-[2px] border px-2 py-1 text-sm transition ${
-                      numeral === n
-                        ? 'border-charcoal bg-charcoal text-cream'
-                        : 'border-charcoal/20 bg-transparent text-charcoal hover:border-charcoal/40'
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
-                {numerals.length > 23 && (
-                  <span className="text-charcoal/60">+ more</span>
-                )}
-              </div>
-            </div>
+            {generating && (
+              <p className="text-sm text-charcoal/80">Generating preview...</p>
+            )}
 
             <div>
-              <h2 className="text-lg font-semibold text-charcoal">Step 3 — Card name</h2>
+              <h2 className="text-lg font-semibold text-charcoal">Card name</h2>
               <input
                 type="text"
                 value={cardName}
                 onChange={(e) => setCardName(e.target.value)}
-                placeholder={suggestion?.name ?? 'e.g. The High Priestess'}
-                className="mt-2 w-full rounded-[2px] border border-charcoal/20 bg-cardBg px-3 py-2 text-charcoal placeholder:text-charcoal/50"
+                placeholder={defaultCard?.name}
+                disabled={generating}
+                className="mt-2 w-full rounded-[2px] border border-charcoal/20 bg-cardBg px-3 py-2 text-charcoal placeholder:text-charcoal/50 disabled:opacity-60 disabled:cursor-not-allowed"
               />
-              {suggestion && (
-                <button
-                  type="button"
-                  onClick={() => { setCardName(suggestion.name); setNumeral(suggestion.numeral); }}
-                  className="mt-1 text-sm text-charcoal/70 underline hover:text-charcoal"
-                >
-                  Use: {suggestion.name}
-                </button>
-              )}
+            </div>
+
+            <div>
+              <h2 className="text-lg font-semibold text-charcoal">Numeral</h2>
+              <input
+                type="text"
+                value={numeral}
+                onChange={(e) => setNumeral(e.target.value)}
+                placeholder={defaultCard?.numeral}
+                disabled={generating}
+                className="mt-2 w-full rounded-[2px] border border-charcoal/20 bg-cardBg px-3 py-2 text-charcoal placeholder:text-charcoal/50 disabled:opacity-60 disabled:cursor-not-allowed"
+              />
             </div>
 
             <div className="flex flex-wrap gap-4">
@@ -366,7 +346,7 @@ export default function StudioDeckPage() {
                 disabled={!artworkUrl || generating}
                 className="rounded-[2px] border border-charcoal bg-charcoal px-6 py-2 text-cream transition hover:bg-charcoal/90 disabled:opacity-50"
               >
-                {generating ? 'Generating…' : 'Generate'}
+                {generating ? 'Rendering…' : 'Generate Preview'}
               </button>
               <button
                 type="button"

@@ -20,6 +20,8 @@ function StudioContent() {
   const sessionId = searchParams.get('session_id');
   const [decks, setDecks] = useState<DeckRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creatingDevDeck, setCreatingDevDeck] = useState(false);
+  const isDev = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     if (sessionId) {
@@ -51,6 +53,30 @@ function StudioContent() {
     setDecks((data as DeckRow[]) ?? []);
   }
 
+  async function handleCreateDevDeck() {
+    setCreatingDevDeck(true);
+    try {
+      const res = await fetch('/api/studio/dev-deck', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('Dev deck failed', res.status, data);
+        alert('Failed to create dev deck');
+        return;
+      }
+      if (data.deckId) {
+        router.push(`/studio/${data.deckId}`);
+        return;
+      }
+      console.error('Dev deck: no deckId in response', data);
+      alert('Failed to create dev deck');
+    } catch (err) {
+      console.error('Dev deck error', err);
+      alert('Failed to create dev deck');
+    } finally {
+      setCreatingDevDeck(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="text-charcoal">
@@ -68,17 +94,31 @@ function StudioContent() {
         Your deck projects. Pick one to continue designing.
       </p>
       {decks.length === 0 ? (
-        <div className="mt-10 rounded-sm border border-charcoal/10 bg-cardBg p-8 text-center text-charcoal/70">
-          <p>You don’t have any decks yet.</p>
-          <p className="mt-2">
-            <Link
-              href="/borders"
-              className="text-charcoal underline underline-offset-2 hover:no-underline"
-            >
-              Choose a border
-            </Link>
-            {' '}and purchase to start designing.
-          </p>
+        <div className="mt-10 space-y-6">
+          {isDev && (
+            <div>
+              <button
+                type="button"
+                onClick={handleCreateDevDeck}
+                disabled={creatingDevDeck}
+                className="rounded-[2px] border border-charcoal bg-charcoal px-6 py-2 text-cream transition hover:bg-charcoal/90 disabled:opacity-50"
+              >
+                {creatingDevDeck ? 'Creating deck…' : 'Create Dev Test Deck'}
+              </button>
+            </div>
+          )}
+          <div className="rounded-sm border border-charcoal/10 bg-cardBg p-8 text-center text-charcoal/70">
+            <p>You don’t have any decks yet.</p>
+            <p className="mt-2">
+              <Link
+                href="/borders"
+                className="text-charcoal underline underline-offset-2 hover:no-underline"
+              >
+                Choose a border
+              </Link>
+              {' '}and purchase to start designing.
+            </p>
+          </div>
         </div>
       ) : (
         <ul className="mt-8 space-y-4">

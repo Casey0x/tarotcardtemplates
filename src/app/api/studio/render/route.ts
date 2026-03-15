@@ -45,35 +45,49 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Deck not found or access denied' }, { status: 403 });
   }
 
+  const payload = {
+    template: templateId,
+    layers: {
+      'card-artwork': {
+        image_url: artworkUrl,
+      },
+      'card-title': {
+        text: cardName || '',
+      },
+      'card-numeral': {
+        text: numeral || '',
+      },
+    },
+  };
+
   const response = await fetch('https://api.templated.io/v1/render', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${process.env.TEMPLATED_API_KEY}`,
     },
-    body: JSON.stringify({
-      template: templateId,
-      format: 'png',
-      layers: {
-        'card-artwork': { image_url: artworkUrl },
-        'card-title': { text: cardName ?? '' },
-        'card-numeral': { text: numeral ?? '' },
-      },
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const errText = await response.text();
-    console.error('Templated render error', response.status, errText);
+    console.error('[Templated render] failure', {
+      status: response.status,
+      statusText: response.statusText,
+      body: errText,
+      cardId,
+      deckId,
+    });
     return NextResponse.json(
       { error: 'Render failed', detail: errText },
       { status: 502 }
     );
   }
 
-  const data = (await response.json()) as { download_url?: string };
-  const downloadUrl = data.download_url;
+  const data = (await response.json()) as { download_url?: string; render_url?: string };
+  const downloadUrl = data.download_url ?? data.render_url;
   if (!downloadUrl) {
+    console.error('[Templated render] response missing download_url/render_url', { data, cardId, deckId });
     return NextResponse.json({ error: 'No download_url in response' }, { status: 502 });
   }
 
@@ -98,5 +112,6 @@ export async function POST(request: Request) {
   const newCount = (deckRow?.completed_cards ?? 0) + 1;
   await supabase.from('decks').update({ completed_cards: newCount }).eq('id', deckId);
 
+  console.log('[Templated render] success', { cardId, deckId, renderUrl: downloadUrl });
   return NextResponse.json({ renderUrl: downloadUrl });
 }
