@@ -6,10 +6,12 @@ const config: Config = {
     extend: {
       colors: {
         cream: '#f4f1ea',
-        parchment: '#ede6d8',
+        parchment: '#ede5d8',
         charcoal: '#1f1f1d',
-        mutedGold: '#9a875e'
-      }
+        mutedGold: '#9a875e',
+        cardBg: '#faf9f5',
+        muted: '#737373',
+      },
     }
   },
   plugins: []

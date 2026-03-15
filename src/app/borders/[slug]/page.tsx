@@ -2,30 +2,35 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { BorderPurchase } from '@/components/border-purchase';
 
 const borders: Record<
   string,
-  { name: string; image: string; description: string }
+  { name: string; image: string; description: string; templated_template_id: string | null }
 > = {
   'celestial-gilded': {
     name: 'Celestial Gilded Border',
     image: '/images/template-styles/celestial-gilded.png',
     description:
       'Elegant celestial tarot border featuring flowing botanical ornament and gold celestial motifs.',
+    templated_template_id: null,
   },
   'minimal-line': {
     name: 'Minimal Line Border',
     image: '/images/template-styles/minimal-line-arcana.png',
     description:
       'Clean minimalist tarot border designed for modern tarot decks and simple layouts.',
+    templated_template_id: null,
   },
   'vintage-velvet': {
     name: 'Vintage Velvet Border',
     image: '/images/template-styles/vintage-velvet.png',
     description:
       'Luxurious baroque tarot border with velvet textures and dramatic gold ornament.',
+    templated_template_id: '8d9f0783-63e3-4947-955f-2dfcfd4f6f93',
   },
 };
+
 
 const VINTAGE_VELVET_EXAMPLES = [
   {
@@ -128,29 +133,11 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
           </div>
 
-          {/* Purchase box — top right on desktop, below content on mobile */}
-          <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
-            <h2 className="mb-4 text-lg font-semibold text-charcoal">
-              Border Template Download
-            </h2>
-            <p className="mb-4 text-charcoal/90">
-              <span className="font-medium">Price: $9.95</span>
-            </p>
-            <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
-            <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
-              <li>PNG border</li>
-              <li>PSD layered file</li>
-              <li>Canva compatible</li>
-              <li>70×120mm tarot card size</li>
-              <li>3mm bleed included</li>
-            </ul>
-            <button
-              type="button"
-              className="border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream hover:bg-charcoal/90 transition-colors"
-            >
-              Buy Template
-            </button>
-          </div>
+          <BorderPurchase
+            borderSlug={slug}
+            borderName={border.name}
+            templatedTemplateId={border.templated_template_id}
+          />
         </div>
       </div>
 
