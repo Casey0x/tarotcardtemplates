@@ -125,43 +125,37 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* BORDER STYLES */}
+      {/* MARBLE TEMPLE TAROT BORDER — featured on main page */}
       <section className="space-y-6">
-        <div className="flex items-end justify-between">
-          <h2 className="text-2xl font-semibold">Tarot Card Border Styles</h2>
-
-          <p className="max-w-md text-sm text-charcoal/80">
-            Explore a few of the border design directions available for your tarot deck —
-            from minimalist line frames to richly gilded celestial borders.
+        <div>
+          <h2 className="text-2xl font-semibold">Marble Temple Tarot Border</h2>
+          <p className="mt-2 max-w-2xl text-sm text-charcoal/80">
+            Classical marble tarot card border with fluted columns and an arched central window for your artwork.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {borderStyles.map((style) => (
-            <Link
-              key={style.name}
-              href={`/borders/${style.slug}`}
-              className="group flex flex-col rounded-sm border border-charcoal/10 bg-cream/80 p-4 transition-all duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:border-amber-400 hover:shadow-xl"
-            >
-              <div className="relative mb-4 overflow-hidden rounded-xs border border-charcoal/10 bg-cream p-3 aspect-[3/5]">
-                <Image
-                  src={style.image}
-                  alt={style.name}
-                  fill
-                  className="object-cover transition-transform duration-200 group-hover:scale-105"
-                />
-              </div>
-
-              <h3 className="mb-1 text-sm font-semibold text-charcoal">
-                {style.name}
-              </h3>
-
-              <p className="text-xs text-charcoal/80">
-                {style.description}
-              </p>
-            </Link>
-          ))}
-        </div>
+        <Link
+          href="/borders/marble-temple"
+          className="group flex flex-col overflow-hidden rounded-sm border border-charcoal/10 bg-cream/80 transition-all duration-200 hover:border-amber-400 hover:shadow-xl md:flex-row md:items-center"
+        >
+          <div className="relative h-64 w-full shrink-0 overflow-hidden border-b border-charcoal/10 bg-cream p-6 md:h-72 md:max-w-sm md:border-b-0 md:border-r">
+            <Image
+              src="/images/templates/marble-temple-tarot-border.png"
+              alt="Marble Temple Tarot Border"
+              fill
+              className="object-contain transition-transform duration-200 group-hover:scale-105"
+            />
+          </div>
+          <div className="flex flex-1 flex-col justify-center p-6">
+            <h3 className="mb-2 text-lg font-semibold text-charcoal">Marble Temple Tarot Border</h3>
+            <p className="mb-4 text-sm text-charcoal/80">
+              A classical marble tarot card border featuring fluted columns, Corinthian capitals, and an arched central window. The center is transparent and designed for inserting tarot illustrations.
+            </p>
+            <span className="text-sm font-medium text-charcoal underline underline-offset-4 group-hover:text-mutedGold">
+              View border & purchase →
+            </span>
+          </div>
+        </Link>
       </section>
 
       {/* FEATURED TEMPLATES */}

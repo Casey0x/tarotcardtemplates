@@ -2,30 +2,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { getBordersRecord } from '@/data/borders';
 
-const borders: Record<
-  string,
-  { name: string; image: string; description: string }
-> = {
-  'celestial-gilded': {
-    name: 'Celestial Gilded Border',
-    image: '/images/template-styles/celestial-gilded.png',
-    description:
-      'Elegant celestial tarot border featuring flowing botanical ornament and gold celestial motifs.',
-  },
-  'minimal-line': {
-    name: 'Minimal Line Border',
-    image: '/images/template-styles/minimal-line-arcana.png',
-    description:
-      'Clean minimalist tarot border designed for modern tarot decks and simple layouts.',
-  },
-  'vintage-velvet': {
-    name: 'Vintage Velvet Border',
-    image: '/images/template-styles/vintage-velvet.png',
-    description:
-      'Luxurious baroque tarot border with velvet textures and dramatic gold ornament.',
-  },
-};
+const borders = getBordersRecord();
 
 const VINTAGE_VELVET_EXAMPLES = [
   {
@@ -76,7 +55,7 @@ export default function BorderPage({ params }: BorderPageProps) {
   const videoTitle = `How to Design Tarot Cards Using the ${border.name}`;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 bg-cream -mx-6 -my-12 px-6 py-12">
       <Link
         href="/"
         className="inline-block text-sm underline underline-offset-4 text-charcoal/80 hover:text-charcoal"
@@ -131,7 +110,7 @@ export default function BorderPage({ params }: BorderPageProps) {
           {/* Purchase box — top right on desktop, below content on mobile */}
           <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
             <h2 className="mb-4 text-lg font-semibold text-charcoal">
-              Border Template Download
+              Border Template – Studio
             </h2>
             <p className="mb-4 text-charcoal/90">
               <span className="font-medium">Price: $9.95</span>
@@ -146,10 +125,13 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
             <button
               type="button"
-              className="border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream hover:bg-charcoal/90 transition-colors"
+              className="w-full border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream hover:bg-charcoal/90 transition-colors"
             >
-              Buy Template
+              Purchase
             </button>
+            <p className="mt-3 text-sm text-charcoal/70">
+              After payment you&apos;ll design each card in the Studio.
+            </p>
           </div>
         </div>
       </div>
