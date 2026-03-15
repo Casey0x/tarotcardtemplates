@@ -1,30 +1,10 @@
 import Link from 'next/link';
 import TemplateCard from '@/components/template-card';
 import { getAllTemplates } from '@/lib/templates';
+import { BORDER_TEMPLATES } from '@/data/borders';
 import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
-
-const borderStyles = [
-  {
-    name: 'Celestial Gilded Border',
-    slug: 'celestial-gilded',
-    description: 'Rich gold celestial motifs with stars, moons, and ornate tarot symbolism.',
-    image: '/images/template-styles/celestial-gilded.png',
-  },
-  {
-    name: 'Minimal Line Border',
-    slug: 'minimal-line',
-    description: 'Clean minimalist tarot frame with subtle corner symbols and modern spacing.',
-    image: '/images/template-styles/minimal-line-arcana.png',
-  },
-  {
-    name: 'Vintage Velvet Border',
-    slug: 'vintage-velvet',
-    description: 'Baroque-inspired gilded frame with dramatic jewel tones and theatrical ornament.',
-    image: '/images/template-styles/vintage-velvet.png',
-  },
-];
 
 export default async function HomePage() {
   const featuredTemplates = (await getAllTemplates())
@@ -87,7 +67,7 @@ export default async function HomePage() {
               style={{ animation: 'heroFloatUp 11s ease-in-out infinite', animationDelay: '0s' }}
             >
               <Image
-                src={borderStyles[0].image}
+                src={BORDER_TEMPLATES[0].image}
                 alt="tarot card template preview"
                 width={220}
                 height={330}
@@ -101,7 +81,7 @@ export default async function HomePage() {
               style={{ animation: 'heroFloatUp 12s ease-in-out infinite', animationDelay: '0.8s' }}
             >
               <Image
-                src={borderStyles[1].image}
+                src={BORDER_TEMPLATES[1].image}
                 alt="tarot card template preview"
                 width={220}
                 height={330}
@@ -114,7 +94,7 @@ export default async function HomePage() {
               style={{ animation: 'heroFloatUp 13s ease-in-out infinite', animationDelay: '1.6s' }}
             >
               <Image
-                src={borderStyles[2].image}
+                src={BORDER_TEMPLATES[2].image}
                 alt="tarot card template preview"
                 width={220}
                 height={330}
@@ -125,37 +105,39 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* MARBLE TEMPLE TAROT BORDER — featured on main page */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-semibold">Marble Temple Tarot Border</h2>
-          <p className="mt-2 max-w-2xl text-sm text-charcoal/80">
-            Classical marble tarot card border with fluted columns and an arched central window for your artwork.
-          </p>
+      {/* BORDER TEMPLATES — 3 cards + View All */}
+      <section>
+        <h2 className="text-2xl font-semibold">Border Templates</h2>
+
+        <div className="mt-6 grid gap-6 md:grid-cols-3">
+          {BORDER_TEMPLATES.slice(0, 3).map((border) => (
+            <Link
+              key={border.slug}
+              href={`/borders/${border.slug}`}
+              className="group flex flex-col rounded-sm border border-charcoal/10 bg-cream/80 p-4 transition-all duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:border-amber-400 hover:shadow-xl"
+            >
+              <div className="relative mb-4 overflow-hidden rounded-xs border border-charcoal/10 bg-cream p-3 aspect-[3/5]">
+                <Image
+                  src={border.image}
+                  alt={border.name}
+                  fill
+                  className="object-contain transition-transform duration-200 group-hover:scale-105"
+                />
+              </div>
+              <h3 className="mb-1 text-sm font-semibold text-charcoal">{border.name}</h3>
+              <p className="text-xs text-charcoal/80">{border.description}</p>
+            </Link>
+          ))}
         </div>
 
-        <Link
-          href="/borders/marble-temple"
-          className="group flex flex-col overflow-hidden rounded-sm border border-charcoal/10 bg-cream/80 transition-all duration-200 hover:border-amber-400 hover:shadow-xl md:flex-row md:items-center"
-        >
-          <div className="relative h-64 w-full shrink-0 overflow-hidden border-b border-charcoal/10 bg-cream p-6 md:h-72 md:max-w-sm md:border-b-0 md:border-r">
-            <Image
-              src="/images/templates/marble-temple-tarot-border.png"
-              alt="Marble Temple Tarot Border"
-              fill
-              className="object-contain transition-transform duration-200 group-hover:scale-105"
-            />
-          </div>
-          <div className="flex flex-1 flex-col justify-center p-6">
-            <h3 className="mb-2 text-lg font-semibold text-charcoal">Marble Temple Tarot Border</h3>
-            <p className="mb-4 text-sm text-charcoal/80">
-              A classical marble tarot card border featuring fluted columns, Corinthian capitals, and an arched central window. The center is transparent and designed for inserting tarot illustrations.
-            </p>
-            <span className="text-sm font-medium text-charcoal underline underline-offset-4 group-hover:text-mutedGold">
-              View border & purchase →
-            </span>
-          </div>
-        </Link>
+        <div className="mt-4">
+          <Link
+            href="/borders"
+            className="text-sm underline underline-offset-4"
+          >
+            View all →
+          </Link>
+        </div>
       </section>
 
       {/* FEATURED TEMPLATES */}
