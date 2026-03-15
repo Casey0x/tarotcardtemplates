@@ -14,6 +14,12 @@ A Next.js-powered marketplace where users can:
 
 ---
 
+## 📖 Documentation
+
+- **[Studio README](docs/STUDIO.md)** — Deck designer: auth, Stripe checkout, Templated.io render, Studio APIs and pages.
+
+---
+
 ## 🛠 Tech Stack
 
 - **Framework:** Next.js 14 (App Router, Server Components)
