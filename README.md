@@ -14,6 +14,68 @@ A Next.js-powered marketplace where users can:
 
 ---
 
+## 📖 Documentation
+
+- **[Studio README](docs/STUDIO.md)** — Deck designer: auth, Stripe checkout, Templated.io render, Studio APIs and pages.
+
+---
+
+## Studio Card Generator Architecture
+
+The Studio card generator lets users design deck cards by uploading artwork and editing metadata; the rendered preview is produced via the Templated API.
+
+### Rendering pipeline
+
+1. **User uploads artwork** in the Studio editor (per card).
+2. **Artwork is stored in Supabase Storage** (bucket `card-art`).
+3. **`artwork_url` is saved to the database** for the card (and shown in the UI).
+4. **User edits card metadata** (title and numeral) in the Studio form.
+5. **Studio calls `POST /api/studio/render`** with `deckId`, `cardId`, `artworkUrl`, `cardName`, `numeral`, and `templateId`.
+6. **The backend sends a request to the Templated API** with the template and artwork URL.
+7. **Templated renders the card** using the selected template and returns a render URL.
+8. **`render_url` is returned** (and stored); the backend may persist it on the card.
+9. **Studio displays the rendered preview** (e.g. via the card’s `render_url` or the response).
+
+### Architecture diagram
+
+```
+Studio UI
+    ↓
+Supabase Auth
+    ↓
+Supabase Storage (artwork)
+    ↓
+Templated Render API
+    ↓
+Rendered Card Preview
+```
+
+### Key APIs
+
+| Method & route | Purpose |
+|----------------|--------|
+| `POST /api/studio/upload` | Uploads artwork to Supabase Storage. Accepts `file`, `deckId`, `cardId`. Returns the public URL of the stored image. |
+| `POST /api/studio/render` | Generates the card image via Templated. Accepts `deckId`, `cardId`, `artworkUrl`, `cardName`, `numeral`, `templateId`. Returns `renderUrl`. |
+
+### Environment variables
+
+Required for Studio and the render pipeline:
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL (client). |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key (client). |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server; e.g. uploads). |
+| `TEMPLATED_API_KEY` | API key for the Templated render service. |
+
+### Storage
+
+- **Bucket:** `card-art`
+- **Path pattern:** `cards/{deckId}/{cardId}/art.png`  
+  Example: `card-art/cards/abc-123/card-456/art.png`
+
+---
+
 ## 🛠 Tech Stack
 
 - **Framework:** Next.js 14 (App Router, Server Components)

@@ -27,7 +27,7 @@ function toRoman(n: number): string {
 
 // Returns the display number for a card.
 // Major Arcana: stored as "1", "2", etc -> rendered as Roman numerals (I, II, III...)
-// Minor Arcana: return the raw number string as-is
+// Minor Arcana: numeric pip cards (1-10) show number; court cards show nothing (name already includes rank)
 function formatNumber(num: string | undefined | null, isMajor: boolean): string | null {
   if (!num) return null;
   if (isMajor) {
@@ -35,13 +35,18 @@ function formatNumber(num: string | undefined | null, isMajor: boolean): string 
     if (!isNaN(parsed)) return toRoman(parsed);
     return num; // already roman or non-numeric
   }
+  const courtRanks = ['Page', 'Knight', 'Queen', 'King'];
+  if (courtRanks.includes(num)) return null;
   return num;
 }
 
 export default async function CardMeaningsIndexPage() {
   const cards = await getAllCardMeanings();
 
-  const majorArcana = cards.filter((c) => c.arcana === 'Major Arcana' || c.arcana === 'major');
+  const majorArcanaRaw = cards.filter((c) => c.arcana === 'Major Arcana' || c.arcana === 'major');
+  const majorArcana = majorArcanaRaw.filter(
+    (c, i, arr) => arr.findIndex((x) => x.name === c.name) === i
+  );
   const minorArcana = cards.filter((c) => c.arcana !== 'Major Arcana' && c.arcana !== 'major');
 
   return (
@@ -50,8 +55,12 @@ export default async function CardMeaningsIndexPage() {
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-semibold text-charcoal">Tarot Card Meanings</h1>
         <p className="mt-4 text-charcoal/70 max-w-2xl mx-auto text-sm leading-relaxed">
-          Explore upright and reversed meanings, love, career, health interpretations and more
-          for all 78 cards in the deck. Click any card to read its full meaning.
+          Explore the meaning of all 78 tarot cards in the traditional tarot deck.
+          This page provides a full list of 78 tarot cards and meanings, including
+          the Major Arcana and Minor Arcana — Cups, Pentacles, Swords, and Wands.
+          Each tarot card meaning page explains the symbolism, upright interpretation,
+          and role of the card in tarot readings. Click any card below to explore its
+          full meaning.
         </p>
       </div>
 
@@ -94,6 +103,40 @@ export default async function CardMeaningsIndexPage() {
           </div>
         </section>
       )}
+
+      {/* Explore Tarot Deck Templates */}
+      <section className="mt-14 pt-10 border-t border-charcoal/10">
+        <h2 className="text-lg font-semibold tracking-widest uppercase text-charcoal mb-4">
+          Explore Tarot Deck Templates
+        </h2>
+        <p className="text-charcoal/70 text-sm leading-relaxed mb-6 max-w-2xl">
+          See how tarot cards appear across different tarot deck design styles.
+          These templates demonstrate how creators can build unique tarot decks
+          while maintaining the structure of the traditional tarot system.
+        </p>
+        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <li>
+            <Link href="/templates/Bloodbound-Tarot" className="text-charcoal underline underline-offset-4 hover:text-[#C7A96B] transition-colors">
+              Bloodbound Tarot
+            </Link>
+          </li>
+          <li>
+            <Link href="/templates/Psychedelic-70s-Tarot" className="text-charcoal underline underline-offset-4 hover:text-[#C7A96B] transition-colors">
+              Psychedelic 70s Tarot
+            </Link>
+          </li>
+          <li>
+            <Link href="/templates/Cosmic-Void" className="text-charcoal underline underline-offset-4 hover:text-[#C7A96B] transition-colors">
+              Cosmic Void
+            </Link>
+          </li>
+          <li>
+            <Link href="/templates/Astral-Dominion" className="text-charcoal underline underline-offset-4 hover:text-[#C7A96B] transition-colors">
+              Astral Dominion
+            </Link>
+          </li>
+        </ul>
+      </section>
     </main>
   );
 }
