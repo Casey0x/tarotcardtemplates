@@ -33,7 +33,7 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "King of Wands tarot card — Cosmic Void deck",
     },
   ],
-  "Grimoire-Tarot": [
+  "grimoire-tarot": [
     {
       name: "Five of Pentacles",
       slug: "five-of-pentacles",
