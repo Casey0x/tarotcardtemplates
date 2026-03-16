@@ -49,15 +49,6 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'The Marble Temple tarot card border template uses classical marble architecture to frame your card art: fluted stone columns, a temple-style arch, and a transparent center window for your illustration. It was designed for standard tarot card dimensions and is ideal for mystical or traditional tarot decks. Simply place your artwork inside the frame in Canva or Photoshop and export print-ready files.\n\nWhether you are creating a Rider–Waite inspired deck, a fantasy tarot, or using AI-generated artwork, this border gives each card a consistent, elegant frame. The transparent center area is sized for your tarot imagery; add card names and numerals inside the marble frame, then export for print or digital use. Suitable for tarot deck creators who want a timeless, temple-style frame.',
     image: '/images/templates/marble-temple-tarot-border.png',
   },
-  {
-    slug: 'gothic-cathedral',
-    name: 'Gothic Cathedral Tarot Border',
-    description:
-      'A gothic cathedral inspired tarot card border featuring elegant pointed arches and delicate medieval tracery.',
-    productDescription:
-      'The Gothic Cathedral tarot card border template brings medieval grandeur to your tarot deck with elegant pointed arches and delicate tracery. Inspired by sacred architecture, this frame gives your card art a dramatic, reverent presentation. The transparent center window lets you place your illustration in Canva or Photoshop while the ornate border adds depth and atmosphere. Ideal for dark fantasy, historical, or spiritually themed tarot and oracle decks.',
-    image: '/images/templates/gothic-cathedral-tarot-border.png',
-  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {
