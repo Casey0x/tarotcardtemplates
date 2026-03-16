@@ -95,49 +95,12 @@ export default function BorderPage({ params }: BorderPageProps) {
     },
   };
 
-  const marbleTempleFaqSchema = slug === 'marble-temple' && {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'Can I use this template in Canva?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. The template works with Canva, Photoshop, and most design software.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Is this a digital download?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. After purchase you will receive instant downloadable files.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Can I print my tarot cards?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes. The template is formatted for professional printing.',
-        },
-      },
-    ],
-  };
-
   return (
     <div className="space-y-10 bg-cream -mx-6 -my-12 px-6 py-12">
       {marbleTempleProductSchema && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(marbleTempleProductSchema) }}
-        />
-      )}
-      {marbleTempleFaqSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(marbleTempleFaqSchema) }}
         />
       )}
       <Link
@@ -178,45 +141,92 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
           </div>
 
-          <div>
-            <h2 className="mb-2 text-lg font-semibold text-charcoal">
-              Included files:
-            </h2>
-            <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
-              <li>PNG border</li>
-              <li>PSD layered file</li>
-              <li>Canva compatible</li>
-              <li>70×120mm tarot card size</li>
-              <li>3mm bleed included</li>
-            </ul>
-          </div>
-
-          {/* Purchase box — top right on desktop, below content on mobile */}
-          <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
-            <h2 className="mb-4 text-lg font-semibold text-charcoal">
-              Border Template – Studio
-            </h2>
-            <p className="mb-4 text-charcoal/90">
-              <span className="font-medium">Price: $9.95</span>
-            </p>
-            <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
-            <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
-              <li>PNG border</li>
-              <li>PSD layered file</li>
-              <li>Canva compatible</li>
-              <li>70×120mm tarot card size</li>
-              <li>3mm bleed included</li>
-            </ul>
-            <button
-              type="button"
-              className="w-full border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream hover:bg-charcoal/90 transition-colors"
-            >
-              Purchase
-            </button>
-            <p className="mt-3 text-sm text-charcoal/70">
-              After payment you&apos;ll design each card in the Studio.
-            </p>
-          </div>
+          {/* For marble-temple: sidebar order is Price, Purchase button, Included Files, Template Features */}
+          {slug === 'marble-temple' ? (
+            <>
+              <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
+                <h2 className="mb-4 text-lg font-semibold text-charcoal">
+                  Border Template – Studio
+                </h2>
+                <p className="mb-4 text-charcoal/90">
+                  <span className="font-medium">Price: $9.95</span>
+                </p>
+                <button
+                  type="button"
+                  className="w-full border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream hover:bg-charcoal/90 transition-colors"
+                >
+                  Purchase
+                </button>
+                <p className="mt-3 text-sm text-charcoal/70">
+                  After payment you&apos;ll design each card in the Studio.
+                </p>
+              </div>
+              <div>
+                <h2 className="mb-2 text-lg font-semibold text-charcoal">
+                  Included files:
+                </h2>
+                <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
+                  <li>PNG border</li>
+                  <li>PSD layered file</li>
+                  <li>Canva compatible</li>
+                  <li>70×120mm tarot card size</li>
+                  <li>3mm bleed included</li>
+                </ul>
+              </div>
+              <div>
+                <h2 className="mb-2 text-lg font-semibold text-charcoal">
+                  Template Features
+                </h2>
+                <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
+                  <li>Transparent artwork window</li>
+                  <li>Standard tarot size (70 × 120 mm)</li>
+                  <li>3 mm bleed for professional printing</li>
+                  <li>PNG and PSD template files</li>
+                  <li>Compatible with Canva and Photoshop</li>
+                </ul>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <h2 className="mb-2 text-lg font-semibold text-charcoal">
+                  Included files:
+                </h2>
+                <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
+                  <li>PNG border</li>
+                  <li>PSD layered file</li>
+                  <li>Canva compatible</li>
+                  <li>70×120mm tarot card size</li>
+                  <li>3mm bleed included</li>
+                </ul>
+              </div>
+              <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
+                <h2 className="mb-4 text-lg font-semibold text-charcoal">
+                  Border Template – Studio
+                </h2>
+                <p className="mb-4 text-charcoal/90">
+                  <span className="font-medium">Price: $9.95</span>
+                </p>
+                <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
+                <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
+                  <li>PNG border</li>
+                  <li>PSD layered file</li>
+                  <li>Canva compatible</li>
+                  <li>70×120mm tarot card size</li>
+                  <li>3mm bleed included</li>
+                </ul>
+                <button
+                  type="button"
+                  className="w-full border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream hover:bg-charcoal/90 transition-colors"
+                >
+                  Purchase
+                </button>
+                <p className="mt-3 text-sm text-charcoal/70">
+                  After payment you&apos;ll design each card in the Studio.
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -404,44 +414,7 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
           </section>
 
-          {/* 5. Template Features */}
-          <section className="space-y-4 border-t border-charcoal/10 pt-10">
-            <h2 className="text-xl font-semibold text-charcoal">Template Features</h2>
-            <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
-              <li>Transparent artwork window</li>
-              <li>Standard tarot size (70 × 120 mm)</li>
-              <li>3 mm bleed for professional printing</li>
-              <li>PNG and PSD template files</li>
-              <li>Compatible with Canva and Photoshop</li>
-            </ul>
-          </section>
-
-          {/* 6. FAQ */}
-          <section className="space-y-4 border-t border-charcoal/10 pt-10">
-            <h2 className="text-xl font-semibold text-charcoal">Frequently Asked Questions</h2>
-            <dl className="space-y-4">
-              <div>
-                <dt className="font-medium text-charcoal">Can I use this template in Canva?</dt>
-                <dd className="mt-1 text-sm text-charcoal/80">
-                  Yes. The template works with Canva, Photoshop, and most design software.
-                </dd>
-              </div>
-              <div>
-                <dt className="font-medium text-charcoal">Is this a digital download?</dt>
-                <dd className="mt-1 text-sm text-charcoal/80">
-                  Yes. After purchase you will receive instant downloadable files.
-                </dd>
-              </div>
-              <div>
-                <dt className="font-medium text-charcoal">Can I print my tarot cards?</dt>
-                <dd className="mt-1 text-sm text-charcoal/80">
-                  Yes. The template is formatted for professional printing.
-                </dd>
-              </div>
-            </dl>
-          </section>
-
-          {/* 7. Related Templates */}
+          {/* 5. Related Templates */}
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
             <h2 className="text-xl font-semibold text-charcoal">You May Also Like</h2>
             <ul className="grid gap-4 sm:grid-cols-3">
@@ -458,7 +431,7 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
           </section>
 
-          {/* 8. Tutorials / Blog — moved to bottom */}
+          {/* 6. Tutorials / Blog */}
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
             <h2 className="text-xl font-semibold text-charcoal">
               Learn How to Design Tarot Cards With This Border
