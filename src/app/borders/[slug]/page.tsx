@@ -48,6 +48,15 @@ const MARBLE_TEMPLE_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/marble-temple',
 };
 
+const VINTAGE_VELVET_META = {
+  title: 'Vintage Velvet Border – Tarot Card Border Template',
+  description:
+    'Download the Vintage Velvet tarot card border template for Canva and Photoshop. Ornate golden flourishes and velvet-style frame with transparent center. Instant download.',
+  canonical: 'https://www.tarotcardtemplates.com/borders/vintage-velvet',
+};
+
+const HAS_FULL_LAYOUT = (s: string) => s === 'marble-temple' || s === 'vintage-velvet';
+
 export async function generateMetadata({
   params,
 }: BorderPageProps): Promise<Metadata> {
@@ -61,6 +70,14 @@ export async function generateMetadata({
       description: MARBLE_TEMPLE_META.description,
       alternates: { canonical: MARBLE_TEMPLE_META.canonical },
       openGraph: { title: MARBLE_TEMPLE_META.title },
+    };
+  }
+  if (params.slug === 'vintage-velvet') {
+    return {
+      title: VINTAGE_VELVET_META.title,
+      description: VINTAGE_VELVET_META.description,
+      alternates: { canonical: VINTAGE_VELVET_META.canonical },
+      openGraph: { title: VINTAGE_VELVET_META.title },
     };
   }
   const title = `${border.name} Tarot Card Border Template`;
@@ -113,7 +130,11 @@ export default function BorderPage({ params }: BorderPageProps) {
 
       <header>
         <h1 className="text-3xl font-semibold text-charcoal">
-          {slug === 'marble-temple' ? 'Marble Temple Border' : `${border.name} Tarot Card Border Template`}
+          {slug === 'marble-temple'
+            ? 'Marble Temple Border'
+            : slug === 'vintage-velvet'
+              ? 'Vintage Velvet Border'
+              : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
 
@@ -142,8 +163,8 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
           </div>
 
-          {/* For marble-temple: sidebar order is Price, Purchase button, Included Files, Template Features */}
-          {slug === 'marble-temple' ? (
+          {/* Full layout sidebar: Price, Purchase button, Included Files, Template Features */}
+          {HAS_FULL_LAYOUT(slug) ? (
             <>
               <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
                 <h2 className="mb-4 text-lg font-semibold text-charcoal">
@@ -231,10 +252,10 @@ export default function BorderPage({ params }: BorderPageProps) {
         </div>
       </div>
 
-      {/* 2. Example Cards — for marble-temple use product-focused heading and move to top of flow */}
+      {/* 2. Example Cards — product-focused heading for full-layout borders */}
       <section className="space-y-4">
         <h2 className="text-xl font-semibold text-charcoal">
-          {slug === 'marble-temple' ? 'Example Tarot Cards Created With This Border' : 'Example Usage'}
+          {HAS_FULL_LAYOUT(slug) ? 'Example Tarot Cards Created With This Border' : 'Example Usage'}
         </h2>
         {slug === 'vintage-velvet' ? (
           <>
@@ -383,7 +404,7 @@ export default function BorderPage({ params }: BorderPageProps) {
         )}
       </section>
 
-      {slug === 'marble-temple' ? (
+      {HAS_FULL_LAYOUT(slug) ? (
         <>
           {/* 3. Product Description — from border data */}
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
@@ -399,7 +420,7 @@ export default function BorderPage({ params }: BorderPageProps) {
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
             <h2 className="text-xl font-semibold text-charcoal">How It Works</h2>
             <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
-              <li>Purchase the Marble Temple Tarot Border template.</li>
+              <li>Purchase the {border.name} template.</li>
               <li>Create a free account and log in to Tarot Studio.</li>
               <li>Upload your tarot artwork into the template.</li>
               <li>Add card titles and numerals inside the frame.</li>

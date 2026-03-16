@@ -37,7 +37,7 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
     description:
       'Luxurious baroque tarot border with velvet textures and dramatic gold ornament.',
     productDescription:
-      'The Vintage Velvet tarot card border template features ornate golden flourishes set against a rich velvet background. Inspired by classic Victorian tarot decks and antique book bindings, this frame gives your tarot artwork a luxurious and mystical presentation. The transparent center window allows you to place your illustration easily in Canva or Photoshop while preserving the decorative velvet border. Ideal for romantic, gothic, or traditional tarot decks.',
+      'The Vintage Velvet tarot card border template features ornate golden flourishes set against a rich velvet background inspired by antique tarot decks and Victorian book design. The decorative frame surrounds your artwork while leaving a transparent center window for your illustration.\n\nDesigned for standard tarot card proportions, the template works seamlessly in Canva or Photoshop. Simply place your artwork inside the frame, add card titles and numerals, and export your cards as print-ready files.\n\nThis border style is ideal for gothic, romantic, or classical tarot decks where rich textures and elegant ornamentation enhance the artwork.',
     image: '/images/template-styles/vintage-velvet.png',
   },
   {
