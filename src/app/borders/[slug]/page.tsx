@@ -42,7 +42,7 @@ interface BorderPageProps {
 }
 
 const MARBLE_TEMPLE_META = {
-  title: 'Marble Temple Tarot Card Border Template',
+  title: 'Marble Temple Border – Tarot Card Border Template',
   description:
     'Download the Marble Temple tarot card border template for Canva and Photoshop. Classical marble frame with transparent center for tarot artwork. Instant download.',
   canonical: 'https://www.tarotcardtemplates.com/borders/marble-temple',
@@ -60,6 +60,7 @@ export async function generateMetadata({
       title: MARBLE_TEMPLE_META.title,
       description: MARBLE_TEMPLE_META.description,
       alternates: { canonical: MARBLE_TEMPLE_META.canonical },
+      openGraph: { title: MARBLE_TEMPLE_META.title },
     };
   }
   const title = `${border.name} Tarot Card Border Template`;
@@ -112,7 +113,7 @@ export default function BorderPage({ params }: BorderPageProps) {
 
       <header>
         <h1 className="text-3xl font-semibold text-charcoal">
-          {border.name} Tarot Card Border Template
+          {slug === 'marble-temple' ? 'Marble Temple Border' : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
 
