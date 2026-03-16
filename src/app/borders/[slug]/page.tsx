@@ -385,21 +385,14 @@ export default function BorderPage({ params }: BorderPageProps) {
 
       {slug === 'marble-temple' ? (
         <>
-          {/* 3. Product Description — Marble Temple specific */}
+          {/* 3. Product Description — from border data */}
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
             <h2 className="text-xl font-semibold text-charcoal">Product Description</h2>
-            <p className="text-sm text-charcoal/80">
-              The Marble Temple tarot card border template uses classical marble architecture to frame your card art:
-              fluted stone columns, a temple-style arch, and a transparent center window for your illustration. It was
-              designed for standard tarot card dimensions and is ideal for mystical or traditional tarot decks. Simply
-              place your artwork inside the frame in Canva or Photoshop and export print-ready files.
-            </p>
-            <p className="text-sm text-charcoal/80">
-              Whether you are creating a Rider–Waite inspired deck, a fantasy tarot, or using AI-generated artwork,
-              this border gives each card a consistent, elegant frame. The transparent center area is sized for your
-              tarot imagery; add card names and numerals inside the marble frame, then export for print or digital use.
-              Suitable for tarot deck creators who want a timeless, temple-style frame.
-            </p>
+            {border.productDescription.split('\n\n').map((paragraph, i) => (
+              <p key={i} className="text-sm text-charcoal/80">
+                {paragraph}
+              </p>
+            ))}
           </section>
 
           {/* 4. How It Works */}
@@ -469,7 +462,16 @@ export default function BorderPage({ params }: BorderPageProps) {
         </>
       ) : (
         <>
-          {/* Other borders: Tutorial then SEO section */}
+          {/* Other borders: Product Description then Tutorial then SEO section */}
+          <section className="space-y-4 border-t border-charcoal/10 pt-10">
+            <h2 className="text-xl font-semibold text-charcoal">Product Description</h2>
+            {border.productDescription.split('\n\n').map((paragraph, i) => (
+              <p key={i} className="text-sm text-charcoal/80">
+                {paragraph}
+              </p>
+            ))}
+          </section>
+
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
             <h2 className="text-xl font-semibold text-charcoal">
               Learn How to Design Tarot Cards With This Border
