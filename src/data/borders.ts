@@ -19,7 +19,7 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
     description:
       'Elegant celestial tarot border featuring flowing botanical ornament and gold celestial motifs.',
     productDescription:
-      'The Celestial Gilded tarot card border template combines elegant gold detailing with subtle cosmic motifs. Designed for mystical and astrology-inspired decks, this frame enhances your tarot illustrations while maintaining a clean composition. The transparent center window allows easy placement of artwork in Canva or Photoshop, while the decorative border adds a celestial atmosphere to each card. Perfect for spiritual, star-themed, or magical tarot decks.',
+      'The Celestial Gilded tarot card border template features elegant gold linework inspired by celestial symbols such as stars, moons, and cosmic ornament. The decorative frame surrounds your artwork while leaving a transparent center window for your tarot illustration.\n\nDesigned for standard tarot card proportions, the template works seamlessly in Canva or Photoshop. Simply place your artwork inside the frame, add card names and numerals, and export your cards as print-ready tarot files.\n\nThis border style works especially well for astrology-inspired decks, cosmic tarot themes, or spiritual artwork where celestial symbolism enhances the card design.',
     image: '/images/template-styles/celestial-gilded.png',
   },
   {
