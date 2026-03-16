@@ -2,9 +2,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getBordersRecord } from '@/data/borders';
+import { getBordersRecord, BORDER_TEMPLATES } from '@/data/borders';
 
 const borders = getBordersRecord();
+
+/** Other border templates for "You May Also Like" (exclude current slug) */
+function getRelatedBorders(currentSlug: string) {
+  return BORDER_TEMPLATES.filter((b) => b.slug !== currentSlug).slice(0, 3);
+}
 
 const VINTAGE_VELVET_EXAMPLES = [
   {
@@ -99,15 +104,7 @@ export default function BorderPage({ params }: BorderPageProps) {
         name: 'Can I use this template in Canva?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes. The Marble Temple template works with Canva, Photoshop, and most image editing software.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What size are the tarot cards?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'The template is designed for standard tarot card size (70 × 120 mm) with 3 mm bleed included.',
+          text: 'Yes. The template works with Canva, Photoshop, and most design software.',
         },
       },
       {
@@ -115,12 +112,12 @@ export default function BorderPage({ params }: BorderPageProps) {
         name: 'Is this a digital download?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Yes. After purchase you will receive downloadable PNG and PSD files.',
+          text: 'Yes. After purchase you will receive instant downloadable files.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Can I print my deck using this template?',
+        name: 'Can I print my tarot cards?',
         acceptedAnswer: {
           '@type': 'Answer',
           text: 'Yes. The template is formatted for professional printing.',
@@ -223,9 +220,11 @@ export default function BorderPage({ params }: BorderPageProps) {
         </div>
       </div>
 
-      {/* Example Usage — full width */}
+      {/* 2. Example Cards — for marble-temple use product-focused heading and move to top of flow */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-charcoal">Example Usage</h2>
+        <h2 className="text-xl font-semibold text-charcoal">
+          {slug === 'marble-temple' ? 'Example Tarot Cards Created With This Border' : 'Example Usage'}
+        </h2>
         {slug === 'vintage-velvet' ? (
           <>
             <p className="text-sm text-charcoal/80">
@@ -373,52 +372,11 @@ export default function BorderPage({ params }: BorderPageProps) {
         )}
       </section>
 
-      {/* Tutorial / learning section */}
-      <section className="space-y-4 border-t border-charcoal/10 pt-10">
-        <h2 className="text-xl font-semibold text-charcoal">
-          Learn How to Design Tarot Cards With This Border
-        </h2>
-        <p className="text-sm text-charcoal/80">
-          Step-by-step guides to create your own tarot deck using this border style.
-        </p>
-        <ul className="space-y-3">
-          {TUTORIAL_LINKS.map((tutorial) => (
-            <li key={tutorial.href}>
-              <p className="text-charcoal font-medium">{tutorial.label}</p>
-              <Link
-                href={tutorial.href}
-                className="text-sm underline underline-offset-4 text-charcoal/80 hover:text-charcoal"
-              >
-                Read the tutorial →
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        {/* YouTube embed — replace video ID with your tutorial video */}
-        <div className="mt-8">
-          <h3 className="mb-3 text-lg font-medium text-charcoal">
-            {videoTitle}
-          </h3>
-          <div className="relative w-full overflow-hidden rounded-md border border-charcoal/10 bg-charcoal/5 pb-[56.25%]">
-            <iframe
-              title={videoTitle}
-              className="absolute left-0 top-0 h-full w-full"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* SEO-focused deck design section */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-charcoal">
-          Design Your Own Tarot Deck Using This Template
-        </h2>
-        {slug === 'marble-temple' ? (
-          <>
+      {slug === 'marble-temple' ? (
+        <>
+          {/* 3. Product Description — Marble Temple specific */}
+          <section className="space-y-4 border-t border-charcoal/10 pt-10">
+            <h2 className="text-xl font-semibold text-charcoal">Product Description</h2>
             <p className="text-sm text-charcoal/80">
               The Marble Temple tarot card border template uses classical marble architecture to frame your card art:
               fluted stone columns, a temple-style arch, and a transparent center window for your illustration. It was
@@ -429,10 +387,153 @@ export default function BorderPage({ params }: BorderPageProps) {
               Whether you are creating a Rider–Waite inspired deck, a fantasy tarot, or using AI-generated artwork,
               this border gives each card a consistent, elegant frame. The transparent center area is sized for your
               tarot imagery; add card names and numerals inside the marble frame, then export for print or digital use.
+              Suitable for tarot deck creators who want a timeless, temple-style frame.
             </p>
-          </>
-        ) : (
-          <>
+          </section>
+
+          {/* 4. How It Works */}
+          <section className="space-y-4 border-t border-charcoal/10 pt-10">
+            <h2 className="text-xl font-semibold text-charcoal">How It Works</h2>
+            <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
+              <li>Purchase the Marble Temple Tarot Border template.</li>
+              <li>Create a free account and log in to Tarot Studio.</li>
+              <li>Upload your tarot artwork into the template.</li>
+              <li>Add card titles and numerals inside the frame.</li>
+              <li>Export your finished tarot cards as print-ready files.</li>
+              <li>Optional: order professional tarot card printing through our printing partners.</li>
+            </ul>
+          </section>
+
+          {/* 5. Template Features */}
+          <section className="space-y-4 border-t border-charcoal/10 pt-10">
+            <h2 className="text-xl font-semibold text-charcoal">Template Features</h2>
+            <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
+              <li>Transparent artwork window</li>
+              <li>Standard tarot size (70 × 120 mm)</li>
+              <li>3 mm bleed for professional printing</li>
+              <li>PNG and PSD template files</li>
+              <li>Compatible with Canva and Photoshop</li>
+            </ul>
+          </section>
+
+          {/* 6. FAQ */}
+          <section className="space-y-4 border-t border-charcoal/10 pt-10">
+            <h2 className="text-xl font-semibold text-charcoal">Frequently Asked Questions</h2>
+            <dl className="space-y-4">
+              <div>
+                <dt className="font-medium text-charcoal">Can I use this template in Canva?</dt>
+                <dd className="mt-1 text-sm text-charcoal/80">
+                  Yes. The template works with Canva, Photoshop, and most design software.
+                </dd>
+              </div>
+              <div>
+                <dt className="font-medium text-charcoal">Is this a digital download?</dt>
+                <dd className="mt-1 text-sm text-charcoal/80">
+                  Yes. After purchase you will receive instant downloadable files.
+                </dd>
+              </div>
+              <div>
+                <dt className="font-medium text-charcoal">Can I print my tarot cards?</dt>
+                <dd className="mt-1 text-sm text-charcoal/80">
+                  Yes. The template is formatted for professional printing.
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          {/* 7. Related Templates */}
+          <section className="space-y-4 border-t border-charcoal/10 pt-10">
+            <h2 className="text-xl font-semibold text-charcoal">You May Also Like</h2>
+            <ul className="grid gap-4 sm:grid-cols-3">
+              {getRelatedBorders(slug).map((b) => (
+                <li key={b.slug}>
+                  <Link
+                    href={`/borders/${b.slug}`}
+                    className="block rounded-sm border border-charcoal/10 bg-cream/80 p-4 transition-colors hover:border-charcoal/20"
+                  >
+                    <span className="font-medium text-charcoal">{b.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          {/* 8. Tutorials / Blog — moved to bottom */}
+          <section className="space-y-4 border-t border-charcoal/10 pt-10">
+            <h2 className="text-xl font-semibold text-charcoal">
+              Learn How to Design Tarot Cards With This Border
+            </h2>
+            <p className="text-sm text-charcoal/80">
+              Step-by-step guides to create your own tarot deck using this border style.
+            </p>
+            <ul className="space-y-3">
+              {TUTORIAL_LINKS.map((tutorial) => (
+                <li key={tutorial.href}>
+                  <p className="text-charcoal font-medium">{tutorial.label}</p>
+                  <Link
+                    href={tutorial.href}
+                    className="text-sm underline underline-offset-4 text-charcoal/80 hover:text-charcoal"
+                  >
+                    Read the tutorial →
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8">
+              <h3 className="mb-3 text-lg font-medium text-charcoal">{videoTitle}</h3>
+              <div className="relative w-full overflow-hidden rounded-md border border-charcoal/10 bg-charcoal/5 pb-[56.25%]">
+                <iframe
+                  title={videoTitle}
+                  className="absolute left-0 top-0 h-full w-full"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </section>
+        </>
+      ) : (
+        <>
+          {/* Other borders: Tutorial then SEO section */}
+          <section className="space-y-4 border-t border-charcoal/10 pt-10">
+            <h2 className="text-xl font-semibold text-charcoal">
+              Learn How to Design Tarot Cards With This Border
+            </h2>
+            <p className="text-sm text-charcoal/80">
+              Step-by-step guides to create your own tarot deck using this border style.
+            </p>
+            <ul className="space-y-3">
+              {TUTORIAL_LINKS.map((tutorial) => (
+                <li key={tutorial.href}>
+                  <p className="text-charcoal font-medium">{tutorial.label}</p>
+                  <Link
+                    href={tutorial.href}
+                    className="text-sm underline underline-offset-4 text-charcoal/80 hover:text-charcoal"
+                  >
+                    Read the tutorial →
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8">
+              <h3 className="mb-3 text-lg font-medium text-charcoal">{videoTitle}</h3>
+              <div className="relative w-full overflow-hidden rounded-md border border-charcoal/10 bg-charcoal/5 pb-[56.25%]">
+                <iframe
+                  title={videoTitle}
+                  className="absolute left-0 top-0 h-full w-full"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold text-charcoal">
+              Design Your Own Tarot Deck Using This Template
+            </h2>
             <p className="text-sm text-charcoal/80">
               Creating your own tarot deck starts with a consistent card layout. A tarot card template provides the correct
               proportions, safe areas, and border placement needed to design professional looking cards. This{' '}
@@ -445,73 +546,25 @@ export default function BorderPage({ params }: BorderPageProps) {
               finished card frame. Simply drop your illustration into the center artwork area and your tarot card is ready
               for printing.
             </p>
-          </>
-        )}
-        <div>
-          <h3 className="mb-2 text-lg font-semibold text-charcoal">
-            This template is ideal for:
-          </h3>
-          <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
-            <li>Designing your own tarot deck</li>
-            <li>Creating tarot cards for print-on-demand</li>
-            <li>AI generated tarot artwork</li>
-            <li>Photoshop or Canva tarot layouts</li>
-            <li>Professional tarot card publishing</li>
-          </ul>
-        </div>
-        <p className="text-sm text-charcoal/80">
-          {slug === 'marble-temple'
-            ? 'If you are learning how to make your own tarot cards, the Marble Temple border template ensures your artwork fits perfectly within a classic marble frame while keeping the proportions used by most tarot decks.'
-            : `If you are learning how to make your own tarot cards, starting with a ready-made tarot card template can save hours of layout work. The ${border.name} template ensures your artwork fits perfectly within a classic tarot card frame while maintaining the correct proportions used by most tarot decks.`}
-        </p>
-      </section>
-
-      {/* How It Works — marble-temple only */}
-      {slug === 'marble-temple' && (
-        <section className="space-y-4 border-t border-charcoal/10 pt-10">
-          <h2 className="text-xl font-semibold text-charcoal">How It Works</h2>
-          <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
-            <li>Purchase the Marble Temple Tarot Border template.</li>
-            <li>Create a free account and log in to the Tarot Studio.</li>
-            <li>Upload your tarot artwork into the border template.</li>
-            <li>Add card names and numerals inside the frame.</li>
-            <li>Export your finished tarot cards as print-ready files.</li>
-            <li>Optional: order professional tarot card printing directly through our printing partners.</li>
-          </ul>
-        </section>
-      )}
-
-      {/* FAQ — marble-temple only */}
-      {slug === 'marble-temple' && (
-        <section className="space-y-4 border-t border-charcoal/10 pt-10">
-          <h2 className="text-xl font-semibold text-charcoal">Frequently Asked Questions</h2>
-          <dl className="space-y-4">
             <div>
-              <dt className="font-medium text-charcoal">Can I use this template in Canva?</dt>
-              <dd className="mt-1 text-sm text-charcoal/80">
-                Yes. The Marble Temple template works with Canva, Photoshop, and most image editing software.
-              </dd>
+              <h3 className="mb-2 text-lg font-semibold text-charcoal">
+                This template is ideal for:
+              </h3>
+              <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
+                <li>Designing your own tarot deck</li>
+                <li>Creating tarot cards for print-on-demand</li>
+                <li>AI generated tarot artwork</li>
+                <li>Photoshop or Canva tarot layouts</li>
+                <li>Professional tarot card publishing</li>
+              </ul>
             </div>
-            <div>
-              <dt className="font-medium text-charcoal">What size are the tarot cards?</dt>
-              <dd className="mt-1 text-sm text-charcoal/80">
-                The template is designed for standard tarot card size (70 × 120 mm) with 3 mm bleed included.
-              </dd>
-            </div>
-            <div>
-              <dt className="font-medium text-charcoal">Is this a digital download?</dt>
-              <dd className="mt-1 text-sm text-charcoal/80">
-                Yes. After purchase you will receive downloadable PNG and PSD files.
-              </dd>
-            </div>
-            <div>
-              <dt className="font-medium text-charcoal">Can I print my deck using this template?</dt>
-              <dd className="mt-1 text-sm text-charcoal/80">
-                Yes. The template is formatted for professional printing.
-              </dd>
-            </div>
-          </dl>
-        </section>
+            <p className="text-sm text-charcoal/80">
+              If you are learning how to make your own tarot cards, starting with a ready-made tarot card template can save
+              hours of layout work. The {border.name} template ensures your artwork fits perfectly within a classic
+              tarot card frame while maintaining the correct proportions used by most tarot decks.
+            </p>
+          </section>
+        </>
       )}
     </div>
   );
