@@ -167,6 +167,36 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Ten of Pentacles tarot card — Psychedelic 70s Tarot deck",
     },
   ],
+  "Amduat-Tarot": [
+    {
+      name: "Judgement",
+      slug: "judgement",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/AMDUAT-TAROT/judgement.jpg",
+      alt: "Judgement tarot card — Amduat Tarot deck",
+    },
+    {
+      name: "Wheel of Fortune",
+      slug: "wheel-of-fortune",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/AMDUAT-TAROT/wheel-of-fortune.jpg",
+      alt: "Wheel of Fortune tarot card — Amduat Tarot deck",
+    },
+    {
+      name: "Six of Wands",
+      slug: "six-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/AMDUAT-TAROT/six-of-wands.jpg",
+      alt: "Six of Wands tarot card — Amduat Tarot deck",
+    },
+    {
+      name: "Eight of Cups",
+      slug: "eight-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/AMDUAT-TAROT/eight-of-cups.jpg",
+      alt: "Eight of Cups tarot card — Amduat Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
