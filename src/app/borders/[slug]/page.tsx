@@ -21,6 +21,12 @@ const VINTAGE_VELVET_EXAMPLES = [
   },
 ];
 
+const MARBLE_TEMPLE_EXAMPLES = [
+  { src: '/images/examples/marble-temple-example-1.png', alt: 'Marble Temple tarot border example – The Fool', label: 'The Fool' },
+  { src: '/images/examples/marble-temple-example-2.png', alt: 'Marble Temple tarot border example – The High Priestess', label: 'The High Priestess' },
+  { src: '/images/examples/marble-temple-example-3.png', alt: 'Marble Temple tarot border example – Three of Swords', label: 'Three of Swords' },
+];
+
 const TUTORIAL_LINKS = [
   { label: 'How to Create Tarot Cards in Canva', href: '/blog/create-tarot-cards-canva' },
   { label: 'How to Design a Tarot Deck in Photoshop', href: '/blog/design-your-own-tarot-deck' },
@@ -239,6 +245,27 @@ export default function BorderPage({ params }: BorderPageProps) {
                 </div>
                 <p className="text-center text-xs text-charcoal/80">Traditional Tarot Illustration</p>
               </div>
+            </div>
+          </>
+        ) : slug === 'marble-temple' ? (
+          <>
+            <p className="text-sm text-charcoal/80">
+              See how this border looks when used with finished tarot artwork.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {MARBLE_TEMPLE_EXAMPLES.map((example) => (
+                <div key={example.src} className="space-y-2">
+                  <div className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 shadow-md shadow-charcoal/15">
+                    <Image
+                      src={example.src}
+                      alt={example.alt}
+                      fill
+                      className="object-contain rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                    />
+                  </div>
+                  <p className="text-center text-xs text-charcoal/80">{example.label}</p>
+                </div>
+              ))}
             </div>
           </>
         ) : (
