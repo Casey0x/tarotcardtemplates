@@ -55,7 +55,15 @@ const VINTAGE_VELVET_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/vintage-velvet',
 };
 
-const HAS_FULL_LAYOUT = (s: string) => s === 'marble-temple' || s === 'vintage-velvet';
+const CELESTIAL_GILDED_META = {
+  title: 'Celestial Gilded Border – Tarot Card Border Template',
+  description:
+    'Download the Celestial Gilded tarot card border template for Canva and Photoshop. Celestial gold linework frame with transparent center for tarot artwork. Instant download.',
+  canonical: 'https://www.tarotcardtemplates.com/borders/celestial-gilded',
+};
+
+const HAS_FULL_LAYOUT = (s: string) =>
+  s === 'marble-temple' || s === 'vintage-velvet' || s === 'celestial-gilded';
 
 export async function generateMetadata({
   params,
@@ -78,6 +86,14 @@ export async function generateMetadata({
       description: VINTAGE_VELVET_META.description,
       alternates: { canonical: VINTAGE_VELVET_META.canonical },
       openGraph: { title: VINTAGE_VELVET_META.title },
+    };
+  }
+  if (params.slug === 'celestial-gilded') {
+    return {
+      title: CELESTIAL_GILDED_META.title,
+      description: CELESTIAL_GILDED_META.description,
+      alternates: { canonical: CELESTIAL_GILDED_META.canonical },
+      openGraph: { title: CELESTIAL_GILDED_META.title },
     };
   }
   const title = `${border.name} Tarot Card Border Template`;
@@ -134,7 +150,9 @@ export default function BorderPage({ params }: BorderPageProps) {
             ? 'Marble Temple Border'
             : slug === 'vintage-velvet'
               ? 'Vintage Velvet Border'
-              : `${border.name} Tarot Card Border Template`}
+              : slug === 'celestial-gilded'
+                ? 'Celestial Gilded Border'
+                : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
 

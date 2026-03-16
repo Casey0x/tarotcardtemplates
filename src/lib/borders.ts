@@ -24,11 +24,4 @@ export const BORDER_STYLES: BorderStyle[] = [
     description: 'Baroque-inspired gilded frame with dramatic jewel tones and theatrical ornament.',
     image: '/images/template-styles/vintage-velvet.png',
   },
-  {
-    name: 'Gothic Cathedral Tarot Border',
-    slug: 'gothic-cathedral',
-    description:
-      'A gothic cathedral inspired tarot card border featuring elegant pointed arches and delicate medieval tracery. The center artwork window is transparent and designed for inserting tarot illustrations.',
-    image: '/images/templates/gothic-cathedral-tarot-border.png',
-  },
 ];

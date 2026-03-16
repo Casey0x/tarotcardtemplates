@@ -1,10 +1,14 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { BORDER_TEMPLATES } from '@/data/borders';
+import type { Metadata } from 'next';
 
-export const metadata = {
-  title: 'Tarot Card Border Templates',
-  description: 'Explore tarot card border designs — from minimalist frames to ornate gilded and marble styles. Perfect for your deck.',
+export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Tarot Card Border Templates | TarotCardTemplates.com',
+  description:
+    'Browse tarot card border styles — celestial gilded, minimal line, vintage velvet and more. Download border templates for your tarot deck.',
 };
 
 export default function BordersPage() {
