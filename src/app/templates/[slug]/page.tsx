@@ -33,6 +33,36 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "King of Wands tarot card — Cosmic Void deck",
     },
   ],
+  "Grimoire-Tarot": [
+    {
+      name: "Five of Pentacles",
+      slug: "five-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/GRIMOIRE-TAROT/five-of-pentacles.jpg",
+      alt: "Five of Pentacles tarot card — Grimoire Tarot deck",
+    },
+    {
+      name: "Knight of Cups",
+      slug: "knight-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/GRIMOIRE-TAROT/knight-of-cups.jpg",
+      alt: "Knight of Cups tarot card — Grimoire Tarot deck",
+    },
+    {
+      name: "Seven of Cups",
+      slug: "seven-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/GRIMOIRE-TAROT/seven-of-cups.jpg",
+      alt: "Seven of Cups tarot card — Grimoire Tarot deck",
+    },
+    {
+      name: "Queen of Swords",
+      slug: "queen-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/GRIMOIRE-TAROT/queen-of-swords.jpg",
+      alt: "Queen of Swords tarot card — Grimoire Tarot deck",
+    },
+  ],
   "Dream-Scape": [
     {
       name: "The Hermit",
