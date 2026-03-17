@@ -317,6 +317,36 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Nine of Swords tarot card — Ravenwood Tarot deck",
     },
   ],
+  "Underwater-Tarot": [
+    {
+      name: "The Hierophant",
+      slug: "the-hierophant",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/UNDERWATER-TAROT/the-hierophant.jpg",
+      alt: "The Hierophant tarot card — Underwater Tarot deck",
+    },
+    {
+      name: "Two of Wands",
+      slug: "two-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/UNDERWATER-TAROT/two-of-wands.jpg",
+      alt: "Two of Wands tarot card — Underwater Tarot deck",
+    },
+    {
+      name: "Four of Cups",
+      slug: "four-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/UNDERWATER-TAROT/four-of-cups.jpg",
+      alt: "Four of Cups tarot card — Underwater Tarot deck",
+    },
+    {
+      name: "Knight of Pentacles",
+      slug: "knight-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/UNDERWATER-TAROT/knight-of-pentacles.jpg",
+      alt: "Knight of Pentacles tarot card — Underwater Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
