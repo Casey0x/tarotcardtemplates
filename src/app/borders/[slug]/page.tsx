@@ -157,13 +157,27 @@ export default function BorderPage({ params }: BorderPageProps) {
       </header>
 
       <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
-        <div className="relative aspect-[3/5] w-full max-w-sm overflow-hidden rounded-sm border border-charcoal/10 bg-cream p-4">
-          <Image
-            src={border.image}
-            alt={border.name}
-            fill
-            className="object-contain"
-          />
+        <div className="space-y-6">
+          <div className="relative aspect-[3/5] w-full max-w-sm overflow-hidden rounded-sm border border-charcoal/10 bg-cream p-4">
+            <Image
+              src={border.image}
+              alt={border.name}
+              fill
+              className="object-contain"
+            />
+          </div>
+
+          {/* Product Description — under image for full-layout borders */}
+          {HAS_FULL_LAYOUT(slug) && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-charcoal">Product Description</h2>
+              {border.productDescription.split('\n\n').map((paragraph, i) => (
+                <p key={i} className="text-sm text-charcoal/80">
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -439,17 +453,7 @@ export default function BorderPage({ params }: BorderPageProps) {
 
       {HAS_FULL_LAYOUT(slug) ? (
         <>
-          {/* 3. Product Description — from border data */}
-          <section className="space-y-4 border-t border-charcoal/10 pt-10">
-            <h2 className="text-xl font-semibold text-charcoal">Product Description</h2>
-            {border.productDescription.split('\n\n').map((paragraph, i) => (
-              <p key={i} className="text-sm text-charcoal/80">
-                {paragraph}
-              </p>
-            ))}
-          </section>
-
-          {/* 4. Related Templates */}
+          {/* Related Templates */}
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
             <h2 className="text-xl font-semibold text-charcoal">You May Also Like</h2>
             <ul className="grid gap-4 sm:grid-cols-3">
@@ -466,7 +470,7 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
           </section>
 
-          {/* 5. Tutorials / Blog */}
+          {/* Learn How to Design */}
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
             <h2 className="text-xl font-semibold text-charcoal">
               Learn How to Design Tarot Cards With This Border
