@@ -181,6 +181,21 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
           </div>
 
+          {/* How It Works — in sidebar for full-layout borders */}
+          {HAS_FULL_LAYOUT(slug) && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-charcoal">How It Works</h2>
+              <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
+                <li>Purchase the {border.name} template.</li>
+                <li>Create a free account and log in to Tarot Studio.</li>
+                <li>Upload your tarot artwork into the template.</li>
+                <li>Add card titles and numerals inside the frame.</li>
+                <li>Export your finished tarot cards as print-ready files.</li>
+                <li>Optional: order professional tarot card printing through our printing partners.</li>
+              </ul>
+            </div>
+          )}
+
           {/* Full layout sidebar: Price, Purchase button, Included Files, Template Features */}
           {HAS_FULL_LAYOUT(slug) ? (
             <>
@@ -434,20 +449,7 @@ export default function BorderPage({ params }: BorderPageProps) {
             ))}
           </section>
 
-          {/* 4. How It Works */}
-          <section className="space-y-4 border-t border-charcoal/10 pt-10">
-            <h2 className="text-xl font-semibold text-charcoal">How It Works</h2>
-            <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
-              <li>Purchase the {border.name} template.</li>
-              <li>Create a free account and log in to Tarot Studio.</li>
-              <li>Upload your tarot artwork into the template.</li>
-              <li>Add card titles and numerals inside the frame.</li>
-              <li>Export your finished tarot cards as print-ready files.</li>
-              <li>Optional: order professional tarot card printing through our printing partners.</li>
-            </ul>
-          </section>
-
-          {/* 5. Related Templates */}
+          {/* 4. Related Templates */}
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
             <h2 className="text-xl font-semibold text-charcoal">You May Also Like</h2>
             <ul className="grid gap-4 sm:grid-cols-3">
@@ -464,7 +466,7 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
           </section>
 
-          {/* 6. Tutorials / Blog */}
+          {/* 5. Tutorials / Blog */}
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
             <h2 className="text-xl font-semibold text-charcoal">
               Learn How to Design Tarot Cards With This Border
