@@ -25,6 +25,12 @@ export default async function CardMeaningPage({
   const card = await getCardMeaningBySlug(params.slug);
   if (!card) notFound();
 
+  const featuredImageUrl =
+    card.featuredImageUrl &&
+    (card.featuredImageUrl.startsWith('http') || card.featuredImageUrl.startsWith('/'))
+      ? card.featuredImageUrl
+      : `/images/${card.slug}.jpg`;
+
   return (
     <main className="max-w-3xl mx-auto px-4 py-12">
       <div className="mb-10">
@@ -50,9 +56,9 @@ export default async function CardMeaningPage({
         )}
       </div>
 
-      {card.featuredImageUrl && (
+      {featuredImageUrl && (
         <img
-          src={card.featuredImageUrl}
+          src={featuredImageUrl}
           alt={`${card.name} tarot card`}
           className="w-48 mx-auto mb-10"
         />
