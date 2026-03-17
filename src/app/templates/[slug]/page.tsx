@@ -266,11 +266,11 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Temperance tarot card — Cottagecore Tarot deck",
     },
     {
-      name: "The Empress",
-      slug: "the-empress",
+      name: "The Emperor",
+      slug: "the-emperor",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/COTTAGECORE-TAROT/the-empress.jpg",
-      alt: "The Empress tarot card — Cottagecore Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/COTTAGECORE-TAROT/the-emperor.jpg",
+      alt: "The Emperor tarot card — Cottagecore Tarot deck",
     },
     {
       name: "Ace of Cups",
