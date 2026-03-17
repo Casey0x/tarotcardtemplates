@@ -197,6 +197,36 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Eight of Cups tarot card — Amduat Tarot deck",
     },
   ],
+  "maneki-tarot": [
+    {
+      name: "The Lovers",
+      slug: "the-lovers",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/MANEKI-TAROT/the-lovers.jpg",
+      alt: "The Lovers tarot card — Maneki Tarot deck",
+    },
+    {
+      name: "The Sun",
+      slug: "the-sun",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/MANEKI-TAROT/the-sun.jpg",
+      alt: "The Sun tarot card — Maneki Tarot deck",
+    },
+    {
+      name: "Four of Wands",
+      slug: "four-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/MANEKI-TAROT/four-of-wands.jpg",
+      alt: "Four of Wands tarot card — Maneki Tarot deck",
+    },
+    {
+      name: "Queen of Cups",
+      slug: "queen-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/MANEKI-TAROT/queen-of-cups.jpg",
+      alt: "Queen of Cups tarot card — Maneki Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
