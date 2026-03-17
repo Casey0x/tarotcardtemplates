@@ -548,21 +548,18 @@ export default async function TemplateDetailPage({
         <p className="text-sm text-charcoal/70 mb-8 max-w-lg mx-auto">
           Tarot cards carry symbolic meaning used in divination and storytelling. Explore the interpretations behind some of the cards in this deck.
         </p>
-        <div className="flex flex-wrap justify-center gap-8">
+        <div className="meanings-grid">
           {spotlightCards.map((card) => (
             <Link
               key={card.slug}
               href={"/card-meanings/" + card.slug}
-              className="group flex flex-col items-center gap-2"
+              className="meaning-card group flex flex-col items-center gap-2"
             >
-              <div className="relative" style={{ width: "105px" }}>
+              <div className="relative">
                 <img
                   src={card.image}
                   alt={card.alt}
-                  width={105}
-                  height={175}
                   className="rounded-md object-cover transition-transform duration-200 group-hover:-translate-y-1"
-                  style={{ width: "105px", height: "175px" }}
                 />
                 <div
                   className="absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"

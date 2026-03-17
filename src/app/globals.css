@@ -60,3 +60,19 @@ a {
     position: relative;
     z-index: 1;
 }
+
+/* ============================================
+   Tarot card meanings grid (template detail pages)
+   ============================================ */
+
+.meanings-grid {
+  display: grid;
+  justify-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(175px, auto));
+  gap: 48px;
+}
+
+.meaning-card img {
+  width: 175px;
+  height: auto;
+}
