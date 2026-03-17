@@ -257,6 +257,36 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Queen of Cups tarot card — Maneki Tarot deck",
     },
   ],
+  "Ravenwood-Tarot": [
+    {
+      name: "Death",
+      slug: "death",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/RAVENWOOD-TAROT/death.jpg",
+      alt: "Death tarot card — Ravenwood Tarot deck",
+    },
+    {
+      name: "The Chariot",
+      slug: "the-chariot",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/RAVENWOOD-TAROT/the-chariot.jpg",
+      alt: "The Chariot tarot card — Ravenwood Tarot deck",
+    },
+    {
+      name: "Three of Wands",
+      slug: "three-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/RAVENWOOD-TAROT/three-of-wands.jpg",
+      alt: "Three of Wands tarot card — Ravenwood Tarot deck",
+    },
+    {
+      name: "Nine of Swords",
+      slug: "nine-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/RAVENWOOD-TAROT/nine-of-swords.jpg",
+      alt: "Nine of Swords tarot card — Ravenwood Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
