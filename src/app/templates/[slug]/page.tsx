@@ -257,6 +257,36 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Queen of Cups tarot card — Maneki Tarot deck",
     },
   ],
+  "Cottagecore-Tarot": [
+    {
+      name: "Temperance",
+      slug: "temperance",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/COTTAGECORE-TAROT/temperance.jpg",
+      alt: "Temperance tarot card — Cottagecore Tarot deck",
+    },
+    {
+      name: "The Empress",
+      slug: "the-empress",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/COTTAGECORE-TAROT/the-empress.jpg",
+      alt: "The Empress tarot card — Cottagecore Tarot deck",
+    },
+    {
+      name: "Ace of Cups",
+      slug: "ace-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/COTTAGECORE-TAROT/ace-of-cups.jpg",
+      alt: "Ace of Cups tarot card — Cottagecore Tarot deck",
+    },
+    {
+      name: "Page of Cups",
+      slug: "page-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/COTTAGECORE-TAROT/page-of-cups.jpg",
+      alt: "Page of Cups tarot card — Cottagecore Tarot deck",
+    },
+  ],
   "Ravenwood-Tarot": [
     {
       name: "Death",
