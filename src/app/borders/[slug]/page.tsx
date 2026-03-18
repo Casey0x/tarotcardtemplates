@@ -560,6 +560,44 @@ export default function BorderPage({ params }: BorderPageProps) {
               </div>
             </div>
           </>
+        ) : slug === 'enchanted-forest' ? (
+          <>
+            <p className="text-sm text-charcoal/80">
+              See how this border looks when used with finished tarot artwork.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/enchanted-forest-example-1.png"
+                    alt="Enchanted Forest tarot border example — The Empress card in a glowing woodland clearing"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/enchanted-forest-example-2.png"
+                    alt="Enchanted Forest tarot border example — Death card with cloaked figure and forest graveyard"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/enchanted-forest-example-3.png"
+                    alt="Enchanted Forest tarot border example — Page of Wands traveling through a lantern-lit forest path"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
         ) : (
           <>
             <p className="text-sm text-charcoal/80">
