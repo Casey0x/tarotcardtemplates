@@ -69,11 +69,19 @@ const STEAMPUNK_BRASS_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/steampunk-brass',
 };
 
+const JAPANESE_ZEN_META = {
+  title: 'Japanese Zen Border – Tarot Card Border Template',
+  description:
+    'Download the Japanese Zen tarot border template — hand-painted cherry blossoms, bamboo, clouds and seigaiha waves on warm cream. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+  canonical: 'https://www.tarotcardtemplates.com/borders/japanese-zen',
+};
+
 const HAS_FULL_LAYOUT = (s: string) =>
   s === 'marble-temple' ||
   s === 'vintage-velvet' ||
   s === 'celestial-gilded' ||
-  s === 'steampunk-brass';
+  s === 'steampunk-brass' ||
+  s === 'japanese-zen';
 
 export async function generateMetadata({
   params,
@@ -112,6 +120,14 @@ export async function generateMetadata({
       description: STEAMPUNK_BRASS_META.description,
       alternates: { canonical: STEAMPUNK_BRASS_META.canonical },
       openGraph: { title: STEAMPUNK_BRASS_META.title },
+    };
+  }
+  if (params.slug === 'japanese-zen') {
+    return {
+      title: JAPANESE_ZEN_META.title,
+      description: JAPANESE_ZEN_META.description,
+      alternates: { canonical: JAPANESE_ZEN_META.canonical },
+      openGraph: { title: JAPANESE_ZEN_META.title },
     };
   }
   const title = `${border.name} Tarot Card Border Template`;
@@ -175,7 +191,9 @@ export default function BorderPage({ params }: BorderPageProps) {
                 ? 'Celestial Gilded Border'
                 : slug === 'steampunk-brass'
                   ? 'Steampunk Brass Border'
-                  : `${border.name} Tarot Card Border Template`}
+                  : slug === 'japanese-zen'
+                    ? 'Japanese Zen Border'
+                    : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
 

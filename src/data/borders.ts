@@ -58,6 +58,15 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'This intricately detailed steampunk tarot card border features an ornate brass and bronze mechanical frame with interlocking gears, industrial rivets, pressure gauges, and weathered metallic textures that evoke Victorian-era craftsmanship. The symmetrical design includes decorative text panels at the top and bottom, perfect for card titles and descriptions, while the generous central space accommodates your custom artwork or imagery.\n\nDesigned to work seamlessly with standard tarot card proportions, this border pairs perfectly with Canva or Photoshop. Place your illustration inside the frame, add card names and numerals into the brass title plates, and export your cards as print-ready files.\n\nIdeal for creating distinctive steampunk tarot decks, oracle cards, trading card games, certificates, event graphics, or any project requiring an elaborate antique industrial aesthetic with rich warm metallics and authentic aged patina effects.',
     image: '/images/templates/steampunk-brass-tarot-border-cream.png',
   },
+  {
+    slug: 'japanese-zen',
+    name: 'Japanese Zen Border',
+    description:
+      'Serene Japanese-inspired tarot border with cherry blossoms, bamboo, clouds, and seigaiha waves on warm cream.',
+    productDescription:
+      'This serene Japanese-inspired tarot card border features delicate hand-painted elements including soft pink cherry blossoms, elegant bamboo stalks, wispy watercolor clouds, and traditional seigaiha wave patterns that evoke tranquility and natural harmony. The minimalist design on a warm cream background includes a decorative scroll banner at the top for card titles and a larger unfurled scroll at the bottom for descriptions or meanings, while the generous central space accommodates your custom artwork.\n\nPerfect for creating Zen-themed tarot decks, mindfulness oracle cards, meditation guides, Japanese tea ceremony materials, wellness journals, spa menus, yoga studio graphics, or any project requiring an authentic East Asian aesthetic with gentle, contemplative beauty that embodies the principles of wabi-sabi and balanced simplicity.',
+    image: '/images/templates/japanese-zen-tarot-border-cream.png',
+  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {
