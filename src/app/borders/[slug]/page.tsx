@@ -76,12 +76,20 @@ const JAPANESE_ZEN_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/japanese-zen',
 };
 
+const ENCHANTED_FOREST_META = {
+  title: 'Enchanted Forest Border – Tarot Card Border Template',
+  description:
+    'Download the Enchanted Forest tarot border template — twisted woodland vines, oak leaves, acorns, moss and glowing fireflies. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+  canonical: 'https://www.tarotcardtemplates.com/borders/enchanted-forest',
+};
+
 const HAS_FULL_LAYOUT = (s: string) =>
   s === 'marble-temple' ||
   s === 'vintage-velvet' ||
   s === 'celestial-gilded' ||
   s === 'steampunk-brass' ||
-  s === 'japanese-zen';
+  s === 'japanese-zen' ||
+  s === 'enchanted-forest';
 
 export async function generateMetadata({
   params,
@@ -128,6 +136,14 @@ export async function generateMetadata({
       description: JAPANESE_ZEN_META.description,
       alternates: { canonical: JAPANESE_ZEN_META.canonical },
       openGraph: { title: JAPANESE_ZEN_META.title },
+    };
+  }
+  if (params.slug === 'enchanted-forest') {
+    return {
+      title: ENCHANTED_FOREST_META.title,
+      description: ENCHANTED_FOREST_META.description,
+      alternates: { canonical: ENCHANTED_FOREST_META.canonical },
+      openGraph: { title: ENCHANTED_FOREST_META.title },
     };
   }
   const title = `${border.name} Tarot Card Border Template`;
@@ -193,7 +209,9 @@ export default function BorderPage({ params }: BorderPageProps) {
                   ? 'Steampunk Brass Border'
                   : slug === 'japanese-zen'
                     ? 'Japanese Zen Border'
-                    : `${border.name} Tarot Card Border Template`}
+                    : slug === 'enchanted-forest'
+                      ? 'Enchanted Forest Border'
+                      : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
 

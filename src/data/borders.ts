@@ -67,6 +67,15 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'This serene Japanese-inspired tarot card border features delicate hand-painted elements including soft pink cherry blossoms, elegant bamboo stalks, wispy watercolor clouds, and traditional seigaiha wave patterns that evoke tranquility and natural harmony. The minimalist design on a warm cream background includes a decorative scroll banner at the top for card titles and a larger unfurled scroll at the bottom for descriptions or meanings, while the generous central space accommodates your custom artwork.\n\nPerfect for creating Zen-themed tarot decks, mindfulness oracle cards, meditation guides, Japanese tea ceremony materials, wellness journals, spa menus, yoga studio graphics, or any project requiring an authentic East Asian aesthetic with gentle, contemplative beauty that embodies the principles of wabi-sabi and balanced simplicity.',
     image: '/images/templates/japanese-zen-tarot-border-cream.png',
   },
+  {
+    slug: 'enchanted-forest',
+    name: 'Enchanted Forest Border',
+    description:
+      'Magical woodland tarot border with twisted vines, oak leaves, acorns, moss, and glowing fireflies on deep green.',
+    productDescription:
+      'This magical woodland tarot card border features intricately twisted vines and roots that form an organic frame against a rich, textured deep green background, adorned with realistic oak leaves, acorns, delicate moss, and enchanting glowing firefly lights that create an ethereal atmosphere. The design includes a rustic wooden plaque at the top perfect for card titles and a larger weathered wooden plank at the bottom for descriptions or meanings, while the generous central black space accommodates your custom artwork.\n\nIdeal for creating nature-themed tarot decks, druid oracle cards, forest fairy tales, Celtic spirituality materials, fantasy gaming cards, botanical guides, eco-retreat branding, woodland wedding invitations, fairy tale book illustrations, or any project requiring an authentic enchanted forest aesthetic with earthy browns, luminous greens, and mystical natural elements that evoke ancient groves and woodland magic.',
+    image: '/images/templates/enchanted-forest-tarot-border-cream.png',
+  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {
