@@ -672,6 +672,44 @@ export default function BorderPage({ params }: BorderPageProps) {
               </div>
             </div>
           </>
+        ) : slug === 'ocean-mermaid' ? (
+          <>
+            <p className="text-sm text-charcoal/80">
+              See how this border looks when used with finished tarot artwork.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/ocean-mermaid-example-1.png"
+                    alt="Ocean/Mermaid tarot border example — Ace of Pentacles card with underwater treasures"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/ocean-mermaid-example-2.png"
+                    alt="Ocean/Mermaid tarot border example — Page of Wands card with mermaid sea scene"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/ocean-mermaid-example-3.png"
+                    alt="Ocean/Mermaid tarot border example — The Lovers card with underwater harmony"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
         ) : (
           <>
             <p className="text-sm text-charcoal/80">
