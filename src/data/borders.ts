@@ -49,6 +49,15 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'The Marble Temple tarot card border template uses classical marble architecture to frame your card art: fluted stone columns, a temple-style arch, and a transparent center window for your illustration. It was designed for standard tarot card dimensions and is ideal for mystical or traditional tarot decks. Simply place your artwork inside the frame in Canva or Photoshop and export print-ready files.\n\nWhether you are creating a Rider–Waite inspired deck, a fantasy tarot, or using AI-generated artwork, this border gives each card a consistent, elegant frame. The transparent center area is sized for your tarot imagery; add card names and numerals inside the marble frame, then export for print or digital use. Suitable for tarot deck creators who want a timeless, temple-style frame.',
     image: '/images/templates/marble-temple-tarot-border.png',
   },
+  {
+    slug: 'steampunk-brass',
+    name: 'Steampunk Brass Border',
+    description:
+      'Ornate steampunk tarot border with brass gears, gauges, and mechanical detailing.',
+    productDescription:
+      'This intricately detailed steampunk tarot card border features an ornate brass and bronze mechanical frame with interlocking gears, industrial rivets, pressure gauges, and weathered metallic textures that evoke Victorian-era craftsmanship. The symmetrical design includes decorative text panels at the top and bottom, perfect for card titles and descriptions, while the generous central space accommodates your custom artwork or imagery.\n\nDesigned to work seamlessly with standard tarot card proportions, this border pairs perfectly with Canva or Photoshop. Place your illustration inside the frame, add card names and numerals into the brass title plates, and export your cards as print-ready files.\n\nIdeal for creating distinctive steampunk tarot decks, oracle cards, trading card games, certificates, event graphics, or any project requiring an elaborate antique industrial aesthetic with rich warm metallics and authentic aged patina effects.',
+    image: '/images/templates/steampunk-brass-tarot-border-cream.png',
+  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {
