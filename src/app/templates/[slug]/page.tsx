@@ -347,6 +347,36 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Knight of Pentacles tarot card — Underwater Tarot deck",
     },
   ],
+  "Hearthside-Tarot": [
+    {
+      name: "The Hanged Man",
+      slug: "the-hanged-man",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HEARTHSIDE-TAROT/the-hanged-man.jpg",
+      alt: "The Hanged Man tarot card — Hearthside Tarot deck",
+    },
+    {
+      name: "King of Cups",
+      slug: "king-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HEARTHSIDE-TAROT/king-of-cups.jpg",
+      alt: "King of Cups tarot card — Hearthside Tarot deck",
+    },
+    {
+      name: "Six of Swords",
+      slug: "six-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HEARTHSIDE-TAROT/six-of-swords.jpg",
+      alt: "Six of Swords tarot card — Hearthside Tarot deck",
+    },
+    {
+      name: "Five of Wands",
+      slug: "five-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HEARTHSIDE-TAROT/five-of-wands.jpg",
+      alt: "Five of Wands tarot card — Hearthside Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
