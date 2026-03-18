@@ -504,6 +504,44 @@ export default function BorderPage({ params }: BorderPageProps) {
               </div>
             </div>
           </>
+        ) : slug === 'japanese-zen' ? (
+          <>
+            <p className="text-sm text-charcoal/80">
+              See how this border looks when used with finished tarot artwork.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/japanese-zen-example-1.png"
+                    alt="Japanese Zen tarot border example — Knight of Cups card with watercolor mountains and cherry blossoms"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/japanese-zen-example-2.png"
+                    alt="Japanese Zen tarot border example — Strength card with woman and tiger in a mountain landscape"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/japanese-zen-example-3.png"
+                    alt="Japanese Zen tarot border example — The Fool card with monk and fox spirit on a cliff"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+            </div>
+          </>
         ) : (
           <>
             <p className="text-sm text-charcoal/80">
