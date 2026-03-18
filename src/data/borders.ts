@@ -87,11 +87,11 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
   },
   {
     slug: 'ocean-mermaid',
-    name: 'Ocean/Mermaid Border',
+    name: 'Ocean Depths Border',
     description:
-      'Ocean-inspired tarot border with mermaid and sea-magic motifs on a rich sea background.',
+      'Underwater tarot card border with seaweed ribbons, coral branches, pearls and shells.',
     productDescription:
-      'The Ocean/Mermaid tarot card border brings an under-the-sea atmosphere to your deck with flowing ocean curves, gentle wave-inspired details, and enchanting sea motifs.\n\nDesigned for standard tarot card proportions, this border works seamlessly in Canva or Photoshop. Place your artwork inside the frame, add card titles and numerals, and export print-ready files.\n\nPerfect for mermaid-themed tarot decks, ocean oracle cards, sea-spirit art, coastal wellness branding, fantasy game cards, invitations, and any project where ocean magic meets elegant design.',
+      'This enchanting underwater tarot card border features flowing turquoise seaweed ribbons, delicate coral pink sea branches, lustrous pearls, elegant scallop and spiral shells, vibrant orange starfish, and shimmering bubbles against a deep ocean black background that captures the mystery of the sea. The design includes elegant golden metallic plaques at the top and bottom perfect for card titles and descriptions, while the generous central space accommodates your custom artwork.\n\nIdeal for creating mermaid-themed tarot decks, ocean oracle cards, nautical divination tools, beach resort branding, marine biology educational materials, aquarium gift shop items, coastal wedding invitations, sea goddess spirituality guides, tropical vacation promotions, or any project requiring an authentic underwater aesthetic with jewel-toned aquas, soft corals, and luminous golden accents that evoke the serene beauty and magical depths of the ocean realm.',
     image: '/images/templates/ocean-mermaid-tarot-border-cream.png',
   },
 ];

@@ -91,9 +91,9 @@ const DAY_OF_THE_DEAD_META = {
 };
 
 const OCEAN_MERMAID_META = {
-  title: 'Ocean/Mermaid Border – Tarot Card Border Template',
+  title: 'Ocean Depths Border – Tarot Card Border Template',
   description:
-    'Download the Ocean/Mermaid tarot border template — sea-magic motifs with a mermaid-inspired frame. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Ocean Depths tarot border template — turquoise seaweed ribbons, coral pink branches, pearls, shells, starfish and shimmering bubbles. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/ocean-mermaid',
 };
 
@@ -245,8 +245,8 @@ export default function BorderPage({ params }: BorderPageProps) {
                       ? 'Enchanted Forest Border'
                       : slug === 'day-of-the-dead'
                         ? 'Day of the Dead Border'
-                        : slug === 'ocean-mermaid'
-                          ? 'Ocean/Mermaid Border'
+                    : slug === 'ocean-mermaid'
+                      ? 'Ocean Depths Border'
                         : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
@@ -723,7 +723,7 @@ export default function BorderPage({ params }: BorderPageProps) {
                       {b.slug === 'day-of-the-dead' &&
                         'Vibrant Día de los Muertos sugar skulls, marigolds and papel picado.'}
                       {b.slug === 'ocean-mermaid' &&
-                        'Ocean-inspired waves and mermaid motifs for sea-magic tarot decks.'}
+                        'Underwater seaweed ribbons, coral branches, pearls, shells and starfish.'}
                     </p>
                   </Link>
                 </li>
