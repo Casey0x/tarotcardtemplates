@@ -62,8 +62,18 @@ const CELESTIAL_GILDED_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/celestial-gilded',
 };
 
+const STEAMPUNK_BRASS_META = {
+  title: 'Steampunk Brass Border – Tarot Card Border Template',
+  description:
+    'Download the Steampunk Brass tarot card border template for Canva and Photoshop. Ornate brass gearwork frame with cream center for tarot artwork. Instant download.',
+  canonical: 'https://www.tarotcardtemplates.com/borders/steampunk-brass',
+};
+
 const HAS_FULL_LAYOUT = (s: string) =>
-  s === 'marble-temple' || s === 'vintage-velvet' || s === 'celestial-gilded';
+  s === 'marble-temple' ||
+  s === 'vintage-velvet' ||
+  s === 'celestial-gilded' ||
+  s === 'steampunk-brass';
 
 export async function generateMetadata({
   params,
@@ -94,6 +104,14 @@ export async function generateMetadata({
       description: CELESTIAL_GILDED_META.description,
       alternates: { canonical: CELESTIAL_GILDED_META.canonical },
       openGraph: { title: CELESTIAL_GILDED_META.title },
+    };
+  }
+  if (params.slug === 'steampunk-brass') {
+    return {
+      title: STEAMPUNK_BRASS_META.title,
+      description: STEAMPUNK_BRASS_META.description,
+      alternates: { canonical: STEAMPUNK_BRASS_META.canonical },
+      openGraph: { title: STEAMPUNK_BRASS_META.title },
     };
   }
   const title = `${border.name} Tarot Card Border Template`;
@@ -152,7 +170,9 @@ export default function BorderPage({ params }: BorderPageProps) {
               ? 'Vintage Velvet Border'
               : slug === 'celestial-gilded'
                 ? 'Celestial Gilded Border'
-                : `${border.name} Tarot Card Border Template`}
+                : slug === 'steampunk-brass'
+                  ? 'Steampunk Brass Border'
+                  : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
 
@@ -167,8 +187,8 @@ export default function BorderPage({ params }: BorderPageProps) {
             />
           </div>
 
-          {/* Product Description — under image for full-layout borders */}
-          {HAS_FULL_LAYOUT(slug) && (
+          {/* Product Description — under image for all border pages */}
+          {border.productDescription && (
             <div className="space-y-4">
               <h2 className="text-lg font-semibold text-charcoal">Product Description</h2>
               {border.productDescription.split('\n\n').map((paragraph, i) => (
@@ -195,20 +215,18 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
           </div>
 
-          {/* How It Works — in sidebar for full-layout borders */}
-          {HAS_FULL_LAYOUT(slug) && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-charcoal">How It Works</h2>
-              <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
-                <li>Purchase the {border.name} template.</li>
-                <li>Create a free account and log in to Tarot Studio.</li>
-                <li>Upload your tarot artwork into the template.</li>
-                <li>Add card titles and numerals inside the frame.</li>
-                <li>Export your finished tarot cards as print-ready files.</li>
-                <li>Optional: order professional tarot card printing through our printing partners.</li>
-              </ul>
-            </div>
-          )}
+          {/* How It Works — in sidebar for all border pages */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-charcoal">How It Works</h2>
+            <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
+              <li>Purchase the {border.name} template.</li>
+              <li>Create a free account and log in to Tarot Studio.</li>
+              <li>Upload your tarot artwork into the template.</li>
+              <li>Add card titles and numerals inside the frame.</li>
+              <li>Export your finished tarot cards as print-ready files.</li>
+              <li>Optional: order professional tarot card printing through our printing partners.</li>
+            </ul>
+          </div>
 
           {/* Full layout sidebar: Price, Purchase button, Included Files, Template Features */}
           {HAS_FULL_LAYOUT(slug) ? (
