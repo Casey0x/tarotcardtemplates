@@ -14,15 +14,15 @@ function getRelatedBorders(currentSlug: string) {
 const VINTAGE_VELVET_EXAMPLES = [
   {
     src: '/images/examples/vintage-velvet-border-tarot-example-1.png',
-    alt: 'vintage velvet tarot border example with rider waite page of wands',
+    alt: 'Vintage Velvet tarot border example — rich velvet frame on a completed tarot card',
   },
   {
     src: '/images/examples/vintage-velvet-border-tarot-example-2.png',
-    alt: 'vintage velvet tarot border example with celestial tarot illustration',
+    alt: 'Vintage Velvet tarot border example — ornate gold baroque flourishes on tarot card artwork',
   },
   {
     src: '/images/examples/vintage-velvet-border-tarot-example-3.png',
-    alt: 'vintage velvet tarot border example with classic tarot queen illustration',
+    alt: 'Vintage Velvet tarot border example — gothic tarot card design using the Vintage Velvet border template',
   },
 ];
 
@@ -44,28 +44,28 @@ interface BorderPageProps {
 const MARBLE_TEMPLE_META = {
   title: 'Marble Temple Border – Tarot Card Border Template',
   description:
-    'Download the Marble Temple tarot card border template for Canva and Photoshop. Classical marble frame with transparent center for tarot artwork. Instant download.',
+    'Download the Marble Temple tarot border template — classical marble columns and arched window. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/marble-temple',
 };
 
 const VINTAGE_VELVET_META = {
   title: 'Vintage Velvet Border – Tarot Card Border Template',
   description:
-    'Download the Vintage Velvet tarot card border template for Canva and Photoshop. Ornate golden flourishes and velvet-style frame with transparent center. Instant download.',
+    'Download the Vintage Velvet tarot border template — ornate gold flourishes on rich velvet, inspired by Victorian tarot design. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/vintage-velvet',
 };
 
 const CELESTIAL_GILDED_META = {
   title: 'Celestial Gilded Border – Tarot Card Border Template',
   description:
-    'Download the Celestial Gilded tarot card border template for Canva and Photoshop. Celestial gold linework frame with transparent center for tarot artwork. Instant download.',
+    'Download the Celestial Gilded tarot border template — gold celestial linework with stars and cosmic ornament. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/celestial-gilded',
 };
 
 const STEAMPUNK_BRASS_META = {
   title: 'Steampunk Brass Border – Tarot Card Border Template',
   description:
-    'Download the Steampunk Brass tarot card border template for Canva and Photoshop. Ornate brass gearwork frame with cream center for tarot artwork. Instant download.',
+    'Download the Steampunk Brass tarot border template — ornate brass gears, gauges and mechanical detailing. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/steampunk-brass',
 };
 
@@ -117,7 +117,10 @@ export async function generateMetadata({
   const title = `${border.name} Tarot Card Border Template`;
   return {
     title,
-    description: border.description,
+    description:
+      params.slug === 'minimal-line'
+        ? 'Download the Minimal Line tarot border template — clean geometric frame for modern and AI-generated tarot decks. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.'
+        : border.description,
   };
 }
 
@@ -393,7 +396,7 @@ export default function BorderPage({ params }: BorderPageProps) {
                 <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
                   <Image
                     src="/images/examples/celestial-gilded-example-1.png"
-                    alt="Celestial gilded tarot card border template example with moon themed tarot illustration"
+                    alt="Celestial Gilded tarot border example — celestial moon tarot card illustration"
                     fill
                     className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
                   />
@@ -404,7 +407,7 @@ export default function BorderPage({ params }: BorderPageProps) {
                 <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
                   <Image
                     src="/images/examples/celestial-gilded-example-2.png"
-                    alt="Celestial gilded tarot card border template example with astrology inspired tarot artwork"
+                    alt="Celestial Gilded tarot border example — mystical astrology tarot card artwork"
                     fill
                     className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
                   />
@@ -415,7 +418,7 @@ export default function BorderPage({ params }: BorderPageProps) {
                 <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
                   <Image
                     src="/images/examples/celestial-gilded-example-3.png"
-                    alt="Celestial gilded tarot card border template example with traditional tarot card illustration"
+                    alt="Celestial Gilded tarot border example — traditional tarot illustration with gold celestial frame"
                     fill
                     className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
                   />
@@ -443,6 +446,44 @@ export default function BorderPage({ params }: BorderPageProps) {
                   <p className="text-center text-xs text-charcoal/80">{example.label}</p>
                 </div>
               ))}
+            </div>
+          </>
+        ) : slug === 'steampunk-brass' ? (
+          <>
+            <p className="text-sm text-charcoal/80">
+              See how this border looks when used with finished tarot artwork.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/steampunk-brass-example-1.png"
+                    alt="Steampunk Brass tarot border example showing finished card artwork with brass gear frame"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/steampunk-brass-example-2.png"
+                    alt="Steampunk Brass tarot border with mechanical brass detailing on a completed tarot card"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/steampunk-brass-example-3.png"
+                    alt="Completed tarot card using the Steampunk Brass border template with Victorian mechanical aesthetic"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+              </div>
             </div>
           </>
         ) : (
@@ -482,6 +523,18 @@ export default function BorderPage({ params }: BorderPageProps) {
                     className="block rounded-sm border border-charcoal/10 bg-cream/80 p-4 transition-colors hover:border-charcoal/20"
                   >
                     <span className="font-medium text-charcoal">{b.name}</span>
+                    <p className="mt-1 text-xs text-charcoal/80">
+                      {b.slug === 'celestial-gilded' &&
+                        'Elegant gold celestial linework with stars and cosmic ornament.'}
+                      {b.slug === 'minimal-line' &&
+                        'Clean geometric frame for modern and AI-generated tarot decks.'}
+                      {b.slug === 'vintage-velvet' &&
+                        'Rich velvet texture with ornate gold baroque flourishes.'}
+                      {b.slug === 'marble-temple' &&
+                        'Classical marble columns and an arched window for traditional tarot styles.'}
+                      {b.slug === 'steampunk-brass' &&
+                        'Ornate brass gears and mechanical detailing for Victorian-inspired decks.'}
+                    </p>
                   </Link>
                 </li>
               ))}
