@@ -76,6 +76,15 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'This magical woodland tarot card border features intricately twisted vines and roots that form an organic frame against a rich, textured deep green background, adorned with realistic oak leaves, acorns, delicate moss, and enchanting glowing firefly lights that create an ethereal atmosphere. The design includes a rustic wooden plaque at the top perfect for card titles and a larger weathered wooden plank at the bottom for descriptions or meanings, while the generous central black space accommodates your custom artwork.\n\nIdeal for creating nature-themed tarot decks, druid oracle cards, forest fairy tales, Celtic spirituality materials, fantasy gaming cards, botanical guides, eco-retreat branding, woodland wedding invitations, fairy tale book illustrations, or any project requiring an authentic enchanted forest aesthetic with earthy browns, luminous greens, and mystical natural elements that evoke ancient groves and woodland magic.',
     image: '/images/templates/enchanted-forest-tarot-border-cream.png',
   },
+  {
+    slug: 'day-of-the-dead',
+    name: 'Day of the Dead Border',
+    description:
+      'Vibrant Día de los Muertos tarot border with sugar skulls, marigolds, and papel picado.',
+    productDescription:
+      'This vibrant Día de los Muertos tarot card border celebrates Mexican folk art tradition with intricately decorated sugar skulls (calaveras), brilliant orange marigold flowers (cempasúchil), festive papel picado banners in hot pink, golden crosses, and a rich deep purple background adorned with colorful confetti dots and turquoise leaves.\n\nThe joyful design features decorative banner spaces at the top and bottom perfect for card titles and meanings, while the generous central black area accommodates your custom artwork. Ideal for creating Day of the Dead tarot decks, ancestral oracle cards, cultural celebration materials, Mexican heritage projects, memorial cards, festival invitations, restaurant menus for Día de los Muertos events, altar decorations, or any project requiring an authentic, spirited aesthetic that honors the beautiful tradition of remembering loved ones with vibrant colors, marigolds, and the celebratory symbolism of life, death, and eternal memory.',
+    image: '/images/templates/day-of-the-dead-tarot-border-cream.png',
+  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {
