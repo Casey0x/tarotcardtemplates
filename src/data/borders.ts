@@ -85,6 +85,15 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'This vibrant Día de los Muertos tarot card border celebrates Mexican folk art tradition with intricately decorated sugar skulls (calaveras), brilliant orange marigold flowers (cempasúchil), festive papel picado banners in hot pink, golden crosses, and a rich deep purple background adorned with colorful confetti dots and turquoise leaves.\n\nThe joyful design features decorative banner spaces at the top and bottom perfect for card titles and meanings, while the generous central black area accommodates your custom artwork. Ideal for creating Day of the Dead tarot decks, ancestral oracle cards, cultural celebration materials, Mexican heritage projects, memorial cards, festival invitations, restaurant menus for Día de los Muertos events, altar decorations, or any project requiring an authentic, spirited aesthetic that honors the beautiful tradition of remembering loved ones with vibrant colors, marigolds, and the celebratory symbolism of life, death, and eternal memory.',
     image: '/images/templates/day-of-the-dead-tarot-border-cream.png',
   },
+  {
+    slug: 'ocean-mermaid',
+    name: 'Ocean/Mermaid Border',
+    description:
+      'Ocean-inspired tarot border with mermaid and sea-magic motifs on a rich sea background.',
+    productDescription:
+      'The Ocean/Mermaid tarot card border brings an under-the-sea atmosphere to your deck with flowing ocean curves, gentle wave-inspired details, and enchanting sea motifs.\n\nDesigned for standard tarot card proportions, this border works seamlessly in Canva or Photoshop. Place your artwork inside the frame, add card titles and numerals, and export print-ready files.\n\nPerfect for mermaid-themed tarot decks, ocean oracle cards, sea-spirit art, coastal wellness branding, fantasy game cards, invitations, and any project where ocean magic meets elegant design.',
+    image: '/images/templates/ocean-mermaid-tarot-border-cream.png',
+  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {

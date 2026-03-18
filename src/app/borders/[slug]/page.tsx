@@ -90,6 +90,13 @@ const DAY_OF_THE_DEAD_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/day-of-the-dead',
 };
 
+const OCEAN_MERMAID_META = {
+  title: 'Ocean/Mermaid Border – Tarot Card Border Template',
+  description:
+    'Download the Ocean/Mermaid tarot border template — sea-magic motifs with a mermaid-inspired frame. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+  canonical: 'https://www.tarotcardtemplates.com/borders/ocean-mermaid',
+};
+
 const HAS_FULL_LAYOUT = (s: string) =>
   s === 'marble-temple' ||
   s === 'vintage-velvet' ||
@@ -97,7 +104,8 @@ const HAS_FULL_LAYOUT = (s: string) =>
   s === 'steampunk-brass' ||
   s === 'japanese-zen' ||
   s === 'enchanted-forest' ||
-  s === 'day-of-the-dead';
+  s === 'day-of-the-dead' ||
+  s === 'ocean-mermaid';
 
 export async function generateMetadata({
   params,
@@ -160,6 +168,14 @@ export async function generateMetadata({
       description: DAY_OF_THE_DEAD_META.description,
       alternates: { canonical: DAY_OF_THE_DEAD_META.canonical },
       openGraph: { title: DAY_OF_THE_DEAD_META.title },
+    };
+  }
+  if (params.slug === 'ocean-mermaid') {
+    return {
+      title: OCEAN_MERMAID_META.title,
+      description: OCEAN_MERMAID_META.description,
+      alternates: { canonical: OCEAN_MERMAID_META.canonical },
+      openGraph: { title: OCEAN_MERMAID_META.title },
     };
   }
   const title = `${border.name} Tarot Card Border Template`;
@@ -229,6 +245,8 @@ export default function BorderPage({ params }: BorderPageProps) {
                       ? 'Enchanted Forest Border'
                       : slug === 'day-of-the-dead'
                         ? 'Day of the Dead Border'
+                        : slug === 'ocean-mermaid'
+                          ? 'Ocean/Mermaid Border'
                         : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
@@ -704,6 +722,8 @@ export default function BorderPage({ params }: BorderPageProps) {
                         'Ornate brass gears and mechanical detailing for Victorian-inspired decks.'}
                       {b.slug === 'day-of-the-dead' &&
                         'Vibrant Día de los Muertos sugar skulls, marigolds and papel picado.'}
+                      {b.slug === 'ocean-mermaid' &&
+                        'Ocean-inspired waves and mermaid motifs for sea-magic tarot decks.'}
                     </p>
                   </Link>
                 </li>
