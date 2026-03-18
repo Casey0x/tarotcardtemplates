@@ -457,7 +457,7 @@ export default function BorderPage({ params }: BorderPageProps) {
               <div className="space-y-2">
                 <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
                   <Image
-                    src="/images/examples/steampunk-brass-example-1.png"
+                    src={border.image}
                     alt="Steampunk Brass tarot border example showing finished card artwork with brass gear frame"
                     fill
                     className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
@@ -467,7 +467,7 @@ export default function BorderPage({ params }: BorderPageProps) {
               <div className="space-y-2">
                 <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
                   <Image
-                    src="/images/examples/steampunk-brass-example-2.png"
+                    src={border.image}
                     alt="Steampunk Brass tarot border with mechanical brass detailing on a completed tarot card"
                     fill
                     className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
@@ -477,7 +477,7 @@ export default function BorderPage({ params }: BorderPageProps) {
               <div className="space-y-2">
                 <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
                   <Image
-                    src="/images/examples/steampunk-brass-example-3.png"
+                    src={border.image}
                     alt="Completed tarot card using the Steampunk Brass border template with Victorian mechanical aesthetic"
                     fill
                     className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
