@@ -377,6 +377,32 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Five of Wands tarot card — Hearthside Tarot deck",
     },
   ],
+  "Dark-Botanical-Tarot": [
+    {
+      name: "The Devil",
+      slug: "the-devil",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DARK-BOTANICAL-TAROT/the-devil.jpg",
+      alt: "The Devil tarot card — Dark Botanical Tarot deck",
+    },
+    {
+      name: "Ten of Cups",
+      slug: "ten-of-cups",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DARK-BOTANICAL-TAROT/ten-of-cups.jpg",
+      alt: "Ten of Cups tarot card — Dark Botanical Tarot deck",
+    },
+    {
+      name: "Two of Pentacles",
+      slug: "two-of-pentacles",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DARK-BOTANICAL-TAROT/two-of-pentacles.jpg",
+      alt: "Two of Pentacles tarot card — Dark Botanical Tarot deck",
+    },
+    {
+      name: "Page of Swords",
+      slug: "page-of-swords",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DARK-BOTANICAL-TAROT/page-of-swords.jpg",
+      alt: "Page of Swords tarot card — Dark Botanical Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
