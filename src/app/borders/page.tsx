@@ -12,6 +12,8 @@ export const metadata: Metadata = {
 };
 
 export default function BordersPage() {
+  const newestBorder = BORDER_TEMPLATES[BORDER_TEMPLATES.length - 1];
+
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
       <h1 className="text-3xl font-semibold tracking-tight">Tarot Card Borders</h1>
@@ -19,13 +21,30 @@ export default function BordersPage() {
         Choose a border style for your tarot deck — from minimalist line frames to richly gilded and marble designs.{' '}
         <span className="text-charcoal/60">({BORDER_TEMPLATES.length} templates)</span>
       </p>
+      <p className="mt-4 rounded-sm border border-amber-400/40 bg-amber-50/90 px-4 py-3 text-sm text-charcoal">
+        <span className="font-semibold text-charcoal">Latest border:</span>{' '}
+        <Link
+          href={`/borders/${newestBorder.slug}`}
+          className="font-medium text-charcoal underline decoration-amber-600/60 underline-offset-2 hover:decoration-charcoal"
+        >
+          {newestBorder.name}
+        </Link>
+        <span className="text-charcoal/80"> — also in the grid </span>
+        <a href={`#${newestBorder.slug}`} className="text-charcoal/80 underline underline-offset-2 hover:text-charcoal">
+          (jump to card)
+        </a>
+        <span className="text-charcoal/70">
+          . Newer styles are listed last; scroll down on this page if you don&apos;t see them above the fold.
+        </span>
+      </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {BORDER_TEMPLATES.map((border) => (
           <Link
             key={border.slug}
+            id={border.slug}
             href={`/borders/${border.slug}`}
-            className="group flex flex-col rounded-sm border border-charcoal/10 bg-cream/80 p-4 transition-all duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:border-amber-400 hover:shadow-xl"
+            className="group flex flex-col scroll-mt-28 rounded-sm border border-charcoal/10 bg-cream/80 p-4 transition-all duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:border-amber-400 hover:shadow-xl"
           >
             <div className="relative mb-4 overflow-hidden rounded-xs border border-charcoal/10 bg-cream p-3 aspect-[3/5]">
               <Image
