@@ -94,6 +94,15 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'This enchanting underwater tarot card border features flowing turquoise seaweed ribbons, delicate coral pink sea branches, lustrous pearls, elegant scallop and spiral shells, vibrant orange starfish, and shimmering bubbles against a deep ocean black background that captures the mystery of the sea. The design includes elegant golden metallic plaques at the top and bottom perfect for card titles and descriptions, while the generous central space accommodates your custom artwork.\n\nIdeal for creating mermaid-themed tarot decks, ocean oracle cards, nautical divination tools, beach resort branding, marine biology educational materials, aquarium gift shop items, coastal wedding invitations, sea goddess spirituality guides, tropical vacation promotions, or any project requiring an authentic underwater aesthetic with jewel-toned aquas, soft corals, and luminous golden accents that evoke the serene beauty and magical depths of the ocean realm.',
     image: '/images/templates/ocean-mermaid-tarot-border-cream.png',
   },
+  {
+    slug: 'dragon-scale',
+    name: 'Dragon Scale Border',
+    description:
+      'Dramatic fantasy tarot border with layered dragon scales, weathered bronze plaques and armored spikes.',
+    productDescription:
+      'This dramatic fantasy tarot card border features intricately layered dragon scales in deep charcoal gray and black that create a powerful armored texture, complete with sharp protective spikes emerging from the sides and ornate weathered bronze metallic plaques at the top and bottom framed by elegant scrollwork flourishes. The fierce design includes decorative banner spaces perfect for card titles and descriptions with an aged, battle-worn patina, while the generous central transparent area accommodates your custom artwork.\n\nIdeal for creating dragon-themed tarot decks, fantasy game cards, medieval oracle decks, Game of Thrones-inspired materials, dungeon master resources, role-playing game accessories, fantasy novel covers, warrior-themed invitations, gothic event graphics, or any project requiring an epic, mythical aesthetic with dark metallics, reptilian textures, and the commanding presence of ancient dragons that evokes power, protection, and legendary fire-breathing mystique.',
+    image: '/images/templates/dragon-scale-tarot-border.png',
+  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {
