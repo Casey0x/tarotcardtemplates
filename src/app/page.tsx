@@ -11,6 +11,9 @@ export default async function HomePage() {
     .filter((template) => template.featured)
     .slice(0, 3);
 
+  const featuredBorderSlugs = new Set(BORDER_TEMPLATES.slice(0, 3).map((b) => b.slug));
+  const recentlyAddedBorders = BORDER_TEMPLATES.slice(-3).filter((b) => !featuredBorderSlugs.has(b.slug));
+
   return (
     <div className="space-y-16 rounded-sm bg-[#f6f0e8] bg-[radial-gradient(circle_at_top,_rgba(214,186,140,0.18),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(155,126,189,0.16),_transparent_55%)]">
 
@@ -105,7 +108,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* BORDER TEMPLATES — 3 cards + View All */}
+      {/* BORDER TEMPLATES — featured row + newest row + View All */}
       <section>
         <h2 className="text-2xl font-semibold">Border Templates</h2>
 
@@ -130,12 +133,41 @@ export default async function HomePage() {
           ))}
         </div>
 
-        <div className="mt-4">
+        {recentlyAddedBorders.length > 0 && (
+          <>
+            <h3 className="mt-10 text-lg font-semibold text-charcoal">Recently added</h3>
+            <p className="mt-1 text-sm text-charcoal/70">
+              New border styles — also listed on the full borders page.
+            </p>
+            <div className="mt-4 grid gap-6 md:grid-cols-3">
+              {recentlyAddedBorders.map((border) => (
+                <Link
+                  key={border.slug}
+                  href={`/borders/${border.slug}`}
+                  className="group flex flex-col rounded-sm border border-charcoal/10 bg-cream/80 p-4 transition-all duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:border-amber-400 hover:shadow-xl"
+                >
+                  <div className="relative mb-4 overflow-hidden rounded-xs border border-charcoal/10 bg-cream p-3 aspect-[3/5]">
+                    <Image
+                      src={border.image}
+                      alt={border.name}
+                      fill
+                      className="object-contain transition-transform duration-200 group-hover:scale-105"
+                    />
+                  </div>
+                  <h3 className="mb-1 text-sm font-semibold text-charcoal">{border.name}</h3>
+                  <p className="text-xs text-charcoal/80">{border.description}</p>
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="mt-6">
           <Link
             href="/borders"
             className="text-sm underline underline-offset-4"
           >
-            View all →
+            View all borders →
           </Link>
         </div>
       </section>
