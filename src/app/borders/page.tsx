@@ -16,7 +16,8 @@ export default function BordersPage() {
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
       <h1 className="text-3xl font-semibold tracking-tight">Tarot Card Borders</h1>
       <p className="mt-3 text-charcoal/70">
-        Choose a border style for your tarot deck — from minimalist line frames to richly gilded and marble designs.
+        Choose a border style for your tarot deck — from minimalist line frames to richly gilded and marble designs.{' '}
+        <span className="text-charcoal/60">({BORDER_TEMPLATES.length} templates)</span>
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
