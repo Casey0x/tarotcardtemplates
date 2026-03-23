@@ -734,19 +734,39 @@ export default function BorderPage({ params }: BorderPageProps) {
               See how this border looks when used with finished tarot artwork.
             </p>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
-                >
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
                   <Image
-                    src={border.image}
-                    alt={`Dragon Scale tarot border template example ${i}`}
+                    src="/images/examples/dragon-scale-example-1.png"
+                    alt="Dragon Scale tarot border example — Eight of Wands with flaming wands and mountain landscape"
                     fill
-                    className="object-contain"
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
                   />
                 </div>
-              ))}
+                <p className="text-center text-xs text-charcoal/80">Eight of Wands</p>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/dragon-scale-example-2.png"
+                    alt="Dragon Scale tarot border example — King of Swords on a throne of blades"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+                <p className="text-center text-xs text-charcoal/80">King of Swords</p>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/dragon-scale-example-3.png"
+                    alt="Dragon Scale tarot border example — Ace of Cups with golden chalice and lilies"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+                <p className="text-center text-xs text-charcoal/80">Ace of Cups</p>
+              </div>
             </div>
           </>
         ) : (
