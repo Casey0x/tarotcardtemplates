@@ -1,0 +1,8 @@
+# Next.js on Netlify — official runtime (serverless handler for App Router).
+# https://docs.netlify.com/frameworks/next-js/overview/
+#
+# If `/borders/[slug]` ever 404s in production, check the Netlify UI for:
+# - Site settings → Domain management → redirects that might shadow `/borders/*`
+# - Build settings → branch linked to GitHub `main` and successful deploys
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

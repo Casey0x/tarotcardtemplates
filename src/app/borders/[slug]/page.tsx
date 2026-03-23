@@ -252,6 +252,15 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * Pre-render every border slug at build time so each `/borders/[slug]` path exists in the build output.
+ * Helps hosts (e.g. Netlify Next runtime) that rely on static path discovery; new slugs still work at
+ * runtime when `dynamicParams` is left at the default `true`.
+ */
+export function generateStaticParams() {
+  return BORDER_TEMPLATES.map((b) => ({ slug: b.slug }));
+}
+
 export default function BorderPage({ params }: BorderPageProps) {
   const { slug } = params;
   const border = borders[slug];
