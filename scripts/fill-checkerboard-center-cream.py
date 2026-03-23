@@ -65,7 +65,7 @@ def fill_center_with_cream(path: Path) -> int:
 
 def main() -> None:
     root = Path(__file__).resolve().parent.parent
-    # Default: dragon scale border (baked checkerboard center)
+    # Default: dragon scale (also used for Art Nouveau Lily and similar checkerboard centers)
     default = root / "public" / "images" / "templates" / "dragon-scale-tarot-border.png"
     import sys
 

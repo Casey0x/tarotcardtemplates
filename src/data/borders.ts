@@ -112,6 +112,15 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'This hauntingly beautiful tarot card border features intricate black ink Victorian engravings on aged parchment, combining dark romantic elements including thorny rose vines that climb vertically along both sides, flying bats, crescent moons, delicate stars, ornate Gothic cathedral spires and pointed arches, mystical symbols, and elaborate scrollwork flourishes with a weathered, antiquarian texture. The monochromatic design includes decorative banner spaces at the top and bottom perfect for card titles and descriptions, while the generous central artwork area accommodates your custom artwork.\n\nIdeal for creating Gothic tarot decks, dark romance oracle cards, vampire-themed materials, Edgar Allan Poe-inspired projects, Gothic literature book covers, Halloween event invitations, Victorian séance cards, dark academia aesthetics, witchcraft and occult materials, or any project requiring an authentic Victorian Gothic aesthetic with dramatic black and white contrasts, thorny botanicals, and the mysterious atmosphere of moonlit graveyards and haunted cathedrals.',
     image: '/images/templates/gothic-romance-tarot-border.png',
   },
+  {
+    slug: 'art-nouveau-lily',
+    name: 'Art Nouveau Lily Border',
+    description:
+      'Belle Époque tarot border with cream and peach lilies, golden whiplash curves and soft blush pink florals.',
+    productDescription:
+      'This exquisitely elegant tarot card border showcases the graceful flowing lines of Art Nouveau design, featuring delicate cream and peach lilies at each corner connected by sinuous golden whiplash curves, organic vine tendrils, and elaborate scrollwork against a soft blush pink background that evokes the Belle Époque era. The refined design includes an ornate oval cartouche at the top and a decorative rectangular banner at the bottom perfect for card titles and descriptions, while the generous central artwork area accommodates your custom artwork.\n\nIdeal for creating feminine tarot decks, goddess oracle cards, romantic divination tools, vintage wedding invitations, luxury spa menus, Art Nouveau exhibition materials, botanical print collections, Belle Époque-themed events, elegant bridal shower materials, or any project requiring an authentic turn-of-the-century aesthetic with flowing organic forms, delicate florals, and the sophisticated beauty of Alphonse Mucha-inspired decorative arts that celebrate natural elegance and refined femininity.',
+    image: '/images/templates/art-nouveau-lily-tarot-border.png',
+  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {

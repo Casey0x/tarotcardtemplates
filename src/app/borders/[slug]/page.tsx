@@ -111,6 +111,13 @@ const GOTHIC_ROMANCE_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/gothic-romance',
 };
 
+const ART_NOUVEAU_LILY_META = {
+  title: 'Art Nouveau Lily Border – Tarot Card Border Template',
+  description:
+    'Download the Art Nouveau Lily tarot border template — cream and peach lilies, golden whiplash curves and blush pink Belle Époque florals. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+  canonical: 'https://www.tarotcardtemplates.com/borders/art-nouveau-lily',
+};
+
 const HAS_FULL_LAYOUT = (s: string) =>
   s === 'marble-temple' ||
   s === 'vintage-velvet' ||
@@ -121,7 +128,8 @@ const HAS_FULL_LAYOUT = (s: string) =>
   s === 'day-of-the-dead' ||
   s === 'ocean-mermaid' ||
   s === 'dragon-scale' ||
-  s === 'gothic-romance';
+  s === 'gothic-romance' ||
+  s === 'art-nouveau-lily';
 
 export async function generateMetadata({
   params,
@@ -210,6 +218,14 @@ export async function generateMetadata({
       openGraph: { title: GOTHIC_ROMANCE_META.title },
     };
   }
+  if (params.slug === 'art-nouveau-lily') {
+    return {
+      title: ART_NOUVEAU_LILY_META.title,
+      description: ART_NOUVEAU_LILY_META.description,
+      alternates: { canonical: ART_NOUVEAU_LILY_META.canonical },
+      openGraph: { title: ART_NOUVEAU_LILY_META.title },
+    };
+  }
   const title = `${border.name} Tarot Card Border Template`;
   return {
     title,
@@ -283,7 +299,9 @@ export default function BorderPage({ params }: BorderPageProps) {
                         ? 'Dragon Scale Border'
                         : slug === 'gothic-romance'
                           ? 'Gothic Romance Border'
-                          : `${border.name} Tarot Card Border Template`}
+                          : slug === 'art-nouveau-lily'
+                            ? 'Art Nouveau Lily Border'
+                            : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
 
@@ -787,6 +805,27 @@ export default function BorderPage({ params }: BorderPageProps) {
               </div>
             </div>
           </>
+        ) : slug === 'art-nouveau-lily' ? (
+          <>
+            <p className="text-sm text-charcoal/80">
+              See how this border looks when used with finished tarot artwork.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
+                >
+                  <Image
+                    src={border.image}
+                    alt={`Art Nouveau Lily tarot border template — example ${i}`}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </>
         ) : slug === 'dragon-scale' ? (
           <>
             <p className="text-sm text-charcoal/80">
@@ -884,6 +923,8 @@ export default function BorderPage({ params }: BorderPageProps) {
                         'Layered dragon scales, bronze plaques and armored spikes for epic fantasy decks.'}
                       {b.slug === 'gothic-romance' &&
                         'Victorian engraving on parchment with bats, roses, Gothic spires and moonlit romantic detail.'}
+                      {b.slug === 'art-nouveau-lily' &&
+                        'Belle Époque lilies, golden whiplash curves and blush pink florals in true Art Nouveau style.'}
                     </p>
                   </Link>
                 </li>
