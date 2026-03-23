@@ -737,7 +737,7 @@ export default function BorderPage({ params }: BorderPageProps) {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-charcoal p-2 shadow-sm"
+                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
                 >
                   <Image
                     src={border.image}
