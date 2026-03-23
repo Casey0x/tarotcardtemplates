@@ -752,19 +752,39 @@ export default function BorderPage({ params }: BorderPageProps) {
               See how this border looks when used with finished tarot artwork.
             </p>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
-                >
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
                   <Image
-                    src={border.image}
-                    alt={`Gothic Romance tarot border template — example ${i}`}
+                    src="/images/examples/gothic-romance-example-1.png"
+                    alt="Gothic Romance tarot border example — Ace of Swords with crowned sword and radiant light"
                     fill
-                    className="object-contain"
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
                   />
                 </div>
-              ))}
+                <p className="text-center text-xs text-charcoal/80">Ace of Swords</p>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/gothic-romance-example-2.png"
+                    alt="Gothic Romance tarot border example — Three of Wands on a cliff overlooking the sea"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+                <p className="text-center text-xs text-charcoal/80">Three of Wands</p>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/gothic-romance-example-3.png"
+                    alt="Gothic Romance tarot border example — Two of Pentacles balancing pentacles in ocean waves"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+                <p className="text-center text-xs text-charcoal/80">Two of Pentacles</p>
+              </div>
             </div>
           </>
         ) : slug === 'dragon-scale' ? (
