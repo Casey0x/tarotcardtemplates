@@ -121,6 +121,15 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'This exquisitely elegant tarot card border showcases the graceful flowing lines of Art Nouveau design, featuring delicate cream and peach lilies at each corner connected by sinuous golden whiplash curves, organic vine tendrils, and elaborate scrollwork against a soft blush pink background that evokes the Belle Époque era. The refined design includes an ornate oval cartouche at the top and a decorative rectangular banner at the bottom perfect for card titles and descriptions, while the generous central artwork area accommodates your custom artwork.\n\nIdeal for creating feminine tarot decks, goddess oracle cards, romantic divination tools, vintage wedding invitations, luxury spa menus, Art Nouveau exhibition materials, botanical print collections, Belle Époque-themed events, elegant bridal shower materials, or any project requiring an authentic turn-of-the-century aesthetic with flowing organic forms, delicate florals, and the sophisticated beauty of Alphonse Mucha-inspired decorative arts that celebrate natural elegance and refined femininity.',
     image: '/images/templates/art-nouveau-lily-tarot-border.png',
   },
+  {
+    slug: 'mystic-candlelight',
+    name: 'Mystic Candlelight Border',
+    description:
+      'Witchy tarot border of melting honey-amber wax, corner candles with warm flames and organic wax drips.',
+    productDescription:
+      'This enchanting tarot card border features a hauntingly beautiful frame crafted entirely from melting candle wax in warm honey and amber tones, with four glowing lit candles positioned at each corner casting soft flickering light, while realistic drips and rivulets of wax flow downward creating an organic, living texture. The atmospheric design includes weathered wooden plaques at the top and bottom perfect for card titles and spell descriptions, while the generous central artwork area accommodates your custom artwork.\n\nIdeal for creating witchcraft tarot decks, spell-casting oracle cards, Wiccan divination tools, Halloween party invitations, occult grimoire pages, séance materials, candle magic guides, Gothic ritual cards, mystical ceremony programs, or any project requiring an authentic candlelit aesthetic with warm glowing flames, melted wax textures, and the intimate atmosphere of midnight rituals, sacred circles, and spell-weaving ceremonies that evoke ancient magic and transformative fire energy.',
+    image: '/images/templates/mystic-candlelight-tarot-border.png',
+  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {

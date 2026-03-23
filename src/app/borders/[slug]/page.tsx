@@ -118,6 +118,13 @@ const ART_NOUVEAU_LILY_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/art-nouveau-lily',
 };
 
+const MYSTIC_CANDLELIGHT_META = {
+  title: 'Mystic Candlelight Border – Tarot Card Border Template',
+  description:
+    'Download the Mystic Candlelight tarot border template — melting honey-amber wax, corner candles and warm ritual glow. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+  canonical: 'https://www.tarotcardtemplates.com/borders/mystic-candlelight',
+};
+
 const HAS_FULL_LAYOUT = (s: string) =>
   s === 'marble-temple' ||
   s === 'vintage-velvet' ||
@@ -129,7 +136,8 @@ const HAS_FULL_LAYOUT = (s: string) =>
   s === 'ocean-mermaid' ||
   s === 'dragon-scale' ||
   s === 'gothic-romance' ||
-  s === 'art-nouveau-lily';
+  s === 'art-nouveau-lily' ||
+  s === 'mystic-candlelight';
 
 export async function generateMetadata({
   params,
@@ -226,6 +234,14 @@ export async function generateMetadata({
       openGraph: { title: ART_NOUVEAU_LILY_META.title },
     };
   }
+  if (params.slug === 'mystic-candlelight') {
+    return {
+      title: MYSTIC_CANDLELIGHT_META.title,
+      description: MYSTIC_CANDLELIGHT_META.description,
+      alternates: { canonical: MYSTIC_CANDLELIGHT_META.canonical },
+      openGraph: { title: MYSTIC_CANDLELIGHT_META.title },
+    };
+  }
   const title = `${border.name} Tarot Card Border Template`;
   return {
     title,
@@ -301,7 +317,9 @@ export default function BorderPage({ params }: BorderPageProps) {
                           ? 'Gothic Romance Border'
                           : slug === 'art-nouveau-lily'
                             ? 'Art Nouveau Lily Border'
-                            : `${border.name} Tarot Card Border Template`}
+                            : slug === 'mystic-candlelight'
+                              ? 'Mystic Candlelight Border'
+                              : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
 
@@ -846,6 +864,27 @@ export default function BorderPage({ params }: BorderPageProps) {
               </div>
             </div>
           </>
+        ) : slug === 'mystic-candlelight' ? (
+          <>
+            <p className="text-sm text-charcoal/80">
+              See how this border looks when used with finished tarot artwork.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
+                >
+                  <Image
+                    src={border.image}
+                    alt={`Mystic Candlelight tarot border template — example ${i}`}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </>
         ) : slug === 'dragon-scale' ? (
           <>
             <p className="text-sm text-charcoal/80">
@@ -945,6 +984,8 @@ export default function BorderPage({ params }: BorderPageProps) {
                         'Victorian engraving on parchment with bats, roses, Gothic spires and moonlit romantic detail.'}
                       {b.slug === 'art-nouveau-lily' &&
                         'Belle Époque lilies, golden whiplash curves and blush pink florals in true Art Nouveau style.'}
+                      {b.slug === 'mystic-candlelight' &&
+                        'Honey-amber melting wax, corner candle flames and organic drips for witchy ritual decks.'}
                     </p>
                   </Link>
                 </li>

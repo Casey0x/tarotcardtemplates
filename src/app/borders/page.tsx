@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Tarot Card Border Templates | TarotCardTemplates.com',
   description:
-    'Browse tarot card border templates for Canva and Photoshop. Choose from celestial, marble, steampunk, velvet, minimal, day of the dead, ocean/mermaid, dragon scale, Gothic romance, Art Nouveau lily Belle Époque florals and more. All 70×120mm with 3mm bleed.',
+    'Browse tarot card border templates for Canva and Photoshop. Choose from celestial, marble, steampunk, velvet, minimal, day of the dead, ocean/mermaid, dragon scale, Gothic romance, Art Nouveau lily, mystic candlelight wax ritual frames and more. All 70×120mm with 3mm bleed.',
 };
 
 export default function BordersPage() {
