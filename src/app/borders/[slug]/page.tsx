@@ -104,6 +104,13 @@ const DRAGON_SCALE_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/dragon-scale',
 };
 
+const GOTHIC_ROMANCE_META = {
+  title: 'Gothic Romance Border – Tarot Card Border Template',
+  description:
+    'Download the Gothic Romance tarot border template — Victorian engraving, bats, thorny roses and Gothic spires on aged parchment. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+  canonical: 'https://www.tarotcardtemplates.com/borders/gothic-romance',
+};
+
 const HAS_FULL_LAYOUT = (s: string) =>
   s === 'marble-temple' ||
   s === 'vintage-velvet' ||
@@ -113,7 +120,8 @@ const HAS_FULL_LAYOUT = (s: string) =>
   s === 'enchanted-forest' ||
   s === 'day-of-the-dead' ||
   s === 'ocean-mermaid' ||
-  s === 'dragon-scale';
+  s === 'dragon-scale' ||
+  s === 'gothic-romance';
 
 export async function generateMetadata({
   params,
@@ -194,6 +202,14 @@ export async function generateMetadata({
       openGraph: { title: DRAGON_SCALE_META.title },
     };
   }
+  if (params.slug === 'gothic-romance') {
+    return {
+      title: GOTHIC_ROMANCE_META.title,
+      description: GOTHIC_ROMANCE_META.description,
+      alternates: { canonical: GOTHIC_ROMANCE_META.canonical },
+      openGraph: { title: GOTHIC_ROMANCE_META.title },
+    };
+  }
   const title = `${border.name} Tarot Card Border Template`;
   return {
     title,
@@ -265,7 +281,9 @@ export default function BorderPage({ params }: BorderPageProps) {
                       ? 'Ocean Depths Border'
                       : slug === 'dragon-scale'
                         ? 'Dragon Scale Border'
-                        : `${border.name} Tarot Card Border Template`}
+                        : slug === 'gothic-romance'
+                          ? 'Gothic Romance Border'
+                          : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
 
@@ -728,6 +746,27 @@ export default function BorderPage({ params }: BorderPageProps) {
               </div>
             </div>
           </>
+        ) : slug === 'gothic-romance' ? (
+          <>
+            <p className="text-sm text-charcoal/80">
+              See how this border looks when used with finished tarot artwork.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
+                >
+                  <Image
+                    src={border.image}
+                    alt={`Gothic Romance tarot border template — example ${i}`}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </>
         ) : slug === 'dragon-scale' ? (
           <>
             <p className="text-sm text-charcoal/80">
@@ -823,6 +862,8 @@ export default function BorderPage({ params }: BorderPageProps) {
                         'Underwater seaweed ribbons, coral branches, pearls, shells and starfish.'}
                       {b.slug === 'dragon-scale' &&
                         'Layered dragon scales, bronze plaques and armored spikes for epic fantasy decks.'}
+                      {b.slug === 'gothic-romance' &&
+                        'Victorian engraving on parchment with bats, roses, Gothic spires and moonlit romantic detail.'}
                     </p>
                   </Link>
                 </li>

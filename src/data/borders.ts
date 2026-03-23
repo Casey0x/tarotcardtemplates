@@ -103,6 +103,15 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'This dramatic fantasy tarot card border features intricately layered dragon scales in deep charcoal gray and black that create a powerful armored texture, complete with sharp protective spikes emerging from the sides and ornate weathered bronze metallic plaques at the top and bottom framed by elegant scrollwork flourishes. The fierce design includes decorative banner spaces perfect for card titles and descriptions with an aged, battle-worn patina, while the generous central transparent area accommodates your custom artwork.\n\nIdeal for creating dragon-themed tarot decks, fantasy game cards, medieval oracle decks, Game of Thrones-inspired materials, dungeon master resources, role-playing game accessories, fantasy novel covers, warrior-themed invitations, gothic event graphics, or any project requiring an epic, mythical aesthetic with dark metallics, reptilian textures, and the commanding presence of ancient dragons that evokes power, protection, and legendary fire-breathing mystique.',
     image: '/images/templates/dragon-scale-tarot-border.png',
   },
+  {
+    slug: 'gothic-romance',
+    name: 'Gothic Romance Border',
+    description:
+      'Victorian engraving tarot border on aged parchment — bats, thorny roses, Gothic spires and moonlit romantic ornament.',
+    productDescription:
+      'This hauntingly beautiful tarot card border features intricate black ink Victorian engravings on aged parchment, combining dark romantic elements including thorny rose vines that climb vertically along both sides, flying bats, crescent moons, delicate stars, ornate Gothic cathedral spires and pointed arches, mystical symbols, and elaborate scrollwork flourishes with a weathered, antiquarian texture. The monochromatic design includes decorative banner spaces at the top and bottom perfect for card titles and descriptions, while the generous central artwork area accommodates your custom artwork.\n\nIdeal for creating Gothic tarot decks, dark romance oracle cards, vampire-themed materials, Edgar Allan Poe-inspired projects, Gothic literature book covers, Halloween event invitations, Victorian séance cards, dark academia aesthetics, witchcraft and occult materials, or any project requiring an authentic Victorian Gothic aesthetic with dramatic black and white contrasts, thorny botanicals, and the mysterious atmosphere of moonlit graveyards and haunted cathedrals.',
+    image: '/images/templates/gothic-romance-tarot-border.png',
+  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {
