@@ -811,19 +811,39 @@ export default function BorderPage({ params }: BorderPageProps) {
               See how this border looks when used with finished tarot artwork.
             </p>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
-                >
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
                   <Image
-                    src={border.image}
-                    alt={`Art Nouveau Lily tarot border template — example ${i}`}
+                    src="/images/examples/art-nouveau-lily-example-1.png"
+                    alt="Art Nouveau Lily tarot border example — The World with celestial figure and rose wreath"
                     fill
-                    className="object-contain"
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
                   />
                 </div>
-              ))}
+                <p className="text-center text-xs text-charcoal/80">The World</p>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/art-nouveau-lily-example-2.png"
+                    alt="Art Nouveau Lily tarot border example — The Hanged Man beneath a blossoming tree"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+                <p className="text-center text-xs text-charcoal/80">The Hanged Man</p>
+              </div>
+              <div className="space-y-2">
+                <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                  <Image
+                    src="/images/examples/art-nouveau-lily-example-3.png"
+                    alt="Art Nouveau Lily tarot border example — The Empress on a throne among white lilies"
+                    fill
+                    className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                  />
+                </div>
+                <p className="text-center text-xs text-charcoal/80">The Empress</p>
+              </div>
             </div>
           </>
         ) : slug === 'dragon-scale' ? (
