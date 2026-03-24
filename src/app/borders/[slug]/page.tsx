@@ -50,6 +50,24 @@ const MYSTIC_CANDLELIGHT_EXAMPLES = [
   },
 ];
 
+const GOLDEN_HONEYCOMB_EXAMPLES = [
+  {
+    src: '/images/examples/golden-honeycomb-example-1.png',
+    alt: 'Golden Honeycomb tarot border example — Knight of Cups with honeycomb frame, bees and daisies',
+    label: 'Knight of Cups',
+  },
+  {
+    src: '/images/examples/golden-honeycomb-example-2.png',
+    alt: 'Golden Honeycomb tarot border example — King of Pentacles with dripping honey and parchment banners',
+    label: 'King of Pentacles',
+  },
+  {
+    src: '/images/examples/golden-honeycomb-example-3.png',
+    alt: 'Golden Honeycomb tarot border example — The Empress in a sunlit garden with golden honeycomb border',
+    label: 'The Empress',
+  },
+];
+
 const TUTORIAL_LINKS = [
   { label: 'How to Create Tarot Cards in Canva', href: '/blog/create-tarot-cards-canva' },
   { label: 'How to Design a Tarot Deck in Photoshop', href: '/blog/design-your-own-tarot-deck' },
@@ -936,17 +954,17 @@ export default function BorderPage({ params }: BorderPageProps) {
               See how this border looks when used with finished tarot artwork.
             </p>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
-                >
-                  <Image
-                    src={border.image}
-                    alt={`Golden Honeycomb tarot border template — example ${i}`}
-                    fill
-                    className="object-contain"
-                  />
+              {GOLDEN_HONEYCOMB_EXAMPLES.map((example) => (
+                <div key={example.src} className="space-y-2">
+                  <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                    <Image
+                      src={example.src}
+                      alt={example.alt}
+                      fill
+                      className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                    />
+                  </div>
+                  <p className="text-center text-xs text-charcoal/80">{example.label}</p>
                 </div>
               ))}
             </div>
