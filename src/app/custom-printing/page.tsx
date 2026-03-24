@@ -196,14 +196,11 @@ export default function CustomPrintingPage() {
             </ul>
           </div>
 
-          <div
-            className="relative hidden min-h-[320px] w-full lg:block lg:min-h-[380px]"
-            aria-hidden
-          >
+          <div className="relative hidden min-h-[320px] w-full lg:block lg:min-h-[380px]">
             <div className="absolute inset-0 overflow-hidden rounded-sm" style={heroMaskStyle}>
               <Image
-                src="/images/printing-hero.jpg"
-                alt=""
+                src="/images/printing-hero.png"
+                alt="Tarot cards and a colour swatch fan, representing professional deck printing"
                 fill
                 className="object-cover object-right"
                 sizes="(min-width: 1024px) 45vw, 0vw"
