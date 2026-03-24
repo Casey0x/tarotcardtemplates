@@ -32,6 +32,24 @@ const MARBLE_TEMPLE_EXAMPLES = [
   { src: '/images/examples/marble-temple-example-3.png', alt: 'Marble Temple tarot border example – Three of Swords', label: 'Three of Swords' },
 ];
 
+const MYSTIC_CANDLELIGHT_EXAMPLES = [
+  {
+    src: '/images/examples/mystic-candlelight-example-1.png',
+    alt: 'Mystic Candlelight tarot border example — The Lovers with melting wax frame and corner candles',
+    label: 'The Lovers',
+  },
+  {
+    src: '/images/examples/mystic-candlelight-example-2.png',
+    alt: 'Mystic Candlelight tarot border example — Death with wax drips and candlelight glow',
+    label: 'Death',
+  },
+  {
+    src: '/images/examples/mystic-candlelight-example-3.png',
+    alt: 'Mystic Candlelight tarot border example — The Hanged Man with warm wax border and lit candles',
+    label: 'The Hanged Man',
+  },
+];
+
 const TUTORIAL_LINKS = [
   { label: 'How to Create Tarot Cards in Canva', href: '/blog/create-tarot-cards-canva' },
   { label: 'How to Design a Tarot Deck in Photoshop', href: '/blog/design-your-own-tarot-deck' },
@@ -879,17 +897,17 @@ export default function BorderPage({ params }: BorderPageProps) {
               See how this border looks when used with finished tarot artwork.
             </p>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
-                >
-                  <Image
-                    src={border.image}
-                    alt={`Mystic Candlelight tarot border template — example ${i}`}
-                    fill
-                    className="object-contain"
-                  />
+              {MYSTIC_CANDLELIGHT_EXAMPLES.map((example) => (
+                <div key={example.src} className="space-y-2">
+                  <div className="relative aspect-[3/5] overflow-hidden rounded-md bg-cream shadow-md shadow-charcoal/15">
+                    <Image
+                      src={example.src}
+                      alt={example.alt}
+                      fill
+                      className="object-cover rounded-md transition-transform duration-200 ease-out hover:scale-[1.03]"
+                    />
+                  </div>
+                  <p className="text-center text-xs text-charcoal/80">{example.label}</p>
                 </div>
               ))}
             </div>
