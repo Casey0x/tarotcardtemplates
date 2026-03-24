@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { InstantQuoteSection } from './instant-quote-section';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +26,7 @@ const FEATURED_GOLD = '#D4AF37';
 
 const HERO_TRUST = [
   { icon: '🖨', label: '300gsm & 350gsm card stock' },
-  { icon: '📦', label: 'Tuck box & rigid box options' },
+  { icon: '📦', label: 'Tuck box with every order' },
   { icon: '✈', label: 'Ships worldwide' },
   { icon: '⭐', label: '500+ decks printed' },
 ];
@@ -113,10 +114,10 @@ const PRINT_SPECS: { label: string; value: string }[] = [
   { label: 'Export Size', value: '898 × 1488 px at 300 DPI' },
   { label: 'Bleed', value: '3mm on all sides' },
   { label: 'Card Stock', value: '300gsm smooth · 350gsm black core' },
-  { label: 'Finishes', value: 'Matte · Gloss · Linen' },
+  { label: 'Finishes', value: 'Gloss · Linen' },
   { label: 'Corners', value: 'Rounded (standard tarot)' },
-  { label: 'Packaging', value: 'Tuck box · Rigid collector box' },
-  { label: 'Add-ons', value: 'Foil stamping · Spot UV · Shrink wrap' },
+  { label: 'Packaging', value: 'Tuck box (included with all orders)' },
+  { label: 'Add-ons', value: 'Shrink wrap (optional)' },
   {
     label: 'Minimum Quantity',
     value: '1 deck (prototype) · 25 decks (batch)',
@@ -175,7 +176,7 @@ export default function CustomPrintingPage() {
                 Print a Prototype — from $78
               </Link>
               <Link
-                href="#"
+                href="#quote-form"
                 className="rounded-sm border bg-transparent px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5"
                 style={{ borderColor: HEADING, color: HEADING }}
               >
@@ -212,6 +213,8 @@ export default function CustomPrintingPage() {
           </div>
         </div>
       </section>
+
+      <InstantQuoteSection />
 
       {/* SECTION 2 — Pricing */}
       <section className="px-6 py-20 md:px-8">
@@ -313,7 +316,7 @@ export default function CustomPrintingPage() {
                 {[
                   '25–200 deck runs',
                   '300gsm or 350gsm black core',
-                  'Tuck or rigid box',
+                  'Gloss or Linen finish · tuck box included',
                   'Ships in 10–14 days',
                 ].map((line) => (
                   <li key={line} className="flex gap-2.5">
@@ -325,7 +328,7 @@ export default function CustomPrintingPage() {
                 ))}
               </ul>
               <Link
-                href="#"
+                href="#quote-form"
                 className="mt-10 block w-full rounded-sm px-5 py-3.5 text-center text-sm font-semibold shadow-lg transition-all hover:brightness-105"
                 style={{ backgroundColor: FEATURED_GOLD, color: BTN_DARK_TEXT }}
               >
@@ -369,9 +372,9 @@ export default function CustomPrintingPage() {
               </p>
               <ul className="mt-8 flex-1 space-y-3 text-sm leading-relaxed" style={{ color: CARD_BODY }}>
                 {[
-                  'Premium stock and finishes',
-                  'Foil stamping & spot UV',
-                  'Rigid collector box option',
+                  '500+ deck volume pricing',
+                  'Gloss or Linen finish',
+                  'Tuck box included · shrink wrap optional',
                   'Ships in 3–4 weeks',
                 ].map((line) => (
                   <li key={line} className="flex gap-2.5">
@@ -383,7 +386,7 @@ export default function CustomPrintingPage() {
                 ))}
               </ul>
               <Link
-                href="#"
+                href="#quote-form"
                 className="mt-10 block w-full rounded-sm border bg-transparent px-5 py-3.5 text-center text-sm font-medium transition-colors hover:bg-white/[0.06]"
                 style={{ borderColor: HEADING, color: HEADING }}
               >
@@ -633,7 +636,7 @@ export default function CustomPrintingPage() {
               Order a Prototype — $78
             </Link>
             <Link
-              href="#"
+              href="#quote-form"
               className="rounded-sm border bg-transparent px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5"
               style={{ borderColor: HEADING, color: HEADING }}
             >
