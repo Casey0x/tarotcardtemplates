@@ -4,6 +4,13 @@ import { getAllTemplates } from '@/lib/templates';
 import { BORDER_TEMPLATES } from '@/data/borders';
 import Image from 'next/image';
 
+/** Hero stack: back → middle → front (last paints on top). Striking borders; vintage-velvet front for detail. */
+const HERO_PREVIEW_IMAGES = [
+  '/images/templates/mystic-candlelight-tarot-border.png',
+  '/images/templates/golden-honeycomb-tarot-border.png',
+  '/images/template-styles/vintage-velvet.png',
+] as const;
+
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
@@ -70,7 +77,7 @@ export default async function HomePage() {
               style={{ animation: 'heroFloatUp 11s ease-in-out infinite', animationDelay: '0s' }}
             >
               <Image
-                src={BORDER_TEMPLATES[0].image}
+                src={HERO_PREVIEW_IMAGES[0]}
                 alt="tarot card template preview"
                 width={220}
                 height={330}
@@ -84,7 +91,7 @@ export default async function HomePage() {
               style={{ animation: 'heroFloatUp 12s ease-in-out infinite', animationDelay: '0.8s' }}
             >
               <Image
-                src={BORDER_TEMPLATES[1].image}
+                src={HERO_PREVIEW_IMAGES[1]}
                 alt="tarot card template preview"
                 width={220}
                 height={330}
@@ -97,7 +104,7 @@ export default async function HomePage() {
               style={{ animation: 'heroFloatUp 13s ease-in-out infinite', animationDelay: '1.6s' }}
             >
               <Image
-                src={BORDER_TEMPLATES[2].image}
+                src={HERO_PREVIEW_IMAGES[2]}
                 alt="tarot card template preview"
                 width={220}
                 height={330}
