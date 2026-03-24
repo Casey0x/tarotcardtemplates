@@ -4,5 +4,30 @@
 # If `/borders/[slug]` ever 404s in production, check the Netlify UI for:
 # - Site settings → Domain management → redirects that might shadow `/borders/*`
 # - Build settings → branch linked to GitHub `main` and successful deploys
+#
+# Caching / stale JS after deploy:
+# - This repo does not set long TTL on `/_next/static/` by default; Netlify’s CDN
+#   may still apply aggressive caching for static assets. If users see old bundles
+#   after a deploy, use Deploys → "Clear cache and deploy site".
+# - Optional: force revalidation for App Router chunks (below). Netlify custom
+#   headers only apply to assets Netlify serves from its backing store (not
+#   proxied/function responses); verify in DevTools → Network for your chunk URLs.
+# - Next uses one path segment under `chunks/app/` for many routes; nested routes
+#   use more segments, so multiple `for` patterns cover both.
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[[headers]]
+  for = "/_next/static/chunks/app/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/_next/static/chunks/app/*/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/_next/static/chunks/app/*/*/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

@@ -8,6 +8,20 @@ const nextConfig = {
       'templated-assets.s3.amazonaws.com',
     ],
   },
+  // Borders index is dynamic; avoid CDN/browser serving old HTML after deploys (stale layout).
+  async headers() {
+    return [
+      {
+        source: '/borders',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
