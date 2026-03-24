@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTemplateBySlug } from "@/lib/templates";
 import TemplateGallery from "@/components/template-gallery";
+import HollowSaintPhysicalDeckImage from "@/components/hollow-saint-physical-deck-image";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -476,6 +477,11 @@ export default async function TemplateDetailPage({
 
   const physicalDeckImage = "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/" + template.slug.toUpperCase() + "/physical-deck.png";
 
+  const hollowSaintPrintedDeckSrc =
+    "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/physical-deck.png";
+  const isHollowSaintTemplate =
+    template.slug === "hollow-saint" || template.slug === "hollow-saint-tarot";
+
   const slugKey = template.slug as keyof typeof TEMPLATE_CARD_SPOTLIGHTS;
   const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[slugKey] ?? DEFAULT_CARDS;
 
@@ -580,11 +586,20 @@ export default async function TemplateDetailPage({
               <div className="border border-charcoal/10 p-4 overflow-hidden">
                 <p className="mb-3 text-sm font-medium text-charcoal/70">The Printed Deck</p>
                 <div className="overflow-hidden mb-3">
-                  <img
-                    src={physicalDeckImage}
-                    alt={template.name + " printed tarot deck with premium card stock"}
-                    className="w-full h-auto transition-transform duration-300 hover:scale-110 cursor-pointer"
-                  />
+                  {isHollowSaintTemplate ? (
+                    <HollowSaintPhysicalDeckImage
+                      primarySrc={hollowSaintPrintedDeckSrc}
+                      fallbackSrc={template.previewImages?.[0]}
+                      alt={template.name + " printed tarot deck with premium card stock"}
+                      className="w-full h-auto transition-transform duration-300 hover:scale-110 cursor-pointer"
+                    />
+                  ) : (
+                    <img
+                      src={physicalDeckImage}
+                      alt={template.name + " printed tarot deck with premium card stock"}
+                      className="w-full h-auto transition-transform duration-300 hover:scale-110 cursor-pointer"
+                    />
+                  )}
                 </div>
                 <p className="text-xs text-charcoal/60">
                   Professionally printed with premium card stock and luxe finishes
