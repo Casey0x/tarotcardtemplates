@@ -130,6 +130,15 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
       'This enchanting tarot card border features a hauntingly beautiful frame crafted entirely from melting candle wax in warm honey and amber tones, with four glowing lit candles positioned at each corner casting soft flickering light, while realistic drips and rivulets of wax flow downward creating an organic, living texture. The atmospheric design includes weathered wooden plaques at the top and bottom perfect for card titles and spell descriptions, while the generous central artwork area accommodates your custom artwork.\n\nIdeal for creating witchcraft tarot decks, spell-casting oracle cards, Wiccan divination tools, Halloween party invitations, occult grimoire pages, séance materials, candle magic guides, Gothic ritual cards, mystical ceremony programs, or any project requiring an authentic candlelit aesthetic with warm glowing flames, melted wax textures, and the intimate atmosphere of midnight rituals, sacred circles, and spell-weaving ceremonies that evoke ancient magic and transformative fire energy.',
     image: '/images/templates/mystic-candlelight-tarot-border.png',
   },
+  {
+    slug: 'golden-honeycomb',
+    name: 'Golden Honeycomb Border',
+    description:
+      'Sweet apiary-style tarot border with golden honeycomb, bees in flight, dripping amber honey, daisies and a beehive centerpiece on cream.',
+    productDescription:
+      'This delightfully sweet tarot card border features intricate golden honeycomb patterns adorned with realistic honey bees in flight, dripping amber honey, delicate white daisies with soft green leaves, and a charming beehive or honey pot centerpiece at the top, all rendered in warm golden yellows and rich amber tones against a soft cream background. The nature-inspired design includes decorative scroll banners at the top and bottom perfect for card titles and descriptions, while the generous central transparent area accommodates your custom artwork.\n\nIdeal for creating nature oracle decks, abundance tarot cards, spring celebration materials, apiary and beekeeping guides, sustainable farming branding, honey product packaging, garden party invitations, farmers market signage, botanical wellness materials, or any project requiring an authentic apiary aesthetic with golden honeycombs, buzzing pollinators, and the wholesome sweetness of nature\'s bounty that evokes themes of community, productivity, abundance, and the sacred relationship between flowers and bees.',
+    image: '/images/templates/golden-honeycomb-tarot-border.png',
+  },
 ];
 
 export function getBorderBySlug(slug: string): BorderTemplate | undefined {

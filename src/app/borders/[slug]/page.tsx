@@ -143,6 +143,13 @@ const MYSTIC_CANDLELIGHT_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/mystic-candlelight',
 };
 
+const GOLDEN_HONEYCOMB_META = {
+  title: 'Golden Honeycomb Border – Tarot Card Border Template',
+  description:
+    'Download the Golden Honeycomb tarot border template — honeycomb, bees, dripping honey, daisies and beehive centerpiece on cream. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+  canonical: 'https://www.tarotcardtemplates.com/borders/golden-honeycomb',
+};
+
 const HAS_FULL_LAYOUT = (s: string) =>
   s === 'marble-temple' ||
   s === 'vintage-velvet' ||
@@ -155,7 +162,8 @@ const HAS_FULL_LAYOUT = (s: string) =>
   s === 'dragon-scale' ||
   s === 'gothic-romance' ||
   s === 'art-nouveau-lily' ||
-  s === 'mystic-candlelight';
+  s === 'mystic-candlelight' ||
+  s === 'golden-honeycomb';
 
 export async function generateMetadata({
   params,
@@ -260,6 +268,14 @@ export async function generateMetadata({
       openGraph: { title: MYSTIC_CANDLELIGHT_META.title },
     };
   }
+  if (params.slug === 'golden-honeycomb') {
+    return {
+      title: GOLDEN_HONEYCOMB_META.title,
+      description: GOLDEN_HONEYCOMB_META.description,
+      alternates: { canonical: GOLDEN_HONEYCOMB_META.canonical },
+      openGraph: { title: GOLDEN_HONEYCOMB_META.title },
+    };
+  }
   const title = `${border.name} Tarot Card Border Template`;
   return {
     title,
@@ -346,7 +362,9 @@ export default function BorderPage({ params }: BorderPageProps) {
                             ? 'Art Nouveau Lily Border'
                             : slug === 'mystic-candlelight'
                               ? 'Mystic Candlelight Border'
-                              : `${border.name} Tarot Card Border Template`}
+                              : slug === 'golden-honeycomb'
+                                ? 'Golden Honeycomb Border'
+                                : `${border.name} Tarot Card Border Template`}
         </h1>
       </header>
 
@@ -912,6 +930,27 @@ export default function BorderPage({ params }: BorderPageProps) {
               ))}
             </div>
           </>
+        ) : slug === 'golden-honeycomb' ? (
+          <>
+            <p className="text-sm text-charcoal/80">
+              See how this border looks when used with finished tarot artwork.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
+                >
+                  <Image
+                    src={border.image}
+                    alt={`Golden Honeycomb tarot border template — example ${i}`}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ))}
+            </div>
+          </>
         ) : slug === 'dragon-scale' ? (
           <>
             <p className="text-sm text-charcoal/80">
@@ -1013,6 +1052,8 @@ export default function BorderPage({ params }: BorderPageProps) {
                         'Belle Époque lilies, golden whiplash curves and blush pink florals in true Art Nouveau style.'}
                       {b.slug === 'mystic-candlelight' &&
                         'Honey-amber melting wax, corner candle flames and organic drips for witchy ritual decks.'}
+                      {b.slug === 'golden-honeycomb' &&
+                        'Golden honeycomb, bees, honey drips and daisies — abundance, apiary charm and nature oracle decks.'}
                     </p>
                   </Link>
                 </li>
