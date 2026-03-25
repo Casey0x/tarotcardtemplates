@@ -72,6 +72,34 @@ a {
   gap: 48px;
 }
 
+/* Solarpunk Tarot: five spotlight cards — responsive 1 / 2 / 3 / 5 column layout */
+.meanings-grid--five {
+  grid-template-columns: repeat(1, minmax(min(100%, 175px), 175px));
+  gap: clamp(1.25rem, 3.5vw, 2.5rem);
+  max-width: 100%;
+}
+
+@media (min-width: 480px) {
+  .meanings-grid--five {
+    grid-template-columns: repeat(2, minmax(0, 175px));
+    justify-content: center;
+  }
+}
+
+@media (min-width: 768px) {
+  .meanings-grid--five {
+    grid-template-columns: repeat(3, minmax(0, 175px));
+    gap: clamp(1.5rem, 3vw, 2.75rem);
+  }
+}
+
+@media (min-width: 1280px) {
+  .meanings-grid--five {
+    grid-template-columns: repeat(5, minmax(0, 175px));
+    gap: 2rem;
+  }
+}
+
 .meaning-card img {
   width: 175px;
   height: auto;

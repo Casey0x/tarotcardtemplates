@@ -404,6 +404,43 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Page of Swords tarot card — Dark Botanical Tarot deck",
     },
   ],
+  "Solarpunk-Tarot": [
+    {
+      name: "Eight of Pentacles",
+      slug: "eight-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/SOLARPUNK-TAROT/eight-of-pentacles.jpg",
+      alt: "Eight of Pentacles tarot card — Solarpunk Tarot deck",
+    },
+    {
+      name: "Four of Swords",
+      slug: "four-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/SOLARPUNK-TAROT/four-of-swords.jpg",
+      alt: "Four of Swords tarot card — Solarpunk Tarot deck",
+    },
+    {
+      name: "Nine of Pentacles",
+      slug: "nine-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/SOLARPUNK-TAROT/nine-of-pentacles.jpg",
+      alt: "Nine of Pentacles tarot card — Solarpunk Tarot deck",
+    },
+    {
+      name: "Ten of Wands",
+      slug: "ten-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/SOLARPUNK-TAROT/ten-of-wands.jpg",
+      alt: "Ten of Wands tarot card — Solarpunk Tarot deck",
+    },
+    {
+      name: "Three of Pentacles",
+      slug: "three-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/SOLARPUNK-TAROT/three-of-pentacles.jpg",
+      alt: "Three of Pentacles tarot card — Solarpunk Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
@@ -484,6 +521,7 @@ export default async function TemplateDetailPage({
 
   const slugKey = template.slug as keyof typeof TEMPLATE_CARD_SPOTLIGHTS;
   const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[slugKey] ?? DEFAULT_CARDS;
+  const isSolarpunkTarotSpotlight = template.slug === "Solarpunk-Tarot";
 
   const jsonLdItems = spotlightCards.map((card, i) => ({
     "@type": "ListItem",
@@ -679,7 +717,7 @@ export default async function TemplateDetailPage({
         <p className="text-sm text-charcoal/70 mb-8 max-w-lg mx-auto">
           Tarot cards carry symbolic meaning used in divination and storytelling. Explore the interpretations behind some of the cards in this deck.
         </p>
-        <div className="meanings-grid">
+        <div className={isSolarpunkTarotSpotlight ? "meanings-grid meanings-grid--five" : "meanings-grid"}>
           {spotlightCards.map((card) => (
             <Link
               key={card.slug}
