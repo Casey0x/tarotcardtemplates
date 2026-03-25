@@ -84,15 +84,29 @@ export async function getAllTemplates(): Promise<TarotTemplate[]> {
 }
 
 export async function getTemplateBySlug(slug: string): Promise<TarotTemplate | null> {
-  const response = await supabaseRestFetch(
-    `templates?select=${selectFields}&slug=eq.${encodeURIComponent(slug)}&limit=1`,
-    { cache: 'no-store' }
-  );
+  const byExact = async () => {
+    const response = await supabaseRestFetch(
+      `templates?select=${selectFields}&slug=eq.${encodeURIComponent(slug)}&limit=1`,
+      { cache: 'no-store' }
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch template "${slug}" (${response.status})`);
+    }
+    return (await response.json()) as TemplateRow[];
+  };
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch template "${slug}" (${response.status})`);
+  let rows = await byExact();
+  if (rows.length > 0) {
+    return mapTemplateRow(rows[0]);
   }
 
-  const rows = (await response.json()) as TemplateRow[];
+  const responseIlike = await supabaseRestFetch(
+    `templates?select=${selectFields}&slug=ilike.${encodeURIComponent(slug)}&limit=1`,
+    { cache: 'no-store' }
+  );
+  if (!responseIlike.ok) {
+    throw new Error(`Failed to fetch template "${slug}" (${responseIlike.status})`);
+  }
+  rows = (await responseIlike.json()) as TemplateRow[];
   return rows.length > 0 ? mapTemplateRow(rows[0]) : null;
 }

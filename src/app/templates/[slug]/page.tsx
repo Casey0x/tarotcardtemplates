@@ -137,6 +137,66 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Ten of Pentacles tarot card — Psychedelic 70s Tarot deck",
     },
   ],
+  "wanderers-tarot": [
+    {
+      name: "The Fool",
+      slug: "the-fool",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/the-fool.jpg",
+      alt: "The Fool tarot card — Wanderers Tarot deck",
+    },
+    {
+      name: "Six of Swords",
+      slug: "six-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/six-of-swords.jpg",
+      alt: "Six of Swords tarot card — Wanderers Tarot deck",
+    },
+    {
+      name: "The Hermit",
+      slug: "the-hermit",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/the-hermit.jpg",
+      alt: "The Hermit tarot card — Wanderers Tarot deck",
+    },
+    {
+      name: "Ten of Wands",
+      slug: "ten-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/ten-of-wands.jpg",
+      alt: "Ten of Wands tarot card — Wanderers Tarot deck",
+    },
+  ],
+  "Wanderers-Tarot": [
+    {
+      name: "The Fool",
+      slug: "the-fool",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/the-fool.jpg",
+      alt: "The Fool tarot card — Wanderers Tarot deck",
+    },
+    {
+      name: "Six of Swords",
+      slug: "six-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/six-of-swords.jpg",
+      alt: "Six of Swords tarot card — Wanderers Tarot deck",
+    },
+    {
+      name: "The Hermit",
+      slug: "the-hermit",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/the-hermit.jpg",
+      alt: "The Hermit tarot card — Wanderers Tarot deck",
+    },
+    {
+      name: "Ten of Wands",
+      slug: "ten-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/ten-of-wands.jpg",
+      alt: "Ten of Wands tarot card — Wanderers Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
@@ -210,7 +270,8 @@ export default async function TemplateDetailPage({
 
   const physicalDeckImage = "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/" + template.slug.toUpperCase() + "/physical-deck.png";
 
-  const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[template.slug] ?? DEFAULT_CARDS;
+  const slugKey = template.slug as keyof typeof TEMPLATE_CARD_SPOTLIGHTS;
+  const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[slugKey] ?? DEFAULT_CARDS;
 
   const jsonLdItems = spotlightCards.map((card, i) => ({
     "@type": "ListItem",
@@ -397,21 +458,20 @@ export default async function TemplateDetailPage({
         <p className="text-sm text-charcoal/70 mb-8 max-w-lg mx-auto">
           Tarot cards carry symbolic meaning used in divination and storytelling. Explore the interpretations behind some of the cards in this deck.
         </p>
-        <div className="flex flex-wrap justify-center gap-8">
+        <div className="grid justify-center grid-cols-[repeat(auto-fit,minmax(175px,auto))] gap-12 max-w-5xl mx-auto">
           {spotlightCards.map((card) => (
             <Link
               key={card.slug}
               href={"/card-meanings/" + card.slug}
               className="group flex flex-col items-center gap-2"
             >
-              <div className="relative" style={{ width: "105px" }}>
+              <div className="relative w-[175px]">
                 <img
                   src={card.image}
                   alt={card.alt}
-                  width={105}
-                  height={175}
-                  className="rounded-md object-cover transition-transform duration-200 group-hover:-translate-y-1"
-                  style={{ width: "105px", height: "175px" }}
+                  width={175}
+                  height={292}
+                  className="w-[175px] h-auto rounded-md object-cover transition-transform duration-200 group-hover:-translate-y-1"
                 />
                 <div
                   className="absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
