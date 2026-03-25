@@ -404,6 +404,66 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Page of Swords tarot card — Dark Botanical Tarot deck",
     },
   ],
+  "Hollow-Saint-Tarot": [
+    {
+      name: "Ace of Pentacles",
+      slug: "ace-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/ace-of-pentacles.jpg",
+      alt: "Ace of Pentacles tarot card — Hollow Saint Tarot deck",
+    },
+    {
+      name: "Eight of Swords",
+      slug: "eight-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/eight-of-swords.jpg",
+      alt: "Eight of Swords tarot card — Hollow Saint Tarot deck",
+    },
+    {
+      name: "Queen of Pentacles",
+      slug: "queen-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/queen-of-pentacles.jpg",
+      alt: "Queen of Pentacles tarot card — Hollow Saint Tarot deck",
+    },
+    {
+      name: "Seven of Pentacles",
+      slug: "seven-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/seven-of-pentacles.jpg",
+      alt: "Seven of Pentacles tarot card — Hollow Saint Tarot deck",
+    },
+  ],
+  "hollow-saint-tarot": [
+    {
+      name: "Ace of Pentacles",
+      slug: "ace-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/ace-of-pentacles.jpg",
+      alt: "Ace of Pentacles tarot card — Hollow Saint Tarot deck",
+    },
+    {
+      name: "Eight of Swords",
+      slug: "eight-of-swords",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/eight-of-swords.jpg",
+      alt: "Eight of Swords tarot card — Hollow Saint Tarot deck",
+    },
+    {
+      name: "Queen of Pentacles",
+      slug: "queen-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/queen-of-pentacles.jpg",
+      alt: "Queen of Pentacles tarot card — Hollow Saint Tarot deck",
+    },
+    {
+      name: "Seven of Pentacles",
+      slug: "seven-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/seven-of-pentacles.jpg",
+      alt: "Seven of Pentacles tarot card — Hollow Saint Tarot deck",
+    },
+  ],
   "Solarpunk-Tarot": [
     {
       name: "Eight of Pentacles",
