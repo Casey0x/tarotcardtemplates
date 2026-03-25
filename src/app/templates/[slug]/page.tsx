@@ -79,8 +79,10 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
     },
     {
       name: "Seven of Pentacles",
-      slug: "seven-of-pentacles",
-      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DREAM-SCAPE/seven-of-pentacles.jpg",
+      slug: "seven-of-wands",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DREAM-SCAPE/seven-of-" +
+        "pentacles.jpg",
       alt: "Seven of Pentacles tarot card — Dream-Scape deck",
     },
     {
@@ -427,11 +429,11 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Queen of Pentacles tarot card — Hollow Saint Tarot deck",
     },
     {
-      name: "Seven of Pentacles",
-      slug: "seven-of-pentacles",
+      name: "Seven of Wands",
+      slug: "seven-of-wands",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/seven-of-pentacles.jpg",
-      alt: "Seven of Pentacles tarot card — Hollow Saint Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/seven-of-wands.jpg",
+      alt: "Seven of Wands tarot card — Hollow Saint Tarot deck",
     },
   ],
   "hollow-saint-tarot": [
@@ -457,11 +459,11 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Queen of Pentacles tarot card — Hollow Saint Tarot deck",
     },
     {
-      name: "Seven of Pentacles",
-      slug: "seven-of-pentacles",
+      name: "Seven of Wands",
+      slug: "seven-of-wands",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/seven-of-pentacles.jpg",
-      alt: "Seven of Pentacles tarot card — Hollow Saint Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/HOLLOW-SAINT-TAROT/seven-of-wands.jpg",
+      alt: "Seven of Wands tarot card — Hollow Saint Tarot deck",
     },
   ],
   "Solarpunk-Tarot": [
