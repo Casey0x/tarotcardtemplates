@@ -79,10 +79,8 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
     },
     {
       name: "Seven of Pentacles",
-      slug: "seven-of-wands",
-      image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DREAM-SCAPE/seven-of-" +
-        "pentacles.jpg",
+      slug: "seven-of-pentacles",
+      image: "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/DREAM-SCAPE/seven-of-pentacles.jpg",
       alt: "Seven of Pentacles tarot card — Dream-Scape deck",
     },
     {
