@@ -441,6 +441,44 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Three of Pentacles tarot card — Solarpunk Tarot deck",
     },
   ],
+  "Traditional-Tarot": [
+    {
+      name: "The Hanged Man",
+      slug: "the-hanged-man",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/TRADITIONAL-TAROT/the-hanged-man.jpg",
+      alt: "The Hanged Man tarot card — Traditional Tarot deck",
+    },
+    {
+      name: "The World",
+      slug: "the-world",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/TRADITIONAL-TAROT/the-world.jpg",
+      alt: "The World tarot card — Traditional Tarot deck",
+    },
+    {
+      name: "King of Pentacles",
+      slug: "king-of-pentacles",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/TRADITIONAL-TAROT/king-of-pentacles.jpg",
+      alt: "King of Pentacles tarot card — Traditional Tarot deck",
+    },
+    {
+      name: "Five of Cups",
+      slug: "five-of-cups",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/TRADITIONAL-TAROT/five-of-cups.jpg",
+      alt: "Five of Cups tarot card — Traditional Tarot deck",
+    },
+    {
+      name: "Knight of Swords",
+      slug: "knight-of-swords",
+      // `knight-of-swords.jpg` returns 400 in the bucket; the PNG works.
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/TRADITIONAL-TAROT/knight-of-swords.png",
+      alt: "Knight of Swords tarot card — Traditional Tarot deck",
+    },
+  ],
 };
 
 const DEFAULT_CARDS = [
@@ -522,6 +560,7 @@ export default async function TemplateDetailPage({
   const slugKey = template.slug as keyof typeof TEMPLATE_CARD_SPOTLIGHTS;
   const spotlightCards = TEMPLATE_CARD_SPOTLIGHTS[slugKey] ?? DEFAULT_CARDS;
   const isSolarpunkTarotSpotlight = template.slug === "Solarpunk-Tarot";
+  const isTraditionalTarotSpotlight = template.slug === "Traditional-Tarot";
 
   const jsonLdItems = spotlightCards.map((card, i) => ({
     "@type": "ListItem",
@@ -717,7 +756,13 @@ export default async function TemplateDetailPage({
         <p className="text-sm text-charcoal/70 mb-8 max-w-lg mx-auto">
           Tarot cards carry symbolic meaning used in divination and storytelling. Explore the interpretations behind some of the cards in this deck.
         </p>
-        <div className={isSolarpunkTarotSpotlight ? "meanings-grid meanings-grid--five" : "meanings-grid"}>
+        <div
+          className={
+            isSolarpunkTarotSpotlight || isTraditionalTarotSpotlight
+              ? "meanings-grid meanings-grid--five"
+              : "meanings-grid"
+          }
+        >
           {spotlightCards.map((card) => (
             <Link
               key={card.slug}
