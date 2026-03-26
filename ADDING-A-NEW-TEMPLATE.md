@@ -19,7 +19,7 @@ No code changes or redeployments are needed. Everything is database-driven — o
 
 ### Step 1 — Upload images to Supabase Storage
 
-Navigate to **Supabase → Storage → `template-previews`** and create a new folder named exactly after your template slug (uppercase, matching the `slug` field you'll insert in Step 2).
+Navigate to **Supabase → Storage → `template-previews`** and create a new folder named **`slug.toUpperCase()`** — the exact slug string from the database, uppercased character-for-character (same rule the site uses for image URLs). Example: slug `wanderers-tarot` → folder `WANDERERS-TAROT`. **Do not** add prefixes like `THE-` unless those characters are already in the slug.
 
 ```
 template-previews/
@@ -39,7 +39,7 @@ template-previews/
 | `preview-2.png` | Gallery image 2 on detail page |
 | `physical-deck.png` | Printed deck photo in purchase sidebar |
 
-**Naming rules:** Folder name must be UPPERCASE and match the slug field exactly (e.g. slug `Astral-Dominion` → folder `ASTRAL-DOMINION`). File names must be lowercase as shown above.
+**Naming rules:** Folder name must be the slug uppercased only — no invented prefixes (e.g. slug `Astral-Dominion` → `ASTRAL-DOMINION`; slug `wanderers-tarot` → `WANDERERS-TAROT`). File names must be lowercase as shown above.
 
 ---
 

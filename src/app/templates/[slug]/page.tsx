@@ -503,62 +503,62 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
   ],
   "wanderers-tarot": [
     {
-      name: "The Fool",
-      slug: "the-fool",
+      name: "Eight of Wands",
+      slug: "eight-of-wands",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/the-fool.jpg",
-      alt: "The Fool tarot card — Wanderers Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/eight-of-wands.jpg",
+      alt: "Eight of Wands tarot card — Wanderers Tarot deck",
     },
     {
-      name: "Six of Swords",
-      slug: "six-of-swords",
+      name: "Nine of Wands",
+      slug: "nine-of-wands",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/six-of-swords.jpg",
-      alt: "Six of Swords tarot card — Wanderers Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/nine-of-wands.jpg",
+      alt: "Nine of Wands tarot card — Wanderers Tarot deck",
     },
     {
-      name: "The Hermit",
-      slug: "the-hermit",
+      name: "Four of Pentacles",
+      slug: "four-of-pentacles",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/the-hermit.jpg",
-      alt: "The Hermit tarot card — Wanderers Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/four-of-pentacles.jpg",
+      alt: "Four of Pentacles tarot card — Wanderers Tarot deck",
     },
     {
-      name: "Ten of Wands",
-      slug: "ten-of-wands",
+      name: "Page of Wands",
+      slug: "page-of-wands",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/ten-of-wands.jpg",
-      alt: "Ten of Wands tarot card — Wanderers Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/page-of-wands.jpg",
+      alt: "Page of Wands tarot card — Wanderers Tarot deck",
     },
   ],
   "Wanderers-Tarot": [
     {
-      name: "The Fool",
-      slug: "the-fool",
+      name: "Eight of Wands",
+      slug: "eight-of-wands",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/the-fool.jpg",
-      alt: "The Fool tarot card — Wanderers Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/eight-of-wands.jpg",
+      alt: "Eight of Wands tarot card — Wanderers Tarot deck",
     },
     {
-      name: "Six of Swords",
-      slug: "six-of-swords",
+      name: "Nine of Wands",
+      slug: "nine-of-wands",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/six-of-swords.jpg",
-      alt: "Six of Swords tarot card — Wanderers Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/nine-of-wands.jpg",
+      alt: "Nine of Wands tarot card — Wanderers Tarot deck",
     },
     {
-      name: "The Hermit",
-      slug: "the-hermit",
+      name: "Four of Pentacles",
+      slug: "four-of-pentacles",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/the-hermit.jpg",
-      alt: "The Hermit tarot card — Wanderers Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/four-of-pentacles.jpg",
+      alt: "Four of Pentacles tarot card — Wanderers Tarot deck",
     },
     {
-      name: "Ten of Wands",
-      slug: "ten-of-wands",
+      name: "Page of Wands",
+      slug: "page-of-wands",
       image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/ten-of-wands.jpg",
-      alt: "Ten of Wands tarot card — Wanderers Tarot deck",
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/WANDERERS-TAROT/page-of-wands.jpg",
+      alt: "Page of Wands tarot card — Wanderers Tarot deck",
     },
   ],
   "Traditional-Tarot": [
