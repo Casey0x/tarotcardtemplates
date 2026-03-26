@@ -25,19 +25,22 @@ function toRoman(n: number): string {
   return result;
 }
 
-// Returns the display number for a card.
-// Major Arcana: stored as "1", "2", etc -> rendered as Roman numerals (I, II, III...)
-// Minor Arcana: numeric pip cards (1-10) show number; court cards show nothing (name already includes rank)
-function formatNumber(num: string | undefined | null, isMajor: boolean): string | null {
-  if (!num) return null;
-  if (isMajor) {
-    const parsed = parseInt(num, 10);
-    if (!isNaN(parsed)) return toRoman(parsed);
-    return num; // already roman or non-numeric
+// Index page only: Major Arcana → Roman numerals in the left column (no Arabic).
+// The Fool (0) has no classical Roman numeral → leave column blank.
+// Minor Arcana → no left-column number; the card name already carries rank (Ace, Eight, Page, etc.).
+function formatIndexDisplayNumber(num: string | undefined | null, isMajor: boolean): string | null {
+  if (!isMajor) return null;
+
+  if (!num?.trim()) return null;
+  const s = num.trim();
+  const parsed = parseInt(s, 10);
+  if (!isNaN(parsed)) {
+    if (parsed <= 0) return null;
+    if (parsed > 40) return null;
+    return toRoman(parsed);
   }
-  const courtRanks = ['Page', 'Knight', 'Queen', 'King'];
-  if (courtRanks.includes(num)) return null;
-  return num;
+  if (/^[IVXLCDM]+$/i.test(s)) return s.toUpperCase();
+  return null;
 }
 
 export default async function CardMeaningsIndexPage() {
@@ -77,7 +80,7 @@ export default async function CardMeaningsIndexPage() {
               <CardRow
                 key={card.slug}
                 card={card}
-                displayNumber={formatNumber(card.number, true)}
+                displayNumber={formatIndexDisplayNumber(card.number, true)}
               />
             ))}
           </div>
@@ -97,7 +100,7 @@ export default async function CardMeaningsIndexPage() {
               <CardRow
                 key={card.slug}
                 card={card}
-                displayNumber={formatNumber(card.number, false)}
+                displayNumber={formatIndexDisplayNumber(card.number, false)}
               />
             ))}
           </div>
