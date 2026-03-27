@@ -27,9 +27,15 @@ export async function POST(req: Request) {
     const templatedRequestBody = {
       template: TEMPLATE_ID,
       layers: {
-        artwork,
-        card_name,
-        numeral,
+        artwork: {
+          image_url: artwork,
+        },
+        card_name: {
+          text: card_name,
+        },
+        numeral: {
+          text: numeral,
+        },
       },
     };
 
