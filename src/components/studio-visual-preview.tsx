@@ -373,6 +373,27 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
               </>
             ) : null}
           </div>
+          <p className="mx-auto mt-3 max-w-sm px-2 text-center text-[10px] leading-relaxed text-charcoal/55">
+            After upload, your image appears in the preview above inside the border you pick. Preview
+            Card swaps that for the full Templated render (art, template frame, and text in one
+            image).
+          </p>
+          {previewImage && artworkSrc ? (
+            <button
+              type="button"
+              className="mx-auto mt-2 block text-center text-xs text-charcoal underline underline-offset-2 hover:no-underline"
+              onClick={() => {
+                setPreviewByCard((prev) => {
+                  const next = { ...prev };
+                  delete next[selectedCardIndex];
+                  return next;
+                });
+                setPreviewError(null);
+              }}
+            >
+              Back to upload in frame
+            </button>
+          ) : null}
           {borders.length === 0 && (
             <p className="mt-4 text-center text-sm text-charcoal/70">
               Load borders from the data source to use this preview.
@@ -467,8 +488,8 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
               Preview Card
             </button>
             <p className="mt-2 text-[10px] leading-snug text-charcoal/55">
-              Uses Templated with your artwork, numeral, and card name. Requires artwork and card
-              name.
+              Requires artwork and card name. While editing, the preview shows your upload under the
+              site border; after preview, use “Back to upload in frame” below the card to return.
             </p>
             {previewError ? (
               <p className="mt-2 text-xs text-charcoal/80" role="alert">
