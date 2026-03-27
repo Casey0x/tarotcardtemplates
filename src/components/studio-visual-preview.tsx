@@ -12,6 +12,19 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
+/** Object path inside bucket `studio-uploads` from a public Supabase URL, or null. */
+function studioObjectPathFromPublicUrl(url: string): string | null {
+  const marker = '/object/public/studio-uploads/';
+  const i = url.indexOf(marker);
+  if (i === -1) return null;
+  try {
+    const rest = url.slice(i + marker.length).split('?')[0];
+    return decodeURIComponent(rest);
+  } catch {
+    return null;
+  }
+}
+
 export type StudioPreviewItem = {
   slug: string;
   name: string;
@@ -103,6 +116,42 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
       setUploading(false);
     }
   };
+
+  async function handleRemoveArtwork() {
+    const name = cardName.trim() || getTarotDefault(selectedCardIndex)?.name || 'this card';
+    if (!confirm(`Remove artwork for ${name}?`)) return;
+    const url = artworkByCard[selectedCardIndex];
+    if (url && !url.startsWith('blob:')) {
+      const path = studioObjectPathFromPublicUrl(url);
+      if (path) {
+        const { error } = await supabase.storage.from('studio-uploads').remove([path]);
+        if (error) console.warn('Storage remove:', error.message);
+      }
+    }
+    setArtworkByCard((prev) => {
+      const next = { ...prev };
+      delete next[selectedCardIndex];
+      return next;
+    });
+    setPreviewByCard((prev) => {
+      const next = { ...prev };
+      delete next[selectedCardIndex];
+      return next;
+    });
+    setPreviewError(null);
+  }
+
+  function saveAndNextCard() {
+    if (!artworkSrc) return;
+    if (selectedCardIndex >= 77) return;
+    const next = selectedCardIndex + 1;
+    selectCard(next);
+    requestAnimationFrame(() => {
+      document
+        .querySelector(`.studio-card-nav [data-studio-card-index="${next}"]`)
+        ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+  }
 
   async function handlePreviewCard() {
     if (uploading) {
@@ -240,7 +289,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(11rem,13rem)_1fr_minmax(0,15rem)] lg:items-start">
         <nav
-          className="max-h-[70vh] space-y-4 overflow-y-auto rounded-sm border border-charcoal/10 bg-cream/80 p-3 lg:max-h-[min(70vh,52rem)]"
+          className="studio-card-nav max-h-[70vh] space-y-4 overflow-y-auto rounded-sm border border-charcoal/10 bg-cream/80 p-3 lg:max-h-[min(70vh,52rem)]"
           aria-label="Tarot cards"
         >
           {TAROT_SECTIONS.map((section) => (
@@ -256,6 +305,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
                     <li key={card.index}>
                       <button
                         type="button"
+                        data-studio-card-index={card.index}
                         onClick={() => selectCard(card.index)}
                         aria-current={active ? 'true' : undefined}
                         aria-label={`${card.name}${done ? ', artwork added' : ', no artwork yet'}`}
@@ -298,7 +348,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
               <img
                 src={artworkSrc}
                 alt=""
-                className="absolute inset-0 z-[5] h-full w-full object-contain"
+                className="absolute left-[3%] top-[3%] z-[5] h-[94%] w-[94%] object-cover"
               />
             ) : null}
 
@@ -476,6 +526,16 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
                 }}
               />
             </label>
+            {artworkSrc ? (
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => void handleRemoveArtwork()}
+                className="mt-2 text-xs text-red-700/80 underline decoration-red-700/40 underline-offset-2 hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Remove artwork
+              </button>
+            ) : null}
           </div>
 
           <div className="border-t border-charcoal/10 pt-4">
@@ -487,6 +547,16 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
             >
               Preview Card
             </button>
+            {artworkSrc ? (
+              <button
+                type="button"
+                disabled={selectedCardIndex >= 77}
+                onClick={saveAndNextCard}
+                className="mt-2 w-full rounded-sm border border-charcoal/30 bg-transparent px-3 py-2 text-xs font-medium text-charcoal transition hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {selectedCardIndex >= 77 ? 'All cards done!' : 'Save & Next Card →'}
+              </button>
+            ) : null}
             <p className="mt-2 text-[10px] leading-snug text-charcoal/55">
               Requires artwork and card name. While editing, the preview shows your upload under the
               site border; after preview, use “Back to upload in frame” below the card to return.
