@@ -276,7 +276,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
             className="relative w-full max-w-sm overflow-hidden rounded-sm border border-charcoal/10 bg-cream/90"
             style={{ aspectRatio: '2 / 3' }}
           >
-            {artworkSrc ? (
+            {artworkSrc && !previewImage ? (
               <img
                 src={artworkSrc}
                 alt=""
@@ -284,18 +284,30 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
               />
             ) : null}
 
-            <div className="pointer-events-none absolute inset-x-0 top-[5%] z-[7] px-2 text-center">
-              {cardNumeral.trim() ? (
-                <span className="text-[10px] font-medium uppercase tracking-wide text-charcoal drop-shadow-sm sm:text-xs">
-                  {cardNumeral}
-                </span>
-              ) : null}
-            </div>
-            <div className="pointer-events-none absolute inset-x-0 bottom-[6%] z-[7] px-2 text-center">
-              <span className="text-[10px] font-semibold leading-tight text-charcoal drop-shadow-sm sm:text-xs">
-                {cardName}
-              </span>
-            </div>
+            {previewImage ? (
+              <img
+                src={previewImage}
+                alt="Templated card render preview"
+                className="pointer-events-none absolute left-[10%] top-[12%] z-[6] h-[70%] w-[80%] object-cover"
+              />
+            ) : null}
+
+            {!previewImage ? (
+              <>
+                <div className="pointer-events-none absolute inset-x-0 top-[5%] z-[7] px-2 text-center">
+                  {cardNumeral.trim() ? (
+                    <span className="text-[10px] font-medium uppercase tracking-wide text-charcoal drop-shadow-sm sm:text-xs">
+                      {cardNumeral}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="pointer-events-none absolute inset-x-0 bottom-[6%] z-[7] px-2 text-center">
+                  <span className="text-[10px] font-semibold leading-tight text-charcoal drop-shadow-sm sm:text-xs">
+                    {cardName}
+                  </span>
+                </div>
+              </>
+            ) : null}
 
             <Image
               src={borderSrc}
@@ -341,14 +353,6 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
           ) : null}
           {renderLoading ? (
             <p className="mt-4 text-center text-xs text-charcoal/60">Rendering…</p>
-          ) : null}
-          {previewImage ? (
-            <img
-              src={previewImage}
-              alt="Templated card render preview"
-              style={{ maxWidth: '300px', margin: '16px auto 0' }}
-              className="block rounded-sm border border-charcoal/10"
-            />
           ) : null}
         </div>
 
