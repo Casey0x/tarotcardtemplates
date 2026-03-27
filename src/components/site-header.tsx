@@ -5,7 +5,7 @@ import { useState } from 'react';
 const navItems = [
   { href: '/templates', label: 'Templates' },
   { href: '/borders', label: 'Borders' },
-  { href: '/studio', label: 'Studio' },
+  { href: '/studio-beta', label: 'Studio' },
   { href: '/card-meanings', label: 'Card Meanings' },
   { href: '/how-it-works', label: 'How it works' },
   { href: '/custom-printing', label: 'Custom printing' },
