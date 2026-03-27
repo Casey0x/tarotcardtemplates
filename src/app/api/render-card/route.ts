@@ -30,6 +30,7 @@ export async function POST(req: Request) {
         artwork: {
           src: artwork,
           image_url: artwork,
+          object_fit: 'cover',
         },
         card_name: {
           text: card_name,
