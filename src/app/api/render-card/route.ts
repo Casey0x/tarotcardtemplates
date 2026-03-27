@@ -28,6 +28,7 @@ export async function POST(req: Request) {
       template: TEMPLATE_ID,
       layers: {
         artwork: {
+          src: artwork,
           image_url: artwork,
         },
         card_name: {
@@ -39,13 +40,15 @@ export async function POST(req: Request) {
       },
     };
 
-    console.log('Templated request:', templatedRequestBody);
+    console.log('--- TEMPLATED DEBUG ---');
+    console.log('Artwork URL:', artwork);
+    console.log('Payload:', JSON.stringify(templatedRequestBody, null, 2));
 
     const templatedRes = await fetch(TEMPLATED_RENDER_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(templatedRequestBody),
     });
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
       image_url?: string;
     };
 
-    console.log('Templated response:', data);
+    console.log('Templated response:', JSON.stringify(data, null, 2));
 
     if (!templatedRes.ok) {
       console.error(new Error(`Templated.io render failed: ${templatedRes.status}`), data);
