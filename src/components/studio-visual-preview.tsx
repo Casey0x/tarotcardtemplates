@@ -67,7 +67,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
 
       const filePath = `studio-uploads/${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
 
-      const { data, error } = await supabase.storage.from('template-previews').upload(filePath, file);
+      const { data, error } = await supabase.storage.from('studio-uploads').upload(filePath, file);
 
       console.log('Upload result:', { data, error });
 
@@ -77,7 +77,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
         return;
       }
 
-      const { data: publicData } = supabase.storage.from('template-previews').getPublicUrl(filePath);
+      const { data: publicData } = supabase.storage.from('studio-uploads').getPublicUrl(filePath);
 
       console.log('Public URL:', publicData.publicUrl);
 
