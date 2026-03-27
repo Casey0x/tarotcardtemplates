@@ -1,10 +1,16 @@
 'use client';
 
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
 import { getTarotDefault, TAROT_CARDS_78, TAROT_SECTIONS } from '@/lib/tarot-cards';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
 
 export type StudioPreviewItem = {
   slug: string;
@@ -24,27 +30,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
   const [cardName, setCardName] = useState(() => TAROT_CARDS_78[0]?.name ?? '');
   const [cardNumeral, setCardNumeral] = useState(() => TAROT_CARDS_78[0]?.numeral ?? '');
   const [artworkByCard, setArtworkByCard] = useState<Record<number, string>>({});
-
-  const blobRegistry = useRef<Set<string>>(new Set());
-
-  function registerBlob(url: string) {
-    blobRegistry.current.add(url);
-  }
-
-  function revokeBlob(url: string | undefined) {
-    if (url?.startsWith('blob:')) {
-      URL.revokeObjectURL(url);
-      blobRegistry.current.delete(url);
-    }
-  }
-
-  useEffect(() => {
-    const registry = blobRegistry.current;
-    return () => {
-      registry.forEach((u) => URL.revokeObjectURL(u));
-      registry.clear();
-    };
-  }, []);
+  const [uploading, setUploading] = useState(false);
 
   function selectCard(index: number) {
     const d = getTarotDefault(index);
@@ -73,11 +59,60 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
     });
   }
 
+  const handleUpload = async (file: File) => {
+    try {
+      setUploading(true);
+
+      console.log('Uploading file:', file);
+
+      const filePath = `studio-uploads/${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+
+      const { data, error } = await supabase.storage.from('template-previews').upload(filePath, file);
+
+      console.log('Upload result:', { data, error });
+
+      if (error) {
+        console.error('Upload failed:', error);
+        alert('Upload failed: ' + error.message);
+        return;
+      }
+
+      const { data: publicData } = supabase.storage.from('template-previews').getPublicUrl(filePath);
+
+      console.log('Public URL:', publicData.publicUrl);
+
+      if (!publicData?.publicUrl) {
+        alert('Failed to generate public URL');
+        return;
+      }
+
+      setArtworkByCard((prev) => ({
+        ...prev,
+        [selectedCardIndex]: publicData.publicUrl,
+      }));
+    } catch (err) {
+      console.error('Upload crash:', err);
+      alert('Upload crashed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   async function handlePreviewCard() {
+    if (uploading) {
+      alert('Please wait for upload to finish');
+      return;
+    }
+
     const artwork = artworkSrc;
     const numeral = cardNumeral;
     const cardNameTrimmed = cardName.trim();
-    if (!artwork || !cardNameTrimmed) {
+
+    if (!artwork) {
+      alert('Please upload artwork first');
+      return;
+    }
+    if (!cardNameTrimmed) {
       return;
     }
 
@@ -88,6 +123,8 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
       if (artwork.startsWith('blob:')) {
         artworkPayload = await blobUrlToDataUrl(artwork);
       }
+
+      console.log('Artwork being sent:', artworkByCard[selectedCardIndex]);
 
       const res = await fetch('/api/render-card', {
         method: 'POST',
@@ -109,9 +146,12 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
         return;
       }
 
+      console.log('Render result:', data);
+
       if (!res.ok || !data.image_url) {
         setPreviewImage(null);
         console.error(res);
+        alert('Render failed');
         setPreviewError('Preview failed — check console');
         return;
       }
@@ -131,31 +171,6 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
     () => Object.values(artworkByCard).filter((u) => typeof u === 'string' && u.length > 0).length,
     [artworkByCard]
   );
-
-  function onArtworkFileChange(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const idx = selectedCardIndex;
-    const hadArtwork = Boolean(artworkByCard[idx]);
-    setPreviewImage(null);
-    setPreviewError(null);
-    setArtworkByCard((prev) => {
-      const next = { ...prev };
-      const old = next[idx];
-      revokeBlob(old);
-      const url = URL.createObjectURL(file);
-      registerBlob(url);
-      next[idx] = url;
-      return next;
-    });
-    e.target.value = '';
-    if (!hadArtwork) {
-      const nextIdx = Math.min(idx + 1, 77);
-      if (nextIdx !== idx) {
-        selectCard(nextIdx);
-      }
-    }
-  }
 
   const borderSrc = useMemo(() => {
     const b = borders.find((x) => x.slug === borderSlug) ?? borders[0];
@@ -300,9 +315,16 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
                 </div>
                 <input
                   type="file"
-                  accept="image/png,image/jpeg,image/jpg"
-                  className="absolute inset-0 z-[25] cursor-pointer opacity-0"
-                  onChange={onArtworkFileChange}
+                  accept="image/*"
+                  disabled={uploading}
+                  className="absolute inset-0 z-[25] cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleUpload(file);
+                    }
+                    e.target.value = '';
+                  }}
                   aria-label="Upload artwork for this card"
                 />
               </>
@@ -314,6 +336,9 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
             </p>
           )}
 
+          {uploading ? (
+            <p className="mt-4 text-center text-xs text-charcoal/60">Uploading…</p>
+          ) : null}
           {renderLoading ? (
             <p className="mt-4 text-center text-xs text-charcoal/60">Rendering…</p>
           ) : null}
@@ -383,9 +408,16 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
               Replace artwork
               <input
                 type="file"
-                accept="image/png,image/jpeg,image/jpg"
-                className="mt-1 w-full text-xs text-charcoal file:mr-2 file:rounded-sm file:border file:border-charcoal/20 file:bg-cream file:px-2 file:py-1"
-                onChange={onArtworkFileChange}
+                accept="image/*"
+                disabled={uploading}
+                className="mt-1 w-full text-xs text-charcoal file:mr-2 file:rounded-sm file:border file:border-charcoal/20 file:bg-cream file:px-2 file:py-1 disabled:opacity-50"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleUpload(file);
+                  }
+                  e.target.value = '';
+                }}
               />
             </label>
           </div>
@@ -394,7 +426,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
             <button
               type="button"
               onClick={() => void handlePreviewCard()}
-              disabled={renderLoading || !artworkSrc || !cardName.trim()}
+              disabled={uploading || renderLoading || !artworkSrc || !cardName.trim()}
               className="w-full rounded-sm border border-charcoal bg-charcoal px-3 py-2 text-xs font-medium text-cream transition hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Preview Card
