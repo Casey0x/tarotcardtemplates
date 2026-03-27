@@ -38,13 +38,14 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
     setSelectedCardIndex(index);
     setCardName(d.name);
     setCardNumeral(d.numeral);
-    setPreviewImage(null);
     setPreviewError(null);
   }
 
   const artworkSrc = artworkByCard[selectedCardIndex] ?? null;
 
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  /** Cached Templated render URL per card index (survives switching cards). */
+  const [previewByCard, setPreviewByCard] = useState<Record<number, string>>({});
+  const previewImage = previewByCard[selectedCardIndex] ?? null;
   const [renderLoading, setRenderLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
@@ -90,6 +91,11 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
         ...prev,
         [selectedCardIndex]: publicData.publicUrl,
       }));
+      setPreviewByCard((prev) => {
+        const next = { ...prev };
+        delete next[selectedCardIndex];
+        return next;
+      });
     } catch (err) {
       console.error('Upload crash:', err);
       alert('Upload crashed');
@@ -140,7 +146,11 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
       try {
         data = (await res.json()) as { image_url?: string; error?: string };
       } catch {
-        setPreviewImage(null);
+        setPreviewByCard((prev) => {
+          const next = { ...prev };
+          delete next[selectedCardIndex];
+          return next;
+        });
         console.error(res);
         setPreviewError('Preview failed — check console');
         return;
@@ -149,17 +159,25 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
       console.log('Render result:', data);
 
       if (!res.ok || !data.image_url) {
-        setPreviewImage(null);
+        setPreviewByCard((prev) => {
+          const next = { ...prev };
+          delete next[selectedCardIndex];
+          return next;
+        });
         console.error(res);
         alert('Render failed');
         setPreviewError('Preview failed — check console');
         return;
       }
 
-      setPreviewImage(data.image_url);
+      setPreviewByCard((prev) => ({ ...prev, [selectedCardIndex]: data.image_url! }));
       setPreviewError(null);
     } catch {
-      setPreviewImage(null);
+      setPreviewByCard((prev) => {
+        const next = { ...prev };
+        delete next[selectedCardIndex];
+        return next;
+      });
       console.error(new Error('Preview request failed'));
       setPreviewError('Preview failed — check console');
     } finally {
@@ -294,7 +312,11 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
                 className="pointer-events-none absolute inset-0 z-[20] h-full w-full object-contain"
                 onError={() => {
                   setPreviewError('Could not load preview image (blocked URL or invalid image).');
-                  setPreviewImage(null);
+                  setPreviewByCard((prev) => {
+                    const next = { ...prev };
+                    delete next[selectedCardIndex];
+                    return next;
+                  });
                 }}
               />
             ) : null}
