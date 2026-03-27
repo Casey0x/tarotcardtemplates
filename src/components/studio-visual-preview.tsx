@@ -284,7 +284,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
               />
             ) : null}
 
-            {/* Templated returns a full card render (border + art + text). Show it full-bleed; do not crop under the local border or it often shows only margins. */}
+            {/* Templated render sits under the site border PNG (transparent window shows the preview). */}
             {previewImage ? (
               <img
                 src={previewImage}
@@ -310,16 +310,14 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
               </>
             ) : null}
 
-            {!previewImage ? (
-              <Image
-                src={borderSrc}
-                alt="Border overlay"
-                fill
-                className="pointer-events-none z-10 object-contain"
-                sizes="(max-width: 1024px) 100vw, 384px"
-                priority
-              />
-            ) : null}
+            <Image
+              src={borderSrc}
+              alt="Border overlay"
+              fill
+              className="pointer-events-none z-10 object-contain"
+              sizes="(max-width: 1024px) 100vw, 384px"
+              priority
+            />
             {!artworkSrc ? (
               <>
                 <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-cream/80 px-4 text-center">
