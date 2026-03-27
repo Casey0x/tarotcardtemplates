@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { createServiceClient } from '@/lib/supabase-server';
 import { cookies } from 'next/headers';
 
-const BUCKET = 'card-art';
+const BUCKET = 'card-artwork';
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
   const file = formData.get('file') as File | null;
   const deckId = formData.get('deckId') as string | null;
-  const cardId = formData.get('cardId') as string | null;
+  const cardIndex = formData.get('cardIndex') as string | null;
 
   if (!file || !file.size) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -42,8 +42,8 @@ export async function POST(request: Request) {
   if (!deckId || typeof deckId !== 'string' || !deckId.trim()) {
     return NextResponse.json({ error: 'Missing deckId' }, { status: 400 });
   }
-  if (!cardId || typeof cardId !== 'string' || !cardId.trim()) {
-    return NextResponse.json({ error: 'Missing cardId' }, { status: 400 });
+  if (!cardIndex || typeof cardIndex !== 'string' || !cardIndex.trim()) {
+    return NextResponse.json({ error: 'Missing cardIndex' }, { status: 400 });
   }
 
   const supabase = createServiceClient();
@@ -58,9 +58,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Deck not found or access denied' }, { status: 403 });
   }
 
+  const safeCardIndex = cardIndex.trim();
   const ext = file.name.split('.').pop()?.replace(/[^a-z0-9]/gi, '') || 'png';
-  const filename = `art.${ext}`;
-  const path = `cards/${deckId.trim()}/${cardId.trim()}/${filename}`;
+  const fileExt = ext || 'png';
+  const filePath = `${deckId.trim()}/${safeCardIndex}.${fileExt}`;
 
   let buffer: Buffer;
   try {
@@ -69,16 +70,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to read file' }, { status: 400 });
   }
 
-  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, buffer, {
-    contentType: file.type || 'image/png',
-    upsert: true,
-  });
+  const { data: uploadData, error: uploadError } = await supabase.storage
+    .from(BUCKET)
+    .upload(filePath, buffer, {
+      contentType: file.type || 'image/png',
+      upsert: true,
+    });
 
   if (uploadError) {
     console.error('Upload error', uploadError);
     return NextResponse.json({ error: uploadError.message }, { status: 400 });
   }
 
-  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(uploadData.path);
   return NextResponse.json({ url: urlData.publicUrl });
 }

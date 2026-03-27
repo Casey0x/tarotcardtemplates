@@ -1,9 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { BORDER_TEMPLATES } from '@/data/borders';
 import type { Metadata } from 'next';
+import { fetchBorders, FALLBACK_BORDER_IMAGE } from '@/data/borders';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Tarot Card Border Templates | TarotCardTemplates.com',
@@ -11,17 +12,24 @@ export const metadata: Metadata = {
     'Browse tarot card border templates for Canva and Photoshop. Choose from celestial, marble, steampunk, velvet, minimal, day of the dead, ocean/mermaid, dragon scale, Gothic romance, Art Nouveau lily, mystic candlelight, golden honeycomb apiary frames and more. All 70×120mm with 3mm bleed.',
 };
 
-export default function BordersPage() {
+export default async function BordersPage() {
+  const borders = await fetchBorders();
+
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
       <h1 className="text-3xl font-semibold tracking-tight">Tarot Card Borders</h1>
       <p className="mt-3 text-charcoal/70">
         Choose a border style for your tarot deck — from minimalist line frames to richly gilded and marble designs.{' '}
-        <span className="text-charcoal/60">({BORDER_TEMPLATES.length} templates)</span>
+        <span className="text-charcoal/60">({borders.length} templates)</span>
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {BORDER_TEMPLATES.map((border) => (
+        {borders.length === 0 && (
+          <p className="text-sm text-charcoal/70 sm:col-span-2 lg:col-span-3">
+            No borders are available right now.
+          </p>
+        )}
+        {borders.map((border) => (
           <Link
             key={border.slug}
             id={border.slug}
@@ -30,7 +38,7 @@ export default function BordersPage() {
           >
             <div className="relative mb-4 overflow-hidden rounded-xs border border-charcoal/10 bg-cream p-3 aspect-[3/5]">
               <Image
-                src={border.image}
+                src={border.image ?? FALLBACK_BORDER_IMAGE}
                 alt={border.name}
                 fill
                 className="object-contain transition-transform duration-200 group-hover:scale-105"

@@ -1,28 +1,26 @@
 import Link from "next/link";
 import Image from "next/image";
-import { TarotTemplate } from "@/lib/templates";
+import { getTemplateCardImageSrc, TarotTemplate } from "@/lib/templates";
 
 interface TemplateCardProps {
   template: TarotTemplate;
 }
 
 export default function TemplateCard({ template }: TemplateCardProps) {
-  const thumbnailUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/template-previews/${template.slug.toUpperCase()}/thumb.png`;
+  const imageSrc = getTemplateCardImageSrc(template);
 
   return (
     <article className="border border-charcoal/10 bg-white flex flex-col h-full">
-      {thumbnailUrl && (
-        <Link href={`/templates/${template.slug}`}>
-          <div className="relative aspect-[2/3] w-full max-h-96">
-            <Image
-              src={thumbnailUrl}
-              alt={template.name}
-              fill
-              className="object-contain p-3"
-            />
-          </div>
-        </Link>
-      )}
+      <Link href={`/templates/${template.slug}`}>
+        <div className="relative aspect-[2/3] w-full max-h-96">
+          <Image
+            src={imageSrc}
+            alt={template.name}
+            fill
+            className="object-contain p-3"
+          />
+        </div>
+      </Link>
 
       <div className="p-6 flex flex-col flex-grow">
         <h2 className="text-xl font-semibold">

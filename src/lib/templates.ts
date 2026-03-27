@@ -1,4 +1,24 @@
 import { supabaseRestFetch } from '@/lib/supabase-rest';
+import { TEMPLATE_PREVIEW_FALLBACK } from '@/lib/media-fallbacks';
+
+export { TEMPLATE_PREVIEW_FALLBACK };
+
+export function getTemplatePreviewImages(template: TarotTemplate): string[] {
+  const curated =
+    template.previewImages?.filter((s) => typeof s === 'string' && s.trim().length > 0) ?? [];
+  if (curated.length > 0) return curated;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '');
+  if (url) {
+    return [
+      `${url}/storage/v1/object/public/template-previews/${template.slug.toUpperCase()}/thumb.png`,
+    ];
+  }
+  return [TEMPLATE_PREVIEW_FALLBACK];
+}
+
+export function getTemplateCardImageSrc(template: TarotTemplate): string {
+  return getTemplatePreviewImages(template)[0] ?? TEMPLATE_PREVIEW_FALLBACK;
+}
 
 export type TarotTemplate = {
   slug: string;
@@ -70,43 +90,51 @@ const selectFields =
   'seo_card_spotlight_heading,seo_card_spotlight_body,seo_card_spotlight_link';
 
 export async function getAllTemplates(): Promise<TarotTemplate[]> {
-  const response = await supabaseRestFetch(
-    `templates?select=${selectFields}&order=featured.desc,name.asc`,
-    { cache: 'no-store' }
-  );
+  try {
+    const response = await supabaseRestFetch(
+      `templates?select=${selectFields}&order=featured.desc,name.asc`,
+      { cache: 'no-store' }
+    );
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch templates (${response.status})`);
+    if (!response.ok) {
+      return [];
+    }
+
+    const rows = (await response.json()) as TemplateRow[];
+    return rows.map(mapTemplateRow);
+  } catch {
+    return [];
   }
-
-  const rows = (await response.json()) as TemplateRow[];
-  return rows.map(mapTemplateRow);
 }
 
 export async function getTemplateBySlug(slug: string): Promise<TarotTemplate | null> {
-  const byExact = async () => {
-    const response = await supabaseRestFetch(
-      `templates?select=${selectFields}&slug=eq.${encodeURIComponent(slug)}&limit=1`,
+  try {
+    const byExact = async () => {
+      const response = await supabaseRestFetch(
+        `templates?select=${selectFields}&slug=eq.${encodeURIComponent(slug)}&limit=1`,
+        { cache: 'no-store' }
+      );
+      if (!response.ok) {
+        return [] as TemplateRow[];
+      }
+      return (await response.json()) as TemplateRow[];
+    };
+
+    let rows = await byExact();
+    if (rows.length > 0) {
+      return mapTemplateRow(rows[0]);
+    }
+
+    const responseIlike = await supabaseRestFetch(
+      `templates?select=${selectFields}&slug=ilike.${encodeURIComponent(slug)}&limit=1`,
       { cache: 'no-store' }
     );
-    if (!response.ok) {
-      throw new Error(`Failed to fetch template "${slug}" (${response.status})`);
+    if (!responseIlike.ok) {
+      return null;
     }
-    return (await response.json()) as TemplateRow[];
-  };
-
-  let rows = await byExact();
-  if (rows.length > 0) {
-    return mapTemplateRow(rows[0]);
+    rows = (await responseIlike.json()) as TemplateRow[];
+    return rows.length > 0 ? mapTemplateRow(rows[0]) : null;
+  } catch {
+    return null;
   }
-
-  const responseIlike = await supabaseRestFetch(
-    `templates?select=${selectFields}&slug=ilike.${encodeURIComponent(slug)}&limit=1`,
-    { cache: 'no-store' }
-  );
-  if (!responseIlike.ok) {
-    throw new Error(`Failed to fetch template "${slug}" (${responseIlike.status})`);
-  }
-  rows = (await responseIlike.json()) as TemplateRow[];
-  return rows.length > 0 ? mapTemplateRow(rows[0]) : null;
 }

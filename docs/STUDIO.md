@@ -94,7 +94,7 @@ All studio APIs use the Supabase SDK on the server (service role or auth client)
 
 ### 9. Borders integration
 
-- **`src/app/borders/[slug]/page.tsx`** — Border data includes `templated_template_id` (e.g. Vintage Velvet: `8d9f0783-63e3-4947-955f-2dfcfd4f6f93`). Purchase box uses `BorderPurchase` component.
+- **`src/app/borders/[slug]/page.tsx`** — Border data includes `templated_template_id` (e.g. Vintage Velvet: `669959c5-4cca-476b-a484-5a9b1158e2a4`). Purchase box uses `BorderPurchase` component.
 - **`src/components/border-purchase.tsx`** — Pricing options: Single card, Major Arcana (22), Full deck (78). **Purchase** calls `/api/checkout` with border payload; on 401 redirects to login. Only borders with `templated_template_id` get the full Stripe + Studio flow.
 
 ### 10. Config and UI
@@ -116,7 +116,7 @@ All studio APIs use the Supabase SDK on the server (service role or auth client)
 
 ## Templated.io (Vintage Velvet)
 
-- **Template ID:** `8d9f0783-63e3-4947-955f-2dfcfd4f6f93`
+- **Template ID:** `669959c5-4cca-476b-a484-5a9b1158e2a4`
 - **Layer names:** `card-artwork` (image), `card-title` (text), `card-numeral` (text); `border-frame` and `Background` are locked.
 
 ---

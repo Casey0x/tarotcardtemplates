@@ -2,9 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getBordersRecord, BORDER_TEMPLATES } from '@/data/borders';
-
-const borders = getBordersRecord();
+import { BORDER_TEMPLATES, fetchBorderBySlug, FALLBACK_BORDER_IMAGE } from '@/data/borders';
+import { BorderPurchase } from '@/components/border-purchase';
 
 /** Other border templates for "You May Also Like" (exclude current slug) */
 function getRelatedBorders(currentSlug: string) {
@@ -186,7 +185,7 @@ const HAS_FULL_LAYOUT = (s: string) =>
 export async function generateMetadata({
   params,
 }: BorderPageProps): Promise<Metadata> {
-  const border = borders[params.slug];
+  const border = await fetchBorderBySlug(params.slug);
   if (!border) {
     return { title: 'Border Not Found' };
   }
@@ -313,9 +312,9 @@ export function generateStaticParams() {
   return BORDER_TEMPLATES.map((b) => ({ slug: b.slug }));
 }
 
-export default function BorderPage({ params }: BorderPageProps) {
+export default async function BorderPage({ params }: BorderPageProps) {
   const { slug } = params;
-  const border = borders[slug];
+  const border = await fetchBorderBySlug(slug);
 
   if (!border) {
     notFound();
@@ -390,7 +389,7 @@ export default function BorderPage({ params }: BorderPageProps) {
         <div className="space-y-6">
           <div className="relative aspect-[3/5] w-full max-w-sm overflow-hidden rounded-sm border border-charcoal/10 bg-cream p-4">
             <Image
-              src={border.image}
+              src={border.image ?? FALLBACK_BORDER_IMAGE}
               alt={border.name}
               fill
               className="object-contain"
@@ -438,26 +437,14 @@ export default function BorderPage({ params }: BorderPageProps) {
             </ul>
           </div>
 
-          {/* Full layout sidebar: Price, Purchase button, Included Files, Template Features */}
+          {/* Full layout sidebar: Design Your Deck (Stripe checkout), Included Files, Template Features */}
           {HAS_FULL_LAYOUT(slug) ? (
             <>
-              <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
-                <h2 className="mb-4 text-lg font-semibold text-charcoal">
-                  Border Template – Studio
-                </h2>
-                <p className="mb-4 text-charcoal/90">
-                  <span className="font-medium">Price: $9.95</span>
-                </p>
-                <button
-                  type="button"
-                  className="w-full border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream hover:bg-charcoal/90 transition-colors"
-                >
-                  Purchase
-                </button>
-                <p className="mt-3 text-sm text-charcoal/70">
-                  After payment you&apos;ll design each card in the Studio.
-                </p>
-              </div>
+              <BorderPurchase
+                borderSlug={slug}
+                borderName={border.name}
+                templatedTemplateId={border.templatedTemplateId}
+              />
               <div>
                 <h2 className="mb-2 text-lg font-semibold text-charcoal">
                   Included files:
@@ -497,31 +484,11 @@ export default function BorderPage({ params }: BorderPageProps) {
                   <li>3mm bleed included</li>
                 </ul>
               </div>
-              <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
-                <h2 className="mb-4 text-lg font-semibold text-charcoal">
-                  Border Template – Studio
-                </h2>
-                <p className="mb-4 text-charcoal/90">
-                  <span className="font-medium">Price: $9.95</span>
-                </p>
-                <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
-                <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
-                  <li>PNG border</li>
-                  <li>PSD layered file</li>
-                  <li>Canva compatible</li>
-                  <li>70×120mm tarot card size</li>
-                  <li>3mm bleed included</li>
-                </ul>
-                <button
-                  type="button"
-                  className="w-full border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream hover:bg-charcoal/90 transition-colors"
-                >
-                  Purchase
-                </button>
-                <p className="mt-3 text-sm text-charcoal/70">
-                  After payment you&apos;ll design each card in the Studio.
-                </p>
-              </div>
+              <BorderPurchase
+                borderSlug={slug}
+                borderName={border.name}
+                templatedTemplateId={border.templatedTemplateId}
+              />
             </>
           )}
         </div>
@@ -1022,7 +989,7 @@ export default function BorderPage({ params }: BorderPageProps) {
                   className="relative aspect-[3/5] overflow-hidden rounded-md border border-charcoal/10 bg-cream p-2 shadow-sm"
                 >
                   <Image
-                    src={border.image}
+                    src={border.image ?? FALLBACK_BORDER_IMAGE}
                     alt={`${border.name} example ${i}`}
                     fill
                     className="object-contain"
@@ -1119,11 +1086,15 @@ export default function BorderPage({ params }: BorderPageProps) {
           {/* Other borders: Product Description then Tutorial then SEO section */}
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
             <h2 className="text-xl font-semibold text-charcoal">Product Description</h2>
-            {border.productDescription.split('\n\n').map((paragraph, i) => (
-              <p key={i} className="text-sm text-charcoal/80">
-                {paragraph}
-              </p>
-            ))}
+            {(border.productDescription ?? '').trim().length > 0 ? (
+              border.productDescription.split('\n\n').map((paragraph, i) => (
+                <p key={i} className="text-sm text-charcoal/80">
+                  {paragraph}
+                </p>
+              ))
+            ) : (
+              <p className="text-sm text-charcoal/80">No extended description is available for this border yet.</p>
+            )}
           </section>
 
           <section className="space-y-4 border-t border-charcoal/10 pt-10">

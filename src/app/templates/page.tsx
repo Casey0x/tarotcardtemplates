@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getAllTemplates } from "@/lib/templates";
 import TemplateCard from "@/components/template-card";
-import { BORDER_TEMPLATES } from "@/data/borders";
+import { fetchBorders, FALLBACK_BORDER_IMAGE } from "@/data/borders";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +13,7 @@ export const metadata = {
 
 export default async function TemplatesPage() {
   const templates = await getAllTemplates();
+  const borders = await fetchBorders();
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
@@ -22,8 +23,13 @@ export default async function TemplatesPage() {
       </p>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Border templates (Marble Temple, Gothic Cathedral, etc.) — appear when you click View all */}
-        {BORDER_TEMPLATES.map((border) => (
+        {borders.length === 0 && (
+          <p className="text-sm text-charcoal/70 sm:col-span-2 lg:col-span-3">
+            No border templates are available right now. Check your database connection or try again later.
+          </p>
+        )}
+        {/* Border templates (Marble Temple, etc.) — appear when you click View all */}
+        {borders.map((border) => (
           <Link
             key={border.slug}
             href={`/borders/${border.slug}`}
@@ -31,7 +37,7 @@ export default async function TemplatesPage() {
           >
             <div className="relative aspect-[2/3] w-full max-h-96">
               <Image
-                src={border.image}
+                src={border.image ?? FALLBACK_BORDER_IMAGE}
                 alt={border.name}
                 fill
                 className="object-contain p-3"
@@ -50,6 +56,11 @@ export default async function TemplatesPage() {
           </Link>
         ))}
 
+        {templates.length === 0 && (
+          <p className="text-sm text-charcoal/70 sm:col-span-2 lg:col-span-3">
+            No deck templates are available right now. Check your Supabase REST configuration or try again later.
+          </p>
+        )}
         {templates.map((template) => (
           <Link key={template.slug} href={`/templates/${template.slug}`}>
             <TemplateCard template={template} />

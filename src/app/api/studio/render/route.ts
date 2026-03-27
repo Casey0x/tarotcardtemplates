@@ -46,6 +46,7 @@ export async function POST(request: Request) {
   }
 
   const payload = {
+    format: 'png',
     template: templateId,
     layers: {
       'card-artwork': {
@@ -108,8 +109,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to save card' }, { status: 500 });
   }
 
-  const { data: deckRow } = await supabase.from('decks').select('completed_cards').eq('id', deckId).single();
-  const newCount = (deckRow?.completed_cards ?? 0) + 1;
+  const { count } = await supabase
+    .from('cards')
+    .select('*', { count: 'exact', head: true })
+    .eq('deck_id', deckId)
+    .eq('status', 'rendered');
+
+  const newCount = count ?? 0;
   await supabase.from('decks').update({ completed_cards: newCount }).eq('id', deckId);
 
   console.log('[Templated render] success', { cardId, deckId, renderUrl: downloadUrl });

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getTemplateBySlug } from "@/lib/templates";
+import { getTemplateBySlug, getTemplatePreviewImages } from "@/lib/templates";
 import TemplateGallery from "@/components/template-gallery";
 import HollowSaintPhysicalDeckImage from "@/components/hollow-saint-physical-deck-image";
 import type { Metadata } from "next";
@@ -621,7 +621,8 @@ export async function generateMetadata({
 
   const templateTitle = template.name + " - Tarot Card Template | TarotCardTemplates.com";
   const templateDescription = template.description + " Download print-ready tarot deck templates. 78 card fronts included. Perfect for professional tarot readers and deck creators.";
-  const thumbnailUrl = template.previewImages?.[0] || "";
+  const previewUrls = getTemplatePreviewImages(template);
+  const thumbnailUrl = previewUrls[0] ?? "";
 
   return {
     title: templateTitle,
@@ -693,7 +694,7 @@ export default async function TemplateDetailPage({
     <>
       <article className="grid gap-10 lg:grid-cols-2">
         <section>
-          <TemplateGallery images={template.previewImages ?? []} templateName={template.name} />
+          <TemplateGallery images={getTemplatePreviewImages(template)} templateName={template.name} />
           <h1 className="mt-8 text-4xl font-semibold">
             {template.name}
           </h1>

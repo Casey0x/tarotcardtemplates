@@ -33,7 +33,9 @@ const MAJOR: TarotCardDefault[] = [
   { index: 21, name: 'The World', numeral: 'XXI' },
 ];
 
-const MINOR_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV'];
+// Numbered minor arcana (Ace-10) use roman numerals.
+// Court cards (Page, Knight, Queen, King) intentionally have no numeral.
+const MINOR_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', '', '', '', ''];
 const MINOR_NAMES = ['Ace', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Page', 'Knight', 'Queen', 'King'];
 const SUITS = ['Wands', 'Cups', 'Swords', 'Pentacles'] as const;
 

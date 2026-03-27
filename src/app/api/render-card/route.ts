@@ -1,4 +1,4 @@
-const TEMPLATE_ID = '8d9f0783-63e3-4947-955f-2dfcfd4f6f93';
+const TEMPLATE_ID = '669959c5-4cca-476b-a484-5a9b1158e2a4';
 const TEMPLATED_RENDER_URL = 'https://api.templated.io/v1/render';
 
 export async function POST(req: Request) {
@@ -24,7 +24,16 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    console.log('Render request:', { artwork, numeral, card_name });
+    const templatedRequestBody = {
+      template: TEMPLATE_ID,
+      layers: {
+        artwork,
+        card_name,
+        numeral,
+      },
+    };
+
+    console.log('Templated request:', templatedRequestBody);
 
     const templatedRes = await fetch(TEMPLATED_RENDER_URL, {
       method: 'POST',
@@ -32,14 +41,7 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        template: TEMPLATE_ID,
-        layers: {
-          artwork: { image_url: artwork },
-          numeral: { text: numeral },
-          card_name: { text: card_name },
-        },
-      }),
+      body: JSON.stringify(templatedRequestBody),
     });
 
     const data = (await templatedRes.json()) as {

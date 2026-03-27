@@ -95,7 +95,7 @@ export function BorderPurchase({ borderSlug, borderName, templatedTemplateId }: 
             disabled={loading}
             className="border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream hover:bg-charcoal/90 disabled:opacity-50 transition-colors"
           >
-            {loading ? 'Redirecting to checkout…' : 'Purchase'}
+            {loading ? 'Redirecting to checkout…' : 'Design Your Deck'}
           </button>
           <p className="mt-2 text-xs text-charcoal/70">
             After payment you’ll design each card in the Studio.
