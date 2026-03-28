@@ -29,6 +29,8 @@ export type StudioPreviewItem = {
   slug: string;
   name: string;
   image: string;
+  /** Transparent-center border PNG for live upload view; optional. */
+  transparentImage?: string | null;
 };
 
 type Props = {
@@ -239,11 +241,14 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
     [artworkByCard]
   );
 
-  const borderSrc = useMemo(() => {
+  /** Cream default for empty state; transparent variant when user has artwork (if configured). */
+  const borderOverlaySrc = useMemo(() => {
     const b = borders.find((x) => x.slug === borderSlug) ?? borders[0];
-    const src = b?.image?.trim();
-    return src && src.length > 0 ? src : FALLBACK_BORDER_IMAGE;
-  }, [borders, borderSlug]);
+    const fallback = b?.image?.trim() && b.image.trim().length > 0 ? b.image.trim() : FALLBACK_BORDER_IMAGE;
+    const transparent = b?.transparentImage?.trim();
+    if (artworkSrc && transparent) return transparent;
+    return fallback;
+  }, [borders, borderSlug, artworkSrc]);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-8">
@@ -341,7 +346,9 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
 
         <div className="flex flex-col items-center justify-center">
           <div
-            className="relative w-full max-w-sm overflow-hidden rounded-sm border border-charcoal/10 bg-cream/90"
+            className={`relative w-full max-w-sm overflow-hidden rounded-sm border border-charcoal/10 ${
+              artworkSrc ? 'bg-transparent' : 'bg-cream/90'
+            }`}
             style={{ aspectRatio: '2 / 3' }}
           >
             {artworkSrc && !previewImage ? (
@@ -390,7 +397,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
 
             {!previewImage ? (
               <Image
-                src={borderSrc}
+                src={borderOverlaySrc}
                 alt="Border overlay"
                 fill
                 className="pointer-events-none z-10 object-contain"

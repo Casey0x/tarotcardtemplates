@@ -12,6 +12,7 @@ export default async function StudioPage() {
     slug: b.slug,
     name: b.name,
     image: b.image ?? FALLBACK_BORDER_IMAGE,
+    transparentImage: b.transparentImage ?? undefined,
   }));
 
   return (

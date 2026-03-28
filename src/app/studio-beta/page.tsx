@@ -8,6 +8,7 @@ export default function StudioBetaPage() {
     slug: b.slug,
     name: b.name,
     image: b.image?.trim() ? b.image : FALLBACK_BORDER_IMAGE,
+    transparentImage: b.transparentImage?.trim() ? b.transparentImage.trim() : undefined,
   }));
 
   return (

@@ -18,6 +18,8 @@ export type BorderTemplate = {
   /** Long product description for the Product Description section (paragraphs separated by \n\n) */
   productDescription: string;
   image: string;
+  /** Transparent-center PNG for Studio live upload overlay; omit when only cream-filled asset exists. */
+  transparentImage?: string | null;
 };
 
 export const BORDER_TEMPLATES: BorderTemplate[] = [
@@ -65,6 +67,7 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
     productDescription:
       'This intricately detailed steampunk tarot card border features an ornate brass and bronze mechanical frame with interlocking gears, industrial rivets, pressure gauges, and weathered metallic textures that evoke Victorian-era craftsmanship. The symmetrical design includes decorative text panels at the top and bottom, perfect for card titles and descriptions, while the generous central space accommodates your custom artwork or imagery.\n\nDesigned to work seamlessly with standard tarot card proportions, this border pairs perfectly with Canva or Photoshop. Place your illustration inside the frame, add card names and numerals into the brass title plates, and export your cards as print-ready files.\n\nIdeal for creating distinctive steampunk tarot decks, oracle cards, trading card games, certificates, event graphics, or any project requiring an elaborate antique industrial aesthetic with rich warm metallics and authentic aged patina effects.',
     image: '/images/templates/steampunk-brass-tarot-border-cream.png',
+    transparentImage: '/images/templates/steampunk-brass-tarot-border.png',
   },
   {
     slug: 'japanese-zen',
@@ -74,6 +77,7 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
     productDescription:
       'This serene Japanese-inspired tarot card border features delicate hand-painted elements including soft pink cherry blossoms, elegant bamboo stalks, wispy watercolor clouds, and traditional seigaiha wave patterns that evoke tranquility and natural harmony. The minimalist design on a warm cream background includes a decorative scroll banner at the top for card titles and a larger unfurled scroll at the bottom for descriptions or meanings, while the generous central space accommodates your custom artwork.\n\nPerfect for creating Zen-themed tarot decks, mindfulness oracle cards, meditation guides, Japanese tea ceremony materials, wellness journals, spa menus, yoga studio graphics, or any project requiring an authentic East Asian aesthetic with gentle, contemplative beauty that embodies the principles of wabi-sabi and balanced simplicity.',
     image: '/images/templates/japanese-zen-tarot-border-cream.png',
+    transparentImage: '/images/templates/japanese-zen-tarot-border.png',
   },
   {
     slug: 'enchanted-forest',
@@ -83,6 +87,7 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
     productDescription:
       'This magical woodland tarot card border features intricately twisted vines and roots that form an organic frame against a rich, textured deep green background, adorned with realistic oak leaves, acorns, delicate moss, and enchanting glowing firefly lights that create an ethereal atmosphere. The design includes a rustic wooden plaque at the top perfect for card titles and a larger weathered wooden plank at the bottom for descriptions or meanings, while the generous central black space accommodates your custom artwork.\n\nIdeal for creating nature-themed tarot decks, druid oracle cards, forest fairy tales, Celtic spirituality materials, fantasy gaming cards, botanical guides, eco-retreat branding, woodland wedding invitations, fairy tale book illustrations, or any project requiring an authentic enchanted forest aesthetic with earthy browns, luminous greens, and mystical natural elements that evoke ancient groves and woodland magic.',
     image: '/images/templates/enchanted-forest-tarot-border-cream.png',
+    transparentImage: '/images/templates/enchanted-forest-tarot-border.png',
   },
   {
     slug: 'day-of-the-dead',
@@ -92,6 +97,7 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
     productDescription:
       'This vibrant Día de los Muertos tarot card border celebrates Mexican folk art tradition with intricately decorated sugar skulls (calaveras), brilliant orange marigold flowers (cempasúchil), festive papel picado banners in hot pink, golden crosses, and a rich deep purple background adorned with colorful confetti dots and turquoise leaves.\n\nThe joyful design features decorative banner spaces at the top and bottom perfect for card titles and meanings, while the generous central black area accommodates your custom artwork. Ideal for creating Day of the Dead tarot decks, ancestral oracle cards, cultural celebration materials, Mexican heritage projects, memorial cards, festival invitations, restaurant menus for Día de los Muertos events, altar decorations, or any project requiring an authentic, spirited aesthetic that honors the beautiful tradition of remembering loved ones with vibrant colors, marigolds, and the celebratory symbolism of life, death, and eternal memory.',
     image: '/images/templates/day-of-the-dead-tarot-border-cream.png',
+    transparentImage: '/images/templates/day-of-the-dead-tarot-border.png',
   },
   {
     slug: 'ocean-mermaid',
@@ -101,6 +107,7 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
     productDescription:
       'This enchanting underwater tarot card border features flowing turquoise seaweed ribbons, delicate coral pink sea branches, lustrous pearls, elegant scallop and spiral shells, vibrant orange starfish, and shimmering bubbles against a deep ocean black background that captures the mystery of the sea. The design includes elegant golden metallic plaques at the top and bottom perfect for card titles and descriptions, while the generous central space accommodates your custom artwork.\n\nIdeal for creating mermaid-themed tarot decks, ocean oracle cards, nautical divination tools, beach resort branding, marine biology educational materials, aquarium gift shop items, coastal wedding invitations, sea goddess spirituality guides, tropical vacation promotions, or any project requiring an authentic underwater aesthetic with jewel-toned aquas, soft corals, and luminous golden accents that evoke the serene beauty and magical depths of the ocean realm.',
     image: '/images/templates/ocean-mermaid-tarot-border-cream.png',
+    transparentImage: '/images/templates/ocean-mermaid-tarot-border.png',
   },
   {
     slug: 'dragon-scale',
@@ -168,6 +175,8 @@ export type Border = {
   description: string;
   productDescription: string;
   image: string;
+  /** Transparent-center asset for Studio overlay when set in static metadata. */
+  transparentImage: string | null;
   templatedTemplateId: string | null;
   priceMajorArcana: number | null;
   priceFullDeck: number | null;
@@ -182,6 +191,7 @@ function borderFromStatic(t: BorderTemplate): Border {
     description: t.description,
     productDescription: t.productDescription,
     image: t.image?.trim() ? t.image : FALLBACK_BORDER_IMAGE,
+    transparentImage: t.transparentImage?.trim() ? t.transparentImage.trim() : null,
     templatedTemplateId: null,
     priceMajorArcana: null,
     priceFullDeck: null,
@@ -200,6 +210,9 @@ function applyStaticMetadata(row: BorderRow): Border {
     description: row.description || staticMeta?.description || '',
     productDescription: staticMeta?.productDescription ?? '',
     image: preview || staticMeta?.image || FALLBACK_BORDER_IMAGE,
+    transparentImage: staticMeta?.transparentImage?.trim()
+      ? staticMeta.transparentImage.trim()
+      : null,
     templatedTemplateId: row.templated_template_id,
     priceMajorArcana: row.price_major_arcana,
     priceFullDeck: row.price_full_deck,
