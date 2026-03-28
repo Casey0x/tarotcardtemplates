@@ -66,4 +66,9 @@ export const STUDIO_BORDER_TEMPLATE_CONFIG: StudioBorderTemplateConfig[] = [
     name: 'Gothic Romance Border',
     templateId: '0c5b5fa3-9258-4232-8ef5-64dfc446d78d',
   },
+  {
+    id: 'dragon-scale',
+    name: 'Dragon Scale Border',
+    templateId: '7cd886df-fbd2-4547-a160-411fd65c5695',
+  },
 ];

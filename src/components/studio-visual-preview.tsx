@@ -391,21 +391,21 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
             {!previewImage ? (
               <>
                 {borderSlug !== 'day-of-the-dead' ? (
-                  <div className="pointer-events-none absolute inset-x-0 top-[5%] z-[16] px-2 text-center">
+                  <div className="top-banner pointer-events-none absolute inset-x-0 top-[5%] z-[16] px-2 text-center">
                     {cardNumeral.trim() ? (
                       <span className="text-[10px] font-medium uppercase tracking-wide text-charcoal drop-shadow-sm sm:text-xs">
-                        {cardNumeral}
+                        {cardNumeral || ''}
                       </span>
                     ) : null}
                   </div>
                 ) : null}
-                <div className="pointer-events-none absolute inset-x-0 bottom-[6%] z-[16] px-2 text-center">
+                <div className="bottom-banner pointer-events-none absolute inset-x-0 bottom-[6%] z-[16] px-2 text-center">
                   <span className="text-[10px] font-semibold leading-tight text-charcoal drop-shadow-sm sm:text-xs">
                     {borderSlug === 'day-of-the-dead'
                       ? cardNumeral.trim()
                         ? `${cardNumeral.trim()} ${cardName.trim()}`.trim()
-                        : cardName
-                      : cardName}
+                        : cardName || ''
+                      : cardName || ''}
                   </span>
                 </div>
               </>
