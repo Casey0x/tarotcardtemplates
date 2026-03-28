@@ -61,4 +61,9 @@ export const STUDIO_BORDER_TEMPLATE_CONFIG: StudioBorderTemplateConfig[] = [
     name: 'Japanese Zen Border',
     templateId: '15ed9fc4-fcf9-42c8-8aa7-b99ec74a5a23',
   },
+  {
+    id: 'gothic-romance',
+    name: 'Gothic Romance Border',
+    templateId: '0c5b5fa3-9258-4232-8ef5-64dfc446d78d',
+  },
 ];
