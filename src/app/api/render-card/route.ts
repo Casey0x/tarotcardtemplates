@@ -1,3 +1,5 @@
+import { STUDIO_BORDER_TEMPLATE_CONFIG } from '@/lib/studio-border-template-config';
+
 const TEMPLATE_ID = '669959c5-4cca-476b-a484-5a9b1158e2a4';
 const TEMPLATED_RENDER_URL = 'https://api.templated.io/v1/render';
 
@@ -10,10 +12,11 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { artwork, numeral, card_name } = body as {
+    const { artwork, numeral, card_name, border_id } = body as {
       artwork?: unknown;
       numeral?: unknown;
       card_name?: unknown;
+      border_id?: unknown;
     };
 
     if (
@@ -24,8 +27,14 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const borderId = typeof border_id === 'string' ? border_id : undefined;
+    const templateForBorder = borderId
+      ? STUDIO_BORDER_TEMPLATE_CONFIG.find((c) => c.id === borderId)
+      : undefined;
+    const resolvedTemplateId = templateForBorder?.templateId ?? TEMPLATE_ID;
+
     const templatedRequestBody = {
-      template: TEMPLATE_ID,
+      template: resolvedTemplateId,
       layers: {
         artwork: {
           src: artwork,

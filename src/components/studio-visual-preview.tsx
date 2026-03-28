@@ -190,6 +190,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
           artwork: artworkPayload,
           numeral,
           card_name: cardNameTrimmed,
+          border_id: borderSlug,
         }),
       });
 
