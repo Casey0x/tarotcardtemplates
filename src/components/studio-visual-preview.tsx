@@ -241,14 +241,11 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
     [artworkByCard]
   );
 
-  /** Cream default for empty state; transparent variant when user has artwork (if configured). */
+  /** Cream border for live preview. Non-cream “transparent” PNGs still use opaque black centers, so they must not sit above artwork — we layer artwork on top (see below). */
   const borderOverlaySrc = useMemo(() => {
     const b = borders.find((x) => x.slug === borderSlug) ?? borders[0];
-    const fallback = b?.image?.trim() && b.image.trim().length > 0 ? b.image.trim() : FALLBACK_BORDER_IMAGE;
-    const transparent = b?.transparentImage?.trim();
-    if (artworkSrc && transparent) return transparent;
-    return fallback;
-  }, [borders, borderSlug, artworkSrc]);
+    return b?.image?.trim() && b.image.trim().length > 0 ? b.image.trim() : FALLBACK_BORDER_IMAGE;
+  }, [borders, borderSlug]);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-8">
@@ -351,15 +348,27 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
             }`}
             style={{ aspectRatio: '2 / 3' }}
           >
+            {/* Border first (low z): many “frame” PNGs have an opaque center; artwork is painted above so the window shows the upload. */}
+            {!previewImage ? (
+              <Image
+                src={borderOverlaySrc}
+                alt="Border overlay"
+                fill
+                className="pointer-events-none z-[8] object-contain"
+                sizes="(max-width: 1024px) 100vw, 384px"
+                priority
+              />
+            ) : null}
+
             {artworkSrc && !previewImage ? (
               <img
                 src={artworkSrc}
                 alt=""
-                className="absolute left-[3%] top-[3%] z-[5] h-[94%] w-[94%] object-cover"
+                className="absolute left-[3%] top-[3%] z-[14] h-[94%] w-[94%] object-cover"
               />
             ) : null}
 
-            {/* Templated preview must sit above the border layer (z-10). Many border PNGs are opaque in the center, which hides anything underneath. */}
+            {/* Templated preview sits above live layers. */}
             {previewImage ? (
               <img
                 src={previewImage}
@@ -380,30 +389,19 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
 
             {!previewImage ? (
               <>
-                <div className="pointer-events-none absolute inset-x-0 top-[5%] z-[7] px-2 text-center">
+                <div className="pointer-events-none absolute inset-x-0 top-[5%] z-[16] px-2 text-center">
                   {cardNumeral.trim() ? (
                     <span className="text-[10px] font-medium uppercase tracking-wide text-charcoal drop-shadow-sm sm:text-xs">
                       {cardNumeral}
                     </span>
                   ) : null}
                 </div>
-                <div className="pointer-events-none absolute inset-x-0 bottom-[6%] z-[7] px-2 text-center">
+                <div className="pointer-events-none absolute inset-x-0 bottom-[6%] z-[16] px-2 text-center">
                   <span className="text-[10px] font-semibold leading-tight text-charcoal drop-shadow-sm sm:text-xs">
                     {cardName}
                   </span>
                 </div>
               </>
-            ) : null}
-
-            {!previewImage ? (
-              <Image
-                src={borderOverlaySrc}
-                alt="Border overlay"
-                fill
-                className="pointer-events-none z-10 object-contain"
-                sizes="(max-width: 1024px) 100vw, 384px"
-                priority
-              />
             ) : null}
             {!artworkSrc ? (
               <>
