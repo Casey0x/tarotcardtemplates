@@ -343,8 +343,8 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
 
         <div className="flex flex-col items-center justify-center">
           <div
-            className={`relative w-full max-w-sm overflow-hidden rounded-sm border border-charcoal/10 ${
-              artworkSrc ? 'bg-transparent' : 'bg-cream/90'
+            className={`relative w-full max-w-sm rounded-sm border border-charcoal/10 ${
+              artworkSrc ? 'overflow-visible bg-transparent' : 'overflow-hidden bg-cream/90'
             }`}
             style={{ aspectRatio: '2 / 3' }}
           >
@@ -364,7 +364,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
               <img
                 src={artworkSrc}
                 alt=""
-                className="absolute left-[3%] top-[3%] z-[14] h-[94%] w-[94%] object-cover"
+                className="absolute left-[5%] top-[5%] z-[14] h-[90%] w-[90%] rounded-[4px] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.25),0_2px_4px_rgba(0,0,0,0.15)]"
               />
             ) : null}
 
