@@ -33,21 +33,35 @@ export async function POST(req: Request) {
       : undefined;
     const resolvedTemplateId = templateForBorder?.templateId ?? TEMPLATE_ID;
 
+    const bottomCombined = templateForBorder?.layout === 'bottom-combined';
+    const combinedName = numeral ? `${numeral} ${card_name}` : card_name;
+
+    const layers = bottomCombined
+      ? {
+          artwork: {
+            image_url: artwork,
+          },
+          card_name: {
+            text: combinedName,
+          },
+        }
+      : {
+          artwork: {
+            src: artwork,
+            image_url: artwork,
+            object_fit: 'cover',
+          },
+          card_name: {
+            text: card_name,
+          },
+          numeral: {
+            text: numeral,
+          },
+        };
+
     const templatedRequestBody = {
       template: resolvedTemplateId,
-      layers: {
-        artwork: {
-          src: artwork,
-          image_url: artwork,
-          object_fit: 'cover',
-        },
-        card_name: {
-          text: card_name,
-        },
-        numeral: {
-          text: numeral,
-        },
-      },
+      layers,
     };
 
     console.log('--- TEMPLATED DEBUG ---');

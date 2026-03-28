@@ -10,6 +10,8 @@ export type StudioBorderTemplateConfig = {
   name: string;
   templateId: string;
   frame?: StudioBorderTemplateFrame;
+  /** When set, numeral is merged into bottom title for Templated (no separate numeral layer). */
+  layout?: 'bottom-combined';
 };
 
 /** Templated.io template IDs and optional artwork frame (percent of card) for Studio preview. `id` matches border slug. */
@@ -35,5 +37,12 @@ export const STUDIO_BORDER_TEMPLATE_CONFIG: StudioBorderTemplateConfig[] = [
       width: 80,
       height: 70,
     },
+  },
+  {
+    id: 'day-of-the-dead',
+    name: 'Day of the Dead',
+    templateId: '65d6142f-c577-4564-b1ab-a22234621402',
+    frame: { left: 10, top: 12, width: 80, height: 70 },
+    layout: 'bottom-combined',
   },
 ];
