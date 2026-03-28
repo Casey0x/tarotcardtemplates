@@ -1,14 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { getAllTemplates } from "@/lib/templates";
 import TemplateCard from "@/components/template-card";
 import { fetchBorders, FALLBACK_BORDER_IMAGE } from "@/data/borders";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Tarot Card Templates",
   description: "Browse our collection of professionally designed tarot card templates.",
+  alternates: { canonical: "/templates" },
 };
 
 export default async function TemplatesPage() {

@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Tarot Card Meanings — Upright, Reversed & More | TarotCardTemplates.com',
   description: 'Explore the symbolic meanings behind classic tarot cards. Upright and reversed interpretations, love, career, health and more.',
+  alternates: { canonical: '/tarot-card-meanings' },
 };
 
 export default async function TarotCardMeaningsPage() {

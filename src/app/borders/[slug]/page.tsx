@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { BORDER_TEMPLATES, fetchBorderBySlug, FALLBACK_BORDER_IMAGE } from '@/data/borders';
 import { BorderPurchase } from '@/components/border-purchase';
+import { JsonLd } from '@/components/json-ld';
+import { borderProductJsonLd } from '@/lib/structured-data';
 
 /** Other border templates for "You May Also Like" (exclude current slug) */
 function getRelatedBorders(currentSlug: string) {
@@ -300,6 +302,9 @@ export async function generateMetadata({
       params.slug === 'minimal-line'
         ? 'Download the Minimal Line tarot border template — clean geometric frame for modern and AI-generated tarot decks. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.'
         : border.description,
+    alternates: {
+      canonical: `https://www.tarotcardtemplates.com/borders/${params.slug}`,
+    },
   };
 }
 
@@ -322,30 +327,9 @@ export default async function BorderPage({ params }: BorderPageProps) {
 
   const videoTitle = `How to Design Tarot Cards Using the ${border.name}`;
 
-  const marbleTempleProductSchema = slug === 'marble-temple' && {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: 'Marble Temple Tarot Border Template',
-    description:
-      'Classical marble tarot card border template with fluted columns and an arched window for tarot artwork.',
-    brand: { '@type': 'Brand', name: 'Tarot Card Templates' },
-    offers: {
-      '@type': 'Offer',
-      price: '9.95',
-      priceCurrency: 'USD',
-      availability: 'https://schema.org/InStock',
-      url: 'https://www.tarotcardtemplates.com/borders/marble-temple',
-    },
-  };
-
   return (
     <div className="space-y-10 bg-cream -mx-6 -my-12 px-6 py-12">
-      {marbleTempleProductSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(marbleTempleProductSchema) }}
-        />
-      )}
+      <JsonLd data={borderProductJsonLd(border, slug)} />
       <Link
         href="/"
         className="inline-block text-sm underline underline-offset-4 text-charcoal/80 hover:text-charcoal"

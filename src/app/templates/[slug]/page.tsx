@@ -4,6 +4,8 @@ import { getTemplateBySlug, getTemplatePreviewImages } from "@/lib/templates";
 import TemplateGallery from "@/components/template-gallery";
 import HollowSaintPhysicalDeckImage from "@/components/hollow-saint-physical-deck-image";
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/json-ld";
+import { templateProductJsonLd } from "@/lib/structured-data";
 
 export const dynamic = "force-dynamic";
 
@@ -627,6 +629,7 @@ export async function generateMetadata({
   return {
     title: templateTitle,
     description: templateDescription,
+    alternates: { canonical: `/templates/${params.slug}` },
     keywords: [
       "tarot card template",
       "tarot deck template",
@@ -692,6 +695,7 @@ export default async function TemplateDetailPage({
 
   return (
     <>
+      <JsonLd data={templateProductJsonLd(template)} />
       <article className="grid gap-10 lg:grid-cols-2">
         <section>
           <TemplateGallery images={getTemplatePreviewImages(template)} templateName={template.name} />

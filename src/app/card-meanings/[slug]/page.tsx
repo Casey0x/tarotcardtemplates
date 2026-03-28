@@ -14,6 +14,7 @@ export async function generateMetadata({
   return {
     title: `${card.name} Tarot Card Meaning — Upright, Reversed & More | TarotCardTemplates.com`,
     description: `Discover the full ${card.name} tarot card meaning — upright and reversed, love, career, health, yes or no, and more. Deep interpretations for every reading.`,
+    alternates: { canonical: `/card-meanings/${params.slug}` },
   };
 }
 

@@ -364,7 +364,7 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
             {artworkSrc && !previewImage ? (
               <img
                 src={artworkSrc}
-                alt=""
+                alt="Uploaded tarot artwork preview in the card frame"
                 className="absolute left-[5%] top-[5%] z-[14] h-[90%] w-[90%] rounded-[4px] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.25),0_2px_4px_rgba(0,0,0,0.15)]"
               />
             ) : null}

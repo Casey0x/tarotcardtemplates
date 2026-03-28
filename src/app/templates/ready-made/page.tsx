@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Ready-Made Tarot Card Templates | TarotCardTemplates.com",
   description: "Browse our collection of professionally designed tarot card templates.",
+  alternates: { canonical: "/templates/ready-made" },
 };
 
 export default async function ReadyMadeTemplatesPage() {

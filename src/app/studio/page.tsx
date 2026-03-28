@@ -1,9 +1,14 @@
+import type { Metadata } from 'next';
 import { StudioSessionRedirect } from '@/components/studio-session-redirect';
 import { StudioVisualPreview } from '@/components/studio-visual-preview';
 import { fetchBorders } from '@/data/borders';
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  alternates: { canonical: '/studio' },
+};
 
 export default async function StudioPage() {
   const borders = await fetchBorders();

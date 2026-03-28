@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-favicons": "node scripts/generate-favicons.mjs"
   },
   "dependencies": {
     "@stripe/stripe-js": "^8.9.0",
@@ -26,7 +27,9 @@
     "eslint": "8.57.0",
     "eslint-config-next": "14.2.5",
     "postcss": "8.4.39",
+    "sharp": "^0.34.5",
     "tailwindcss": "3.4.7",
+    "to-ico": "^1.1.5",
     "typescript": "5.5.3"
   }
 }

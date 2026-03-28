@@ -1,11 +1,25 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { GoogleAnalytics } from "@/components/google-analytics";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Tarot Card Templates | Editorial Tarot Deck Designs",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Tarot Card Templates | Editorial Tarot Deck Designs",
+    template: "%s | Tarot Card Templates",
+  },
   description:
-    "SEO-focused marketplace for tarot deck templates with optional single-deck printing.",
+    "Browse professionally designed tarot card templates for artists, readers, and indie publishers. Customizable borders, print-ready files, and single-deck printing available.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -16,14 +30,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <GoogleAnalytics />
         <SiteHeader />
         <main className="mx-auto w-full max-w-6xl px-6 py-12">
           {children}
         </main>
 
-                    <footer className="celestial-background mt-8 py-8 text-center text-xs text-neutral-500">
-          Designed for modern tarot publishing workflows.
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );

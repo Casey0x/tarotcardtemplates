@@ -1,5 +1,13 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { blogPosts } from '@/data/blog';
+
+export const metadata: Metadata = {
+  title: 'Tarot Template Blog',
+  description:
+    'Practical notes for tarot creators: print-ready setup, deck production, materials, budgeting, and selling your deck.',
+  alternates: { canonical: '/blog' },
+};
 
 export default function BlogPage() {
   return (

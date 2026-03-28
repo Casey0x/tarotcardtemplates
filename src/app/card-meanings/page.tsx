@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: 'Tarot Card Meanings — All 78 Cards Explained | TarotCardTemplates.com',
   description:
     'Explore the meaning of all 78 tarot cards. Upright and reversed interpretations for love, career, health and more.',
+  alternates: { canonical: '/card-meanings' },
 };
 
 // Converts an integer (1-22) to a Roman numeral string

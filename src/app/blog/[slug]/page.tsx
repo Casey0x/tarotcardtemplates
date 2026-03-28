@@ -2,6 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { blogPosts, getBlogPostBySlug } from '@/data/blog';
+import { JsonLd } from '@/components/json-ld';
+import { blogPostingJsonLd } from '@/lib/structured-data';
+import { SITE_URL } from '@/lib/site';
 
 type BlogPostPageProps = {
   params: {
@@ -27,7 +30,14 @@ export function generateMetadata({ params }: BlogPostPageProps): Metadata {
   return {
     title: `${post.title} | Tarot Template Blog`,
     description: post.excerpt,
-    keywords: post.keywords
+    keywords: post.keywords,
+    alternates: { canonical: `/blog/${post.slug}` },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      type: 'article',
+      url: `${SITE_URL}/blog/${post.slug}`,
+    },
   };
 }
 
@@ -40,6 +50,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <article className="max-w-3xl space-y-8">
+      <JsonLd data={blogPostingJsonLd(post)} />
       <header className="space-y-4">
         <p className="text-xs uppercase tracking-[0.14em] text-charcoal/70">{post.category}</p>
         <h1 className="text-4xl font-semibold leading-tight">{post.title}</h1>

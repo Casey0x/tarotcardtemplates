@@ -1,3 +1,12 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'How it works',
+  description:
+    'Choose a tarot template, purchase digital files or optional printing, then download or track your print order.',
+  alternates: { canonical: '/how-it-works' },
+};
+
 export default function HowItWorksPage() {
   return (
     <div className="max-w-3xl space-y-8">

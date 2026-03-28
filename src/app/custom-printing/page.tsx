@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: 'Custom Tarot Deck Printing | Professional Print Services | TarotCardTemplates.com',
   description:
     'Print your tarot deck professionally. Premium card stock, prototype decks, custom packaging, worldwide shipping. Built for creators and artists.',
+  alternates: { canonical: '/custom-printing' },
 };
 
 const ACCENT = '#C7A96B';

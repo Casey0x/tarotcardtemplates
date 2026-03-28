@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Studio (Beta) | Tarot Card Templates',
   description: 'Design your tarot deck card by card.',
+  alternates: { canonical: '/studio-beta' },
 };
 
 export default function StudioBetaLayout({
