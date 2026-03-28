@@ -45,4 +45,15 @@ export const STUDIO_BORDER_TEMPLATE_CONFIG: StudioBorderTemplateConfig[] = [
     frame: { left: 10, top: 12, width: 80, height: 70 },
     layout: 'bottom-combined',
   },
+  {
+    id: 'enchanted-forest',
+    name: 'Enchanted Forest',
+    templateId: '2b7f5897-f73b-4822-8c60-4ead6d1afa26',
+    frame: {
+      left: 10,
+      top: 12,
+      width: 80,
+      height: 70,
+    },
+  },
 ];
