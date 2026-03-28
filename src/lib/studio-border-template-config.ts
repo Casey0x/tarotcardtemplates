@@ -56,4 +56,9 @@ export const STUDIO_BORDER_TEMPLATE_CONFIG: StudioBorderTemplateConfig[] = [
       height: 75,
     },
   },
+  {
+    id: 'japanese-zen',
+    name: 'Japanese Zen Border',
+    templateId: '15ed9fc4-fcf9-42c8-8aa7-b99ec74a5a23',
+  },
 ];
