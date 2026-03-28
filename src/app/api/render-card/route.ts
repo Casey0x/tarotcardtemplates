@@ -35,7 +35,6 @@ export async function POST(req: Request) {
 
     const bottomCombined = templateForBorder?.layout === 'bottom-combined';
     const combinedName = numeral ? `${numeral} ${card_name}` : card_name;
-    const layerStyle = templateForBorder?.layerStyle ?? 'preview';
 
     const layers = bottomCombined
       ? {
@@ -46,40 +45,22 @@ export async function POST(req: Request) {
             text: combinedName,
           },
         }
-      : layerStyle === 'studio'
-        ? {
-            'card-artwork': {
-              image_url: artwork,
-            },
-            'card-title': {
-              text: card_name,
-            },
-            'card-numeral': {
-              text: numeral,
-            },
-          }
-        : {
-            artwork: {
-              src: artwork,
-              image_url: artwork,
-              object_fit: 'cover',
-            },
-            card_name: {
-              text: card_name,
-            },
-            numeral: {
-              text: numeral,
-            },
-          };
+      : {
+          artwork: {
+            image_url: artwork,
+          },
+          card_name: {
+            text: card_name,
+          },
+          numeral: {
+            text: numeral,
+          },
+        };
 
     const templatedRequestBody = {
       template: resolvedTemplateId,
       layers,
     };
-
-    console.log('--- TEMPLATED DEBUG ---');
-    console.log('Artwork URL:', artwork);
-    console.log('Payload:', JSON.stringify(templatedRequestBody, null, 2));
 
     const templatedRes = await fetch(TEMPLATED_RENDER_URL, {
       method: 'POST',
@@ -95,8 +76,6 @@ export async function POST(req: Request) {
       url?: string;
       image_url?: string;
     };
-
-    console.log('Templated response:', JSON.stringify(data, null, 2));
 
     if (!templatedRes.ok) {
       console.error(new Error(`Templated.io render failed: ${templatedRes.status}`), data);

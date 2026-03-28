@@ -12,11 +12,6 @@ export type StudioBorderTemplateConfig = {
   frame?: StudioBorderTemplateFrame;
   /** When set, numeral is merged into bottom title for Templated (no separate numeral layer). */
   layout?: 'bottom-combined';
-  /**
-   * `studio` = layer ids `card-artwork`, `card-title`, `card-numeral` (same as /api/studio/render).
-   * `preview` = `artwork`, `card_name`, `numeral` (legacy Studio preview).
-   */
-  layerStyle?: 'studio' | 'preview';
 };
 
 /** Templated.io template IDs and optional artwork frame (percent of card) for Studio preview. `id` matches border slug. */
@@ -56,10 +51,9 @@ export const STUDIO_BORDER_TEMPLATE_CONFIG: StudioBorderTemplateConfig[] = [
     templateId: '2b7f5897-f73b-4822-8c60-4ead6d1afa26',
     frame: {
       left: 10,
-      top: 12,
+      top: 10,
       width: 80,
-      height: 70,
+      height: 75,
     },
-    layerStyle: 'studio',
   },
 ];
