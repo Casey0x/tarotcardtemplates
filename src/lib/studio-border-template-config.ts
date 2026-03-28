@@ -25,4 +25,15 @@ export const STUDIO_BORDER_TEMPLATE_CONFIG: StudioBorderTemplateConfig[] = [
       height: 70,
     },
   },
+  {
+    id: 'art-nouveau-lily',
+    name: 'Art Nouveau Lily',
+    templateId: 'dc2318d8-784d-47c4-9d47-0d4a82e52762',
+    frame: {
+      left: 10,
+      top: 12,
+      width: 80,
+      height: 70,
+    },
+  },
 ];
