@@ -35,6 +35,7 @@ export async function POST(req: Request) {
 
     const bottomCombined = templateForBorder?.layout === 'bottom-combined';
     const combinedName = numeral ? `${numeral} ${card_name}` : card_name;
+    const layerStyle = templateForBorder?.layerStyle ?? 'preview';
 
     const layers = bottomCombined
       ? {
@@ -45,19 +46,31 @@ export async function POST(req: Request) {
             text: combinedName,
           },
         }
-      : {
-          artwork: {
-            src: artwork,
-            image_url: artwork,
-            object_fit: 'cover',
-          },
-          card_name: {
-            text: card_name,
-          },
-          numeral: {
-            text: numeral,
-          },
-        };
+      : layerStyle === 'studio'
+        ? {
+            'card-artwork': {
+              image_url: artwork,
+            },
+            'card-title': {
+              text: card_name,
+            },
+            'card-numeral': {
+              text: numeral,
+            },
+          }
+        : {
+            artwork: {
+              src: artwork,
+              image_url: artwork,
+              object_fit: 'cover',
+            },
+            card_name: {
+              text: card_name,
+            },
+            numeral: {
+              text: numeral,
+            },
+          };
 
     const templatedRequestBody = {
       template: resolvedTemplateId,
