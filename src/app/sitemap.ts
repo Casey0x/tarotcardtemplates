@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { blogPosts } from '@/data/blog';
-import { BORDER_TEMPLATES } from '@/data/borders';
+import { BORDER_TEMPLATES } from '@/data/border-templates-static';
 import { getAllTemplates } from '@/lib/templates';
 import { SITE_URL } from '@/lib/site';
 

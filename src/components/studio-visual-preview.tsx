@@ -1,7 +1,7 @@
 'use client';
 
 import { createClient } from '@supabase/supabase-js';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
@@ -37,11 +37,29 @@ type Props = {
   borders: StudioPreviewItem[];
   /** Base path for Studio nav (e.g. "/studio" or "/studio-beta"). */
   studioBasePath?: string;
+  /** From `?border=` — pre-select in dropdown when valid. */
+  initialBorderSlug?: string;
+  /** Paid `border_slug` values for the signed-in user (empty if logged out → all borders show as Preview). */
+  purchasedBorderSlugs?: string[];
 };
 
-export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Props) {
-  const [borderSlug, setBorderSlug] = useState(() => borders[0]?.slug ?? '');
+export function StudioVisualPreview({
+  borders,
+  studioBasePath = '/studio',
+  initialBorderSlug,
+  purchasedBorderSlugs = [],
+}: Props) {
+  const firstSlug = borders[0]?.slug ?? '';
+  const resolvedInitial =
+    initialBorderSlug && borders.some((b) => b.slug === initialBorderSlug) ? initialBorderSlug : firstSlug;
+  const [borderSlug, setBorderSlug] = useState(resolvedInitial);
   const [selectedCardIndex, setSelectedCardIndex] = useState(0);
+
+  useEffect(() => {
+    if (initialBorderSlug && borders.some((b) => b.slug === initialBorderSlug)) {
+      setBorderSlug(initialBorderSlug);
+    }
+  }, [initialBorderSlug, borders]);
   const [cardName, setCardName] = useState(() => TAROT_CARDS_78[0]?.name ?? '');
   const [cardNumeral, setCardNumeral] = useState(() => TAROT_CARDS_78[0]?.numeral ?? '');
   const [artworkByCard, setArtworkByCard] = useState<Record<number, string>>({});
@@ -242,6 +260,16 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
     [artworkByCard]
   );
 
+  const borderOwned = useMemo(
+    () => purchasedBorderSlugs.includes(borderSlug),
+    [purchasedBorderSlugs, borderSlug]
+  );
+
+  const currentBorderName = useMemo(
+    () => borders.find((b) => b.slug === borderSlug)?.name ?? 'This border',
+    [borders, borderSlug]
+  );
+
   /** Cream border for live preview. Non-cream “transparent” PNGs still use opaque black centers, so they must not sit above artwork — we layer artwork on top (see below). */
   const borderOverlaySrc = useMemo(() => {
     const b = borders.find((x) => x.slug === borderSlug) ?? borders[0];
@@ -254,8 +282,14 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
         <div>
           <h1 className="text-3xl font-semibold text-charcoal">Studio</h1>
           <p className="mt-2 text-sm text-charcoal/70">
-            Preview how a border frames your artwork. No saving — visual only.
+            Design your tarot deck card by card. Choose a border, upload your artwork, and export print-ready files.
           </p>
+          {!borderOwned ? (
+            <p className="mt-1 text-xs text-charcoal/55">
+              You&apos;re previewing a border you haven&apos;t purchased yet — purchase to save progress and export
+              print-ready files.
+            </p>
+          ) : null}
         </div>
         <Link
           href={`${studioBasePath}/projects`}
@@ -264,6 +298,33 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
           My deck projects →
         </Link>
       </div>
+
+      {borderOwned ? (
+        <div className="mb-4 rounded-sm border border-emerald-800/20 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-900">
+          ✓ {currentBorderName} — Owned. Your work is saved automatically.
+        </div>
+      ) : (
+        <div className="mb-4 rounded-sm border border-amber-700/25 bg-amber-50/95 px-4 py-3 text-sm text-charcoal">
+          <p className="font-medium">
+            You&apos;re previewing {currentBorderName}. Purchase it for $9.95 to save your work and export print-ready
+            cards.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Link
+              href={`/borders/${borderSlug}`}
+              className="inline-flex rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-xs font-medium text-cream hover:bg-charcoal/90"
+            >
+              Buy This Border — $9.95
+            </Link>
+            <Link
+              href={`/auth/login?redirect=${encodeURIComponent(`${studioBasePath}?border=${borderSlug}`)}`}
+              className="inline-flex rounded-sm border border-charcoal/40 bg-cream px-4 py-2 text-xs font-medium text-charcoal hover:bg-charcoal/5"
+            >
+              Sign in
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 rounded-sm border border-charcoal/10 bg-cream/60 px-4 py-3">
         <p className="text-sm font-medium text-charcoal">
@@ -371,21 +432,28 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
 
             {/* Templated preview sits above live layers. */}
             {previewImage ? (
-              <img
-                src={previewImage}
-                alt="Templated card render preview"
-                loading="eager"
-                decoding="async"
-                className="pointer-events-none absolute inset-0 z-[20] h-full w-full object-contain"
-                onError={() => {
-                  setPreviewError('Could not load preview image (blocked URL or invalid image).');
-                  setPreviewByCard((prev) => {
-                    const next = { ...prev };
-                    delete next[selectedCardIndex];
-                    return next;
-                  });
-                }}
-              />
+              <div className="absolute inset-0 z-[20] h-full w-full">
+                <img
+                  src={previewImage}
+                  alt="Templated card render preview"
+                  loading="eager"
+                  decoding="async"
+                  className="pointer-events-none h-full w-full object-contain"
+                  onError={() => {
+                    setPreviewError('Could not load preview image (blocked URL or invalid image).');
+                    setPreviewByCard((prev) => {
+                      const next = { ...prev };
+                      delete next[selectedCardIndex];
+                      return next;
+                    });
+                  }}
+                />
+                {!borderOwned ? (
+                  <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-[21] bg-charcoal/75 py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-cream sm:text-xs">
+                    Preview — Purchase to export print-ready files
+                  </div>
+                ) : null}
+              </div>
             ) : null}
 
             {!previewImage ? (
@@ -483,11 +551,15 @@ export function StudioVisualPreview({ borders, studioBasePath = '/studio' }: Pro
                   value={borderSlug}
                   onChange={(e) => setBorderSlug(e.target.value)}
                 >
-                  {borders.map((b) => (
-                    <option key={b.slug} value={b.slug}>
-                      {b.name}
-                    </option>
-                  ))}
+                  {borders.map((b) => {
+                    const owned = purchasedBorderSlugs.includes(b.slug);
+                    const label = owned ? b.name : `${b.name} (Preview)`;
+                    return (
+                      <option key={b.slug} value={b.slug}>
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
               </label>
             )}

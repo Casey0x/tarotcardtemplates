@@ -413,12 +413,21 @@ export default async function BorderPage({ params }: BorderPageProps) {
             <h2 className="text-lg font-semibold text-charcoal">How It Works</h2>
             <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
               <li>Purchase the {border.name} template.</li>
-              <li>Create a free account and log in to Tarot Studio.</li>
+              <li>Create a free account and open the Studio.</li>
               <li>Upload your tarot artwork into the template.</li>
               <li>Add card titles and numerals inside the frame.</li>
               <li>Export your finished tarot cards as print-ready files.</li>
               <li>Optional: order professional tarot card printing through our printing partners.</li>
             </ul>
+          </div>
+
+          <div className="rounded-sm border border-charcoal/15 bg-cream/70 p-4">
+            <Link
+              href={`/studio-beta?border=${slug}`}
+              className="inline-flex w-full items-center justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-3 text-center text-sm font-medium text-cream transition hover:bg-charcoal/90"
+            >
+              Try this border in Studio →
+            </Link>
           </div>
 
           {/* Full layout sidebar: Design Your Deck (Stripe checkout), Included Files, Template Features */}

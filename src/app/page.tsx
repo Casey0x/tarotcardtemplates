@@ -67,14 +67,22 @@ export default async function Page() {
             </p>
 
             <div className="mt-6 flex flex-wrap gap-4">
-              <Link href="/templates" className="rounded-sm border border-charcoal bg-charcoal px-6 py-3 text-sm font-medium text-cream">
-                Browse Templates
+              <Link href="/borders" className="rounded-sm border border-charcoal bg-charcoal px-6 py-3 text-sm font-medium text-cream">
+                Design Your Own Deck
               </Link>
 
-              <Link href="/how-it-works" className="rounded-sm border border-charcoal/80 bg-cream/90 px-6 py-3 text-sm font-medium text-charcoal">
-                See How It Works
+              <Link
+                href="/templates#premade"
+                className="rounded-sm border border-charcoal/80 bg-cream/90 px-6 py-3 text-sm font-medium text-charcoal"
+              >
+                Browse Ready-Made Decks
               </Link>
             </div>
+            <p className="mt-4 text-sm text-charcoal/70">
+              <Link href="/how-it-works" className="underline underline-offset-4 hover:text-charcoal">
+                See how it works →
+              </Link>
+            </p>
           </div>
 
           <div className="pointer-events-none relative hidden h-72 md:block lg:h-80">

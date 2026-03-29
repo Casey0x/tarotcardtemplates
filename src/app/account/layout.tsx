@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'My account',
-  description: 'Sign in to your Tarot Card Templates account to access Tarot Studio and your purchases.',
+  title: 'Account',
+  description:
+    'Your Tarot Card Templates dashboard: purchased borders, deck projects, and ready-made template downloads.',
   alternates: { canonical: '/account' },
 };
 

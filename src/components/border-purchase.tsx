@@ -104,7 +104,8 @@ export function BorderPurchase({ borderSlug, borderName, templatedTemplateId }: 
       ) : (
         <>
           <p className="mb-4 text-charcoal/90">
-            <span className="font-medium">Price: $9.95</span> — Studio designer coming soon for this border.
+            <span className="font-medium">Price: $9.95</span> — Includes PNG, PSD, and Canva-compatible files. Use the
+            Studio after purchase to place your artwork in the frame.
           </p>
           <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
           <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">

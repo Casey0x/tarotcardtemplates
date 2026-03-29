@@ -31,23 +31,31 @@ export default async function BordersPage() {
           </p>
         )}
         {borders.map((border) => (
-          <Link
+          <div
             key={border.slug}
             id={border.slug}
-            href={`/borders/${border.slug}`}
-            className="group flex flex-col scroll-mt-28 rounded-sm border border-charcoal/10 bg-cream/80 p-4 transition-all duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:border-amber-400 hover:shadow-xl"
+            className="group flex scroll-mt-28 flex-col rounded-sm border border-charcoal/10 bg-cream/80 p-4 transition-all duration-200 hover:-translate-y-1 hover:scale-[1.02] hover:border-amber-400 hover:shadow-xl"
           >
-            <div className="relative mb-4 overflow-hidden rounded-xs border border-charcoal/10 bg-cream p-3 aspect-[3/5]">
-              <Image
-                src={border.image ?? FALLBACK_BORDER_IMAGE}
-                alt={border.name}
-                fill
-                className="object-contain transition-transform duration-200 group-hover:scale-105"
-              />
-            </div>
-            <h2 className="mb-1 text-sm font-semibold text-charcoal">{border.name}</h2>
-            <p className="text-xs text-charcoal/80">{border.description}</p>
-          </Link>
+            <Link href={`/borders/${border.slug}`} className="block">
+              <div className="relative mb-4 aspect-[3/5] overflow-hidden rounded-xs border border-charcoal/10 bg-cream p-3">
+                <Image
+                  src={border.image ?? FALLBACK_BORDER_IMAGE}
+                  alt={border.name}
+                  fill
+                  className="object-contain transition-transform duration-200 group-hover:scale-105"
+                />
+              </div>
+              <h2 className="mb-1 text-sm font-semibold text-charcoal">{border.name}</h2>
+              <p className="text-xs text-charcoal/80">{border.description}</p>
+              <p className="mt-3 text-sm font-medium text-charcoal">$9.95</p>
+            </Link>
+            <Link
+              href={`/studio-beta?border=${border.slug}`}
+              className="mt-3 text-xs font-medium text-charcoal underline underline-offset-2 hover:text-charcoal/80"
+            >
+              Try in Studio →
+            </Link>
+          </div>
         ))}
       </div>
     </div>
