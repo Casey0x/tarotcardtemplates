@@ -4,6 +4,8 @@ import { fetchBorders, FALLBACK_BORDER_IMAGE } from '@/data/borders';
 import Image from 'next/image';
 import { JsonLd } from '@/components/json-ld';
 import { SITE_URL, absoluteUrl } from '@/lib/site';
+import { getAllTemplates } from '@/lib/templates';
+import TemplateCard from '@/components/template-card';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Page() {
   const borders = await fetchBorders();
-  const heroBorders = borders.slice(0, 3);
+  const templates = await getAllTemplates();
 
   const homeJsonLd = {
     '@context': 'https://schema.org',
@@ -39,94 +41,105 @@ export default async function Page() {
   };
 
   return (
-    <div className="space-y-16 rounded-sm bg-[#f6f0e8] bg-[radial-gradient(circle_at_top,_rgba(214,186,140,0.18),_transparent_55%),radial-gradient(circle_at_bottom,_rgba(155,126,189,0.16),_transparent_55%)]">
+    <div className="rounded-sm bg-[#f6f0e8]">
       <JsonLd data={homeJsonLd} />
 
       {/* HERO */}
-      <section className="relative -mx-8 overflow-hidden rounded-sm bg-gradient-to-b from-cream/95 via-cream/98 to-[#f6f0e8] px-8 py-12">
-        <style>{`
-          @keyframes heroFloatUp {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-          }
-        `}
-        </style>
+      <section className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 md:grid-cols-2">
+        {/* LEFT SIDE */}
+        <div>
+          <h1 className="text-4xl font-semibold leading-tight text-[#0B274A] md:text-6xl">
+            You’ve had the idea for a tarot deck… now actually make it real.
+          </h1>
 
-        <div className="relative z-10 grid gap-10 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] md:items-center">
-          <div className="space-y-5">
-            <p className="text-sm uppercase tracking-[0.2em] text-charcoal/70">
-              TarotCardTemplates.com
-            </p>
+          <p className="mt-5 max-w-xl text-lg text-gray-600 md:text-xl">
+            Design, customise, and print your own tarot deck — without starting from scratch.
+          </p>
 
-            <h1 className="max-w-4xl text-4xl font-semibold leading-tight md:text-5xl">
-              Create Your Own Tarot Deck
-            </h1>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <Link
+              href="/studio"
+              className="rounded-lg bg-[#FF5A1F] px-6 py-3 font-semibold text-white shadow-sm"
+            >
+              Start Creating Your Deck
+            </Link>
 
-            <p className="max-w-3xl text-lg text-charcoal/80">
-              Professional tarot card templates designed for artists, tarot readers, and indie publishers.
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-4">
-              <Link href="/borders" className="rounded-sm border border-charcoal bg-charcoal px-6 py-3 text-sm font-medium text-cream">
-                Design Your Own Deck
-              </Link>
-
-              <Link
-                href="/templates#premade"
-                className="rounded-sm border border-charcoal/80 bg-cream/90 px-6 py-3 text-sm font-medium text-charcoal"
-              >
-                Browse Ready-Made Decks
-              </Link>
-            </div>
-            <p className="mt-4 text-sm text-charcoal/70">
-              <Link href="/how-it-works" className="underline underline-offset-4 hover:text-charcoal">
-                See how it works →
-              </Link>
-            </p>
+            <Link
+              href="/templates"
+              className="rounded-lg border border-gray-300 px-6 py-3 text-gray-700"
+            >
+              Explore Templates
+            </Link>
           </div>
+        </div>
 
-          <div className="pointer-events-none relative hidden h-72 md:block lg:h-80">
-            <div
-              className="absolute left-2 top-4 aspect-[3/5] w-32 overflow-hidden rounded-xs border border-charcoal/10 bg-cream/95"
-              style={{ animation: 'heroFloatUp 11s ease-in-out infinite' }}
-            >
-              <Image
-                src={heroBorders[0]?.image ?? FALLBACK_BORDER_IMAGE}
-                alt={`Tarot card template preview — ${heroBorders[0]?.name ?? 'Celestial Gilded'} border design`}
-                width={220}
-                height={330}
-              />
-            </div>
+        {/* RIGHT SIDE */}
+        <div className="relative">
+          <img
+            src="/images/hero.jpg"
+            alt="Hand placing tarot card with ornate gothic border"
+            className="h-auto w-full rounded-xl object-cover shadow-xl"
+          />
+          <div className="absolute inset-0 rounded-xl bg-black/10" />
+        </div>
+      </section>
 
-            <div
-              className="absolute left-24 top-10 aspect-[3/5] w-32 overflow-hidden rounded-xs border border-charcoal/10 bg-cream/95"
-              style={{ animation: 'heroFloatUp 12s ease-in-out infinite' }}
-            >
-              <Image
-                src={heroBorders[1]?.image ?? FALLBACK_BORDER_IMAGE}
-                alt={`Tarot card template preview — ${heroBorders[1]?.name ?? 'Minimal Line'} border design`}
-                width={220}
-                height={330}
-              />
-            </div>
+      {/* WHY THIS EXISTS */}
+      <section className="mx-auto max-w-4xl px-6 py-20 text-center">
+        <p className="text-xl leading-relaxed text-gray-700">Most people never create their tarot deck.</p>
 
-            <div
-              className="absolute left-14 top-20 aspect-[3/5] w-32 overflow-hidden rounded-xs border border-charcoal/10 bg-cream/95"
-              style={{ animation: 'heroFloatUp 13s ease-in-out infinite' }}
-            >
-              <Image
-                src={heroBorders[2]?.image ?? FALLBACK_BORDER_IMAGE}
-                alt={`Tarot card template preview — ${heroBorders[2]?.name ?? 'Vintage Velvet'} border design`}
-                width={220}
-                height={330}
-              />
-            </div>
-          </div>
+        <p className="mt-4 text-gray-600">Not because they lack ideas… but because it feels overwhelming.</p>
+
+        <p className="mt-4 text-gray-600">
+          Where do you start? How do you design 78 cards? How do you make it look good?
+        </p>
+
+        <p className="mt-8 font-medium text-gray-800">This removes that friction.</p>
+
+        <p className="mt-2 text-gray-600">
+          You don’t start from zero — you start from something beautiful… and make it your own.
+        </p>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="mx-auto grid max-w-6xl gap-10 px-6 py-20 text-center md:grid-cols-3">
+        <div>
+          <h3 className="text-lg font-semibold text-[#0B274A]">Choose a Style</h3>
+          <p className="mt-3 text-gray-600">Pick a professionally designed tarot template to start from.</p>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-semibold text-[#0B274A]">Customise Your Deck</h3>
+          <p className="mt-3 text-gray-600">Add your own names, artwork, and meaning.</p>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-semibold text-[#0B274A]">Bring It to Life</h3>
+          <p className="mt-3 text-gray-600">Print your deck, share it, or sell it.</p>
+        </div>
+      </section>
+
+      {/* Pre-made deck templates (Supabase) */}
+      <section id="premade" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-20">
+        <h2 className="text-2xl font-semibold text-charcoal">Pre-Made Tarot Decks — Ready to Download</h2>
+        <p className="mt-2 max-w-3xl text-sm text-charcoal/75">
+          Complete 78-card tarot decks with original artwork. Instant digital download.
+        </p>
+
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {templates.length === 0 && (
+            <p className="text-sm text-charcoal/70 sm:col-span-2 lg:col-span-3">
+              No deck templates are available right now. Check your Supabase REST configuration or try again later.
+            </p>
+          )}
+          {templates.map((template) => (
+            <TemplateCard key={template.slug} template={template} />
+          ))}
         </div>
       </section>
 
       {/* BORDER TEMPLATES */}
-      <section>
+      <section className="mx-auto max-w-6xl px-6 pb-20">
         <h2 className="text-2xl font-semibold">Border Templates</h2>
 
         <div className="mt-6 grid gap-6 md:grid-cols-3">
@@ -138,7 +151,6 @@ export default async function Page() {
           ))}
         </div>
       </section>
-
     </div>
   );
 }
