@@ -45,11 +45,11 @@ export default async function Page() {
       <JsonLd data={homeJsonLd} />
 
       {/* HERO */}
-      <section className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-20 md:grid-cols-2">
+      <section className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 md:grid-cols-2 md:items-stretch">
         {/* LEFT SIDE */}
-        <div>
+        <div className="flex flex-col justify-center">
           <h1 className="text-4xl font-semibold leading-tight text-[#0B274A] md:text-6xl">
-            You’ve had the idea for a tarot deck… now actually make it real.
+            You’ve had the idea for a tarot deck. Now bring it to life.
           </h1>
 
           <p className="mt-5 max-w-xl text-lg text-gray-600 md:text-xl">
@@ -57,28 +57,28 @@ export default async function Page() {
           </p>
 
           <div className="mt-8 flex flex-wrap gap-4">
-            <Link
+            <a
               href="/studio"
-              className="rounded-lg bg-[#FF5A1F] px-6 py-3 font-semibold text-white shadow-sm"
+              className="rounded-lg bg-[#FF5A1F] px-7 py-3.5 font-semibold text-white shadow-md transition hover:scale-[1.02] hover:opacity-90"
             >
               Start Creating Your Deck
-            </Link>
+            </a>
 
-            <Link
+            <a
               href="/templates"
-              className="rounded-lg border border-gray-300 px-6 py-3 text-gray-700"
+              className="rounded-lg border border-gray-300 bg-white px-6 py-3.5 text-gray-700 transition hover:bg-gray-50"
             >
               Explore Templates
-            </Link>
+            </a>
           </div>
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="relative">
+        <div className="relative min-h-[260px] w-full md:min-h-0 md:h-full">
           <img
             src="/images/hero.jpg"
             alt="Hand placing tarot card with ornate gothic border"
-            className="h-auto w-full rounded-xl object-cover shadow-xl"
+            className="h-full max-h-[520px] w-full rounded-xl object-cover shadow-xl"
           />
           <div className="absolute inset-0 rounded-xl bg-black/10" />
         </div>
@@ -105,17 +105,17 @@ export default async function Page() {
       <section className="mx-auto grid max-w-6xl gap-10 px-6 py-20 text-center md:grid-cols-3">
         <div>
           <h3 className="text-lg font-semibold text-[#0B274A]">Choose a Style</h3>
-          <p className="mt-3 text-gray-600">Pick a professionally designed tarot template to start from.</p>
+          <p className="mt-3 text-gray-600">Start with a deck that already feels right.</p>
         </div>
 
         <div>
           <h3 className="text-lg font-semibold text-[#0B274A]">Customise Your Deck</h3>
-          <p className="mt-3 text-gray-600">Add your own names, artwork, and meaning.</p>
+          <p className="mt-3 text-gray-600">Make it yours — names, artwork, and meaning.</p>
         </div>
 
         <div>
           <h3 className="text-lg font-semibold text-[#0B274A]">Bring It to Life</h3>
-          <p className="mt-3 text-gray-600">Print your deck, share it, or sell it.</p>
+          <p className="mt-3 text-gray-600">Hold it, share it, or sell it.</p>
         </div>
       </section>
 
