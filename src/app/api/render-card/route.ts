@@ -1,6 +1,7 @@
 import { STUDIO_BORDER_TEMPLATE_CONFIG } from '@/lib/studio-border-template-config';
 import { createClient, createServiceClient } from '@/lib/supabase-server';
 import { userOwnsBorderForUserId } from '@/lib/user-purchases';
+import { fetchTrialRendersUsedForUserId } from '@/lib/user-trial-renders';
 
 const TEMPLATE_ID = '669959c5-4cca-476b-a484-5a9b1158e2a4';
 const TEMPLATED_RENDER_URL = 'https://api.templated.io/v1/render';
@@ -47,25 +48,9 @@ export async function POST(req: Request) {
 
     const ownsBorder = await userOwnsBorderForUserId(user.id, borderId);
 
-    let profilesReadable = true;
-    let trialRendersUsedCount = 0;
-
     if (!ownsBorder) {
-      const { data: prof, error: profErr } = await supabase
-        .from('profiles')
-        .select('trial_renders_used')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profErr) {
-        console.warn('render-card profiles read:', profErr.message);
-        profilesReadable = false;
-      } else {
-        const raw = (prof as { trial_renders_used?: number } | null)?.trial_renders_used;
-        trialRendersUsedCount = typeof raw === 'number' ? raw : 0;
-      }
-
-      if (profilesReadable && trialRendersUsedCount >= 2) {
+      const trialRendersUsedCount = await fetchTrialRendersUsedForUserId(user.id, supabase);
+      if (trialRendersUsedCount >= 2) {
         return Response.json(
           { error: 'Free trial limit reached. Purchase this border to continue.' },
           { status: 403 }

@@ -604,10 +604,34 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
 };
 
 const DEFAULT_CARDS = [
-  { name: "The Star", slug: "the-star", image: "/images/the-star.jpg", alt: "The Star tarot card meaning" },
-  { name: "The Moon", slug: "the-moon", image: "/images/the-moon.jpg", alt: "The Moon tarot card meaning" },
-  { name: "The Magician", slug: "the-magician", image: "/images/the-magician.jpg", alt: "The Magician tarot card meaning" },
-  { name: "The Fool", slug: "the-fool", image: "/images/the-fool.jpg", alt: "The Fool tarot card meaning" },
+  {
+    name: "Queen of Wands",
+    slug: "queen-of-wands",
+    image:
+      "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/STEAMPUNK-TAROT/queen-of-wands.png",
+    alt: "Queen of Wands tarot card meaning",
+  },
+  {
+    name: "Knight of Wands",
+    slug: "knight-of-wands",
+    image:
+      "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/STEAMPUNK-TAROT/knight-of-wands.png",
+    alt: "Knight of Wands tarot card meaning",
+  },
+  {
+    name: "Ten of Swords",
+    slug: "ten-of-swords",
+    image:
+      "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/STEAMPUNK-TAROT/ten-of-swords.png",
+    alt: "Ten of Swords tarot card meaning",
+  },
+  {
+    name: "Six of Pentacles",
+    slug: "six-of-pentacles",
+    image:
+      "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/STEAMPUNK-TAROT/six-of-pentacles.png",
+    alt: "Six of Pentacles tarot card meaning",
+  },
 ];
 
 export async function generateMetadata({

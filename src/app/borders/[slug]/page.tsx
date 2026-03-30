@@ -5,7 +5,9 @@ import type { Metadata } from 'next';
 import { BORDER_TEMPLATES, fetchBorderBySlug, FALLBACK_BORDER_IMAGE } from '@/data/borders';
 import { BorderPurchase } from '@/components/border-purchase';
 import { JsonLd } from '@/components/json-ld';
+import { createClient } from '@/lib/supabase-server';
 import { borderProductJsonLd } from '@/lib/structured-data';
+import { fetchPurchasedBorderSlugsForUser } from '@/lib/user-purchases';
 
 /** Other border templates for "You May Also Like" (exclude current slug) */
 function getRelatedBorders(currentSlug: string) {
@@ -317,6 +319,9 @@ export function generateStaticParams() {
   return BORDER_TEMPLATES.map((b) => ({ slug: b.slug }));
 }
 
+/** Auth + ownership for purchase UI require fresh request (cookies). */
+export const dynamic = 'force-dynamic';
+
 export default async function BorderPage({ params }: BorderPageProps) {
   const { slug } = params;
   const border = await fetchBorderBySlug(slug);
@@ -325,7 +330,16 @@ export default async function BorderPage({ params }: BorderPageProps) {
     notFound();
   }
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isLoggedIn = Boolean(user);
+  const purchasedSlugs = await fetchPurchasedBorderSlugsForUser();
+  const ownsBorder = purchasedSlugs.includes(slug);
+
   const videoTitle = `How to Design Tarot Cards Using the ${border.name}`;
+  const studioLink = `/studio-beta?border=${slug}`;
 
   return (
     <div className="space-y-10 bg-cream -mx-6 -my-12 px-6 py-12">
@@ -423,10 +437,10 @@ export default async function BorderPage({ params }: BorderPageProps) {
 
           <div className="rounded-sm border border-charcoal/15 bg-cream/70 p-4">
             <Link
-              href={`/studio-beta?border=${slug}`}
+              href={studioLink}
               className="inline-flex w-full items-center justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-3 text-center text-sm font-medium text-cream transition hover:bg-charcoal/90"
             >
-              Try this border in Studio →
+              {ownsBorder ? 'Open in Studio →' : 'Try this border in Studio →'}
             </Link>
           </div>
 
@@ -437,6 +451,8 @@ export default async function BorderPage({ params }: BorderPageProps) {
                 borderSlug={slug}
                 borderName={border.name}
                 templatedTemplateId={border.templatedTemplateId}
+                isLoggedIn={isLoggedIn}
+                ownsBorder={ownsBorder}
               />
               <div>
                 <h2 className="mb-2 text-lg font-semibold text-charcoal">
@@ -481,6 +497,8 @@ export default async function BorderPage({ params }: BorderPageProps) {
                 borderSlug={slug}
                 borderName={border.name}
                 templatedTemplateId={border.templatedTemplateId}
+                isLoggedIn={isLoggedIn}
+                ownsBorder={ownsBorder}
               />
             </>
           )}
