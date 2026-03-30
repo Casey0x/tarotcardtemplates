@@ -1,8 +1,12 @@
 import { STUDIO_BORDER_TEMPLATE_CONFIG } from '@/lib/studio-border-template-config';
 import { createClient, createServiceClient } from '@/lib/supabase-server';
+import { userOwnsBorderForUserId } from '@/lib/user-purchases';
 
 const TEMPLATE_ID = '669959c5-4cca-476b-a484-5a9b1158e2a4';
 const TEMPLATED_RENDER_URL = 'https://api.templated.io/v1/render';
+
+const TRIAL_USAGE_WARN =
+  'Warning: Could not record trial usage. Check that the profiles table exists and SUPABASE_SERVICE_ROLE_KEY is set.';
 
 export async function POST(req: Request) {
   try {
@@ -41,15 +45,10 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Missing border' }, { status: 400 });
     }
 
-    const { data: purchaseRows } = await supabase
-      .from('purchases')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('border_slug', borderId)
-      .eq('status', 'paid')
-      .limit(1);
+    const ownsBorder = await userOwnsBorderForUserId(user.id, borderId);
 
-    const ownsBorder = (purchaseRows?.length ?? 0) > 0;
+    let profilesReadable = true;
+    let trialRendersUsedCount = 0;
 
     if (!ownsBorder) {
       const { data: prof, error: profErr } = await supabase
@@ -60,10 +59,13 @@ export async function POST(req: Request) {
 
       if (profErr) {
         console.warn('render-card profiles read:', profErr.message);
+        profilesReadable = false;
+      } else {
+        const raw = (prof as { trial_renders_used?: number } | null)?.trial_renders_used;
+        trialRendersUsedCount = typeof raw === 'number' ? raw : 0;
       }
 
-      const used = (prof as { trial_renders_used?: number } | null)?.trial_renders_used ?? 0;
-      if (used >= 2) {
+      if (profilesReadable && trialRendersUsedCount >= 2) {
         return Response.json(
           { error: 'Free trial limit reached. Purchase this border to continue.' },
           { status: 403 }
@@ -145,13 +147,12 @@ export async function POST(req: Request) {
           { onConflict: 'id' }
         );
         if (upErr) {
-          console.error('render-card trial increment:', upErr);
-          return Response.json({ error: 'Failed to record trial usage' }, { status: 500 });
+          console.warn(TRIAL_USAGE_WARN, upErr.message);
+        } else {
+          trialRendersUsed = next;
         }
-        trialRendersUsed = next;
       } catch (e) {
-        console.error('render-card service client:', e);
-        return Response.json({ error: 'Failed to record trial usage' }, { status: 500 });
+        console.warn(TRIAL_USAGE_WARN, e);
       }
     }
 

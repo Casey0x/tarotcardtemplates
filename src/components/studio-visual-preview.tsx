@@ -42,6 +42,8 @@ type Props = {
   trialRendersUsed?: number;
   isLoggedIn?: boolean;
   trialExhaustedNoPurchase?: boolean;
+  /** Logged-in, no purchases, no ?border= trial — prompt to browse borders. */
+  noPurchasedBordersEmpty?: boolean;
 };
 
 export function StudioVisualPreview({
@@ -53,6 +55,7 @@ export function StudioVisualPreview({
   trialRendersUsed: trialRendersUsedProp = 0,
   isLoggedIn = false,
   trialExhaustedNoPurchase = false,
+  noPurchasedBordersEmpty = false,
 }: Props) {
   const router = useRouter();
   const catalog = borderCatalog.length ? borderCatalog : borders;
@@ -347,6 +350,39 @@ export function StudioVisualPreview({
     sessionLoggedIn && !borderOwned && trialRendersUsed < 2;
   const showTrialCompleteLine = sessionLoggedIn && !borderOwned && trialRendersUsed >= 2;
 
+  if (noPurchasedBordersEmpty) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-6 py-8">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold text-charcoal">Studio</h1>
+            <p className="mt-2 text-sm text-charcoal/70">
+              Design your tarot deck card by card. Choose a border, upload your artwork, and export print-ready files.
+            </p>
+          </div>
+          <Link
+            href={`${studioBasePath}/projects`}
+            className="text-sm text-charcoal underline underline-offset-2 hover:no-underline"
+          >
+            My deck projects →
+          </Link>
+        </div>
+        <div className="rounded-sm border border-charcoal/15 bg-cream/80 px-5 py-10 text-center">
+          <p className="text-sm font-medium text-charcoal">You haven&apos;t purchased any borders yet.</p>
+          <p className="mx-auto mt-3 max-w-md text-sm text-charcoal/70">
+            Browse borders to buy a frame, or open a style from the borders page with a trial link to preview it here.
+          </p>
+          <Link
+            href="/borders"
+            className="mt-6 inline-flex rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-xs font-medium text-cream hover:bg-charcoal/90"
+          >
+            Browse borders
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (trialExhaustedNoPurchase && borders.length === 0) {
     return (
       <div className="mx-auto w-full max-w-7xl px-6 py-8">
@@ -531,12 +567,14 @@ export function StudioVisualPreview({
             >
               Buy This Border — $9.95
             </Link>
-            <Link
-              href={`/auth/login?redirect=${encodeURIComponent(loginRedirect)}`}
-              className="inline-flex rounded-sm border border-charcoal/40 bg-cream px-4 py-2 text-xs font-medium text-charcoal hover:bg-charcoal/5"
-            >
-              Sign in
-            </Link>
+            {!sessionLoggedIn ? (
+              <Link
+                href={`/auth/login?redirect=${encodeURIComponent(loginRedirect)}`}
+                className="inline-flex rounded-sm border border-charcoal/40 bg-cream px-4 py-2 text-xs font-medium text-charcoal hover:bg-charcoal/5"
+              >
+                Sign in
+              </Link>
+            ) : null}
           </div>
         </div>
       )}
@@ -571,6 +609,7 @@ export function StudioVisualPreview({
                   {borders.map((b) => (
                     <option key={b.slug} value={b.slug}>
                       {b.name}
+                      {b.isTrial ? ' (Trial)' : ''}
                     </option>
                   ))}
                 </select>
@@ -623,6 +662,7 @@ export function StudioVisualPreview({
                 className="pointer-events-none z-[8] object-contain"
                 sizes="(max-width: 1024px) 280px, 384px"
                 priority
+                unoptimized={borderOverlaySrc.startsWith('/api/')}
               />
             ) : null}
 

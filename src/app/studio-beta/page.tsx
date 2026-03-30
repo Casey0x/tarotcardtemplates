@@ -1,7 +1,11 @@
 import { StudioSessionRedirect } from '@/components/studio-session-redirect';
 import { StudioVisualPreview } from '@/components/studio-visual-preview';
 import { BORDER_TEMPLATES } from '@/data/border-templates-static';
-import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
+import {
+  protectedBorderImageUrl,
+  publicBorderThumbPath,
+  publicBorderThumbTransparentPath,
+} from '@/lib/border-asset-urls';
 import { resolveStudioBorderOptions } from '@/lib/studio-border-options';
 import { createClient } from '@/lib/supabase-server';
 import { fetchTrialRendersUsedForUser } from '@/lib/user-trial-renders';
@@ -28,22 +32,25 @@ export default async function StudioBetaPage({
   const borderOptions = BORDER_TEMPLATES.map((b) => ({
     slug: b.slug,
     name: b.name,
-    image: b.image?.trim() ? b.image : FALLBACK_BORDER_IMAGE,
-    transparentImage: b.transparentImage?.trim() ? b.transparentImage.trim() : undefined,
+    image: isLoggedIn ? protectedBorderImageUrl(b.slug) : publicBorderThumbPath(b.slug),
+    transparentImage: b.transparentImage?.trim()
+      ? isLoggedIn
+        ? `${protectedBorderImageUrl(b.slug)}?variant=transparent`
+        : publicBorderThumbTransparentPath(b.slug)
+      : undefined,
   }));
 
-  const { dropdownBorders, trialExhaustedNoPurchase } = resolveStudioBorderOptions(
+  const q = searchParams?.border?.trim();
+  const { dropdownBorders, trialExhaustedNoPurchase, noPurchasedBordersEmpty } = resolveStudioBorderOptions(
     borderOptions,
     purchasedBorderSlugs,
     trialRendersUsed,
-    isLoggedIn
+    isLoggedIn,
+    q
   );
 
-  const q = searchParams?.border?.trim();
   const initialBorderSlug =
-    q && dropdownBorders.some((b) => b.slug === q)
-      ? q
-      : dropdownBorders[0]?.slug;
+    q && dropdownBorders.some((b) => b.slug === q) ? q : dropdownBorders[0]?.slug;
 
   return (
     <>
@@ -57,6 +64,7 @@ export default async function StudioBetaPage({
         trialRendersUsed={trialRendersUsed}
         isLoggedIn={isLoggedIn}
         trialExhaustedNoPurchase={trialExhaustedNoPurchase}
+        noPurchasedBordersEmpty={noPurchasedBordersEmpty}
       />
     </>
   );
