@@ -58,6 +58,9 @@ function borderFromStatic(t: BorderTemplate): Border {
 function applyStaticMetadata(row: BorderRow): Border {
   const staticMeta = BORDER_TEMPLATES.find((b) => b.slug === row.slug);
   const preview = row.preview_image_url?.trim();
+  /** Prefer repo thumbnails for known borders so stale/bad Supabase `preview_image_url` cannot break listings. */
+  const staticThumb = staticMeta?.image?.trim();
+  const image = staticThumb || preview || FALLBACK_BORDER_IMAGE;
 
   return {
     id: row.id,
@@ -65,7 +68,7 @@ function applyStaticMetadata(row: BorderRow): Border {
     name: row.name || staticMeta?.name || row.slug,
     description: row.description || staticMeta?.description || '',
     productDescription: staticMeta?.productDescription ?? '',
-    image: preview || staticMeta?.image || FALLBACK_BORDER_IMAGE,
+    image,
     transparentImage: staticMeta?.transparentImage?.trim()
       ? staticMeta.transparentImage.trim()
       : null,
