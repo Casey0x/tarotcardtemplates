@@ -52,7 +52,7 @@ export default async function Page() {
             You’ve had the idea for a tarot deck. Now bring it to life.
           </h1>
 
-          <p className="mt-5 max-w-xl text-lg text-gray-600 md:text-xl">
+          <p className="mt-5 max-w-xl text-lg text-gray-700 md:text-xl">
             Design, customise, and print your own tarot deck — without starting from scratch.
           </p>
 
@@ -85,7 +85,7 @@ export default async function Page() {
       </section>
 
       {/* WHY THIS EXISTS */}
-      <section className="mx-auto max-w-4xl px-6 py-20 text-center">
+      <section className="mx-auto max-w-4xl px-6 py-12 text-center">
         <p className="text-xl leading-relaxed text-gray-700">Most people never create their tarot deck.</p>
 
         <p className="mt-4 text-gray-600">Not because they lack ideas… but because it feels overwhelming.</p>
@@ -104,18 +104,21 @@ export default async function Page() {
       {/* HOW IT WORKS */}
       <section className="mx-auto grid max-w-6xl gap-10 px-6 py-20 text-center md:grid-cols-3">
         <div>
-          <h3 className="text-lg font-semibold text-[#0B274A]">Choose a Style</h3>
-          <p className="mt-3 text-gray-600">Start with a deck that already feels right.</p>
+          <div className="text-3xl">🎨</div>
+          <h3 className="mt-4 text-lg font-semibold text-[#0B274A]">Choose a Style</h3>
+          <p className="mt-2 text-gray-600">Start with a professionally designed tarot template.</p>
         </div>
 
         <div>
-          <h3 className="text-lg font-semibold text-[#0B274A]">Customise Your Deck</h3>
-          <p className="mt-3 text-gray-600">Make it yours — names, artwork, and meaning.</p>
+          <div className="text-3xl">✏️</div>
+          <h3 className="mt-4 text-lg font-semibold text-[#0B274A]">Customise Your Deck</h3>
+          <p className="mt-2 text-gray-600">Add your own names, artwork, and meaning.</p>
         </div>
 
         <div>
-          <h3 className="text-lg font-semibold text-[#0B274A]">Bring It to Life</h3>
-          <p className="mt-3 text-gray-600">Hold it, share it, or sell it.</p>
+          <div className="text-3xl">📦</div>
+          <h3 className="mt-4 text-lg font-semibold text-[#0B274A]">Bring It to Life</h3>
+          <p className="mt-2 text-gray-600">Print your deck, share it, or sell it.</p>
         </div>
       </section>
 
@@ -147,6 +150,13 @@ export default async function Page() {
             <p className="mt-2 max-w-sm text-gray-600">
               Warm, golden, and handcrafted — a deck that feels like something you already own.
             </p>
+
+            <a
+              href="/studio"
+              className="mt-4 inline-block rounded-lg bg-[#FF5A1F] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90"
+            >
+              Create a deck like this
+            </a>
           </div>
 
           {/* RIGHT: DARK BOTANICAL (SECONDARY) */}
@@ -168,6 +178,15 @@ export default async function Page() {
         </div>
       </section>
 
+      {/* SOCIAL PROOF */}
+      <section className="mx-auto max-w-4xl px-6 py-16 text-center">
+        <p className="text-lg text-gray-700">Join creators already bringing their decks to life.</p>
+
+        <p className="mt-4 text-sm text-gray-500">
+          Thousands of unique tarot decks have been created using these templates.
+        </p>
+      </section>
+
       {/* Pre-made deck templates (Supabase) */}
       <section id="premade" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-20">
         <h2 className="text-2xl font-semibold text-charcoal">Pre-Made Tarot Decks — Ready to Download</h2>
@@ -181,9 +200,18 @@ export default async function Page() {
               No deck templates are available right now. Check your Supabase REST configuration or try again later.
             </p>
           )}
-          {templates.map((template) => (
+          {templates.slice(0, 6).map((template) => (
             <TemplateCard key={template.slug} template={template} />
           ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <a
+            href="/templates"
+            className="inline-block rounded-lg border border-gray-300 px-6 py-3 text-gray-700 hover:bg-gray-50"
+          >
+            View All Templates
+          </a>
         </div>
       </section>
 
