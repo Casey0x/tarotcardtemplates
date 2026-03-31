@@ -119,33 +119,52 @@ export default async function Page() {
         </div>
       </section>
 
-      {/* FEATURED DECK — Honey Hive lifestyle */}
-      <section className="mx-auto max-w-6xl px-6 py-20 text-center">
-        {/* SECTION HEADER */}
-        <h2 className="text-3xl font-semibold text-[#0B274A] md:text-4xl">What You Can Actually Create</h2>
+      {/* FEATURED DECKS — Honey Hive + Dark Botanical */}
+      <section className="mx-auto max-w-7xl px-6 py-20">
+        {/* HEADER */}
+        <div className="text-center">
+          <h2 className="text-3xl font-semibold text-[#0B274A] md:text-4xl">This Is What Your Deck Could Become</h2>
 
-        <p className="mx-auto mt-4 max-w-2xl text-gray-600">
-          These aren’t templates — they’re real decks you can bring to life.
-        </p>
-
-        {/* FEATURED IMAGE */}
-        <div className="mt-12 flex justify-center">
-          <div className="-translate-y-2 scale-105 transform overflow-hidden rounded-xl shadow-2xl transition-all duration-300 hover:-translate-y-3 hover:scale-110">
-            <img
-              src="/images/honey-hive.jpg"
-              alt="Honey Hive Tarot deck on wooden table"
-              className="h-auto w-full max-w-xl object-cover"
-            />
-          </div>
+          <p className="mx-auto mt-4 max-w-2xl text-gray-600">
+            Not templates — real decks you can bring to life.
+          </p>
         </div>
 
-        {/* CAPTION */}
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold text-[#0B274A]">Honey Hive Tarot</h3>
+        {/* GRID */}
+        <div className="mt-16 grid items-center gap-12 md:grid-cols-2">
+          {/* LEFT: HONEY (PRIMARY) */}
+          <div className="flex flex-col items-center text-center">
+            <div className="-translate-y-2 scale-105 transform overflow-hidden rounded-xl shadow-2xl transition-all duration-300 hover:-translate-y-3 hover:scale-110">
+              <img
+                src="/images/honey-hive.jpg"
+                alt="Honey Hive Tarot deck"
+                className="h-auto w-full max-w-xl object-cover"
+              />
+            </div>
 
-          <p className="mx-auto mt-2 max-w-md text-gray-600">
-            Warm, golden, and handcrafted — a deck that feels like something you already own.
-          </p>
+            <h3 className="mt-6 text-xl font-semibold text-[#0B274A]">Honey Hive Tarot</h3>
+
+            <p className="mt-2 max-w-sm text-gray-600">
+              Warm, golden, and handcrafted — a deck that feels like something you already own.
+            </p>
+          </div>
+
+          {/* RIGHT: DARK BOTANICAL (SECONDARY) */}
+          <div className="flex flex-col items-center text-center opacity-90">
+            <div className="overflow-hidden rounded-xl shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-105">
+              <img
+                src="/images/dark-botanical.jpg"
+                alt="Dark Botanical Tarot deck"
+                className="h-auto w-full max-w-md object-cover"
+              />
+            </div>
+
+            <h3 className="mt-6 text-xl font-semibold text-[#0B274A]">Dark Botanical Tarot</h3>
+
+            <p className="mt-2 max-w-sm text-gray-600">
+              Deep, moody, and expressive — for something more introspective.
+            </p>
+          </div>
         </div>
       </section>
 
