@@ -85,16 +85,16 @@ export default async function Page() {
       </section>
 
       {/* WHY THIS EXISTS */}
-      <section className="mx-auto max-w-4xl px-6 py-12 text-center">
+      <section className="mx-auto max-w-4xl px-6 py-10 text-center">
         <p className="text-xl leading-relaxed text-gray-700">Most people never create their tarot deck.</p>
 
-        <p className="mt-4 text-gray-600">Not because they lack ideas… but because it feels overwhelming.</p>
+        <p className="mt-3 text-gray-600">Not because they lack ideas… but because it feels overwhelming.</p>
 
-        <p className="mt-4 text-gray-600">
+        <p className="mt-3 text-gray-600">
           Where do you start? How do you design 78 cards? How do you make it look good?
         </p>
 
-        <p className="mt-8 font-medium text-gray-800">This removes that friction.</p>
+        <p className="mt-6 font-medium text-gray-800">This removes that friction.</p>
 
         <p className="mt-2 text-gray-600">
           You don’t start from zero — you start from something beautiful… and make it your own.
@@ -134,15 +134,17 @@ export default async function Page() {
         </div>
 
         {/* GRID */}
-        <div className="mt-16 grid items-center gap-12 md:grid-cols-2">
+        <div className="mt-16 grid items-start gap-12 md:grid-cols-2">
           {/* LEFT: HONEY (PRIMARY) */}
-          <div className="flex flex-col items-center text-center">
-            <div className="-translate-y-2 scale-105 transform overflow-hidden rounded-xl shadow-2xl transition-all duration-300 hover:-translate-y-3 hover:scale-110">
-              <img
-                src="/images/honey-hive.jpg"
-                alt="Honey Hive Tarot deck"
-                className="h-auto w-full max-w-xl object-cover"
-              />
+          <div className="flex w-full flex-col items-center text-center">
+            <div className="w-full max-w-xl">
+              <div className="aspect-[3/4] w-full overflow-hidden rounded-xl shadow-md">
+                <img
+                  src="/images/honey-hive.jpg"
+                  alt="Honey Hive Tarot deck"
+                  className="h-full w-full object-cover"
+                />
+              </div>
             </div>
 
             <h3 className="mt-6 text-xl font-semibold text-[#0B274A]">Honey Hive Tarot</h3>
@@ -160,13 +162,15 @@ export default async function Page() {
           </div>
 
           {/* RIGHT: DARK BOTANICAL (SECONDARY) */}
-          <div className="flex flex-col items-center text-center opacity-90">
-            <div className="overflow-hidden rounded-xl shadow-xl transition-all duration-300 hover:-translate-y-1 hover:scale-105">
-              <img
-                src="/images/dark-botanical.jpg"
-                alt="Dark Botanical Tarot deck"
-                className="h-auto w-full max-w-md object-cover"
-              />
+          <div className="flex w-full flex-col items-center text-center opacity-90">
+            <div className="w-full max-w-xl">
+              <div className="aspect-[3/4] w-full overflow-hidden rounded-xl shadow-md">
+                <img
+                  src="/images/dark-botanical.jpg"
+                  alt="Dark Botanical Tarot deck"
+                  className="h-full w-full object-cover"
+                />
+              </div>
             </div>
 
             <h3 className="mt-6 text-xl font-semibold text-[#0B274A]">Dark Botanical Tarot</h3>
@@ -217,15 +221,31 @@ export default async function Page() {
 
       {/* BORDER TEMPLATES */}
       <section className="mx-auto max-w-6xl px-6 pb-20">
-        <h2 className="text-2xl font-semibold">Border Templates</h2>
+        <h2 className="text-center text-2xl font-semibold text-[#0B274A] md:text-3xl">Design Your Own Card Frames</h2>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-3">
+        <p className="mt-3 text-center text-gray-600">
+          Start with a border and build your deck from the ground up.
+        </p>
+
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
           {borders.slice(0, 3).map((border) => (
-            <Link key={border.slug} href={`/borders/${border.slug}`}>
+            <Link key={border.slug} href={`/borders/${border.slug}`} className="block">
               <Image src={border.image ?? FALLBACK_BORDER_IMAGE} alt={border.name} width={200} height={300} />
-              <h3>{border.name}</h3>
+              <h3 className="mt-2 font-semibold text-charcoal">{border.name}</h3>
+              <p className="mt-2 text-sm text-gray-600">
+                Elegant, detailed frame designed for custom tarot creation.
+              </p>
             </Link>
           ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <a
+            href="/borders"
+            className="inline-block rounded-lg border border-gray-300 px-6 py-3 text-gray-700 hover:bg-gray-50"
+          >
+            View All Borders
+          </a>
         </div>
       </section>
     </div>
