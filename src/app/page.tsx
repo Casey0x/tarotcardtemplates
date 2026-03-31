@@ -40,9 +40,22 @@ export default async function Page() {
     ],
   };
 
+  const celestialPatternUrl = '/backgrounds/celestial-pattern.png';
+
   return (
-    <div className="rounded-sm bg-[#f6f0e8]">
-      <JsonLd data={homeJsonLd} />
+    <div className="relative rounded-sm bg-[#f6f0e8]">
+      <div
+        className="pointer-events-none absolute inset-0 rounded-sm"
+        style={{
+          opacity: 0.04,
+          backgroundImage: `url('${celestialPatternUrl}')`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '600px',
+        }}
+        aria-hidden
+      />
+      <div className="relative z-10">
+        <JsonLd data={homeJsonLd} />
 
       {/* HERO */}
       <section className="mx-auto grid max-w-7xl items-center gap-12 px-6 py-16 md:grid-cols-2 md:items-stretch">
@@ -248,6 +261,7 @@ export default async function Page() {
           </a>
         </div>
       </section>
+      </div>
     </div>
   );
 }
