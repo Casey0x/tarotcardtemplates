@@ -119,6 +119,36 @@ export default async function Page() {
         </div>
       </section>
 
+      {/* FEATURED DECK — Honey Hive lifestyle */}
+      <section className="mx-auto max-w-6xl px-6 py-20 text-center">
+        {/* SECTION HEADER */}
+        <h2 className="text-3xl font-semibold text-[#0B274A] md:text-4xl">What You Can Actually Create</h2>
+
+        <p className="mx-auto mt-4 max-w-2xl text-gray-600">
+          These aren’t templates — they’re real decks you can bring to life.
+        </p>
+
+        {/* FEATURED IMAGE */}
+        <div className="mt-12 flex justify-center">
+          <div className="-translate-y-2 scale-105 transform overflow-hidden rounded-xl shadow-2xl transition-all duration-300 hover:-translate-y-3 hover:scale-110">
+            <img
+              src="/images/honey-hive.jpg"
+              alt="Honey Hive Tarot deck on wooden table"
+              className="h-auto w-full max-w-xl object-cover"
+            />
+          </div>
+        </div>
+
+        {/* CAPTION */}
+        <div className="mt-6">
+          <h3 className="text-xl font-semibold text-[#0B274A]">Honey Hive Tarot</h3>
+
+          <p className="mx-auto mt-2 max-w-md text-gray-600">
+            Warm, golden, and handcrafted — a deck that feels like something you already own.
+          </p>
+        </div>
+      </section>
+
       {/* Pre-made deck templates (Supabase) */}
       <section id="premade" className="mx-auto max-w-6xl scroll-mt-24 px-6 py-20">
         <h2 className="text-2xl font-semibold text-charcoal">Pre-Made Tarot Decks — Ready to Download</h2>
