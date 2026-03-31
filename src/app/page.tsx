@@ -43,14 +43,14 @@ export default async function Page() {
   const celestialPatternUrl = '/backgrounds/celestial-pattern.png';
 
   return (
-    <div className="relative rounded-sm bg-[#f6f0e8]">
+    <div className="relative isolate rounded-sm bg-[#f6f0e8]">
       <div
-        className="pointer-events-none absolute inset-0 rounded-sm"
+        className="pointer-events-none absolute inset-0 z-0 rounded-sm"
         style={{
-          opacity: 0.04,
+          opacity: 0.09,
           backgroundImage: `url('${celestialPatternUrl}')`,
           backgroundRepeat: 'repeat',
-          backgroundSize: '600px',
+          backgroundSize: '480px',
         }}
         aria-hidden
       />
