@@ -20,15 +20,22 @@ const LINEN_PER_DECK = 0.5 * CARDS_PER_DECK;
 const STOCK_350_EXTRA = 0.4;
 const SHRINK_WRAP_EXTRA = 0.15;
 
-const PROTOTYPE_FLAT = 49;
+/** Matches the published pricing scale (prototype + per-deck tiers). */
+const PROTOTYPE_FLAT = 78;
 
+/** Instant estimate slider and form cap (larger runs → exact quote). */
+const MAX_ESTIMATE_QTY = 100;
+
+/**
+ * Per-deck USD rate for qty ≥ 2 (prototype is flat total only).
+ * Tiers: 5 @ $23.95, 10 @ $21.95, 20 @ $19.95, 50+ @ $15.95; qty 2–4 use the 5-deck rate.
+ */
 function baseRatePerDeck(qty: number): number {
-  if (qty <= 0) return 0;
-  if (qty === 1) return PROTOTYPE_FLAT;
-  if (qty >= 2 && qty <= 24) return 12;
-  if (qty >= 25 && qty <= 200) return 6.5;
-  if (qty >= 201 && qty <= 499) return 5;
-  return 3.2;
+  if (qty <= 1) return 0;
+  if (qty >= 2 && qty < 10) return 23.95;
+  if (qty >= 10 && qty < 20) return 21.95;
+  if (qty >= 20 && qty < 50) return 19.95;
+  return 15.95;
 }
 
 function formatUsd(n: number): string {
@@ -42,9 +49,8 @@ function formatUsd(n: number): string {
 
 function turnaroundLabel(qty: number): string {
   if (qty === 1) return '5–7 business days';
-  if (qty >= 2 && qty <= 200) return '10–14 business days';
-  if (qty >= 201 && qty <= 499) return '2–3 weeks';
-  return '3–4 weeks';
+  if (qty >= 2 && qty < 50) return '10–14 business days';
+  return '2–3 weeks';
 }
 
 const focusRing =
@@ -64,7 +70,10 @@ export function InstantQuoteSection() {
   const [formNotes, setFormNotes] = useState('');
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
-  const clampQty = useCallback((n: number) => Math.min(1000, Math.max(1, Math.floor(n) || 1)), []);
+  const clampQty = useCallback(
+    (n: number) => Math.min(MAX_ESTIMATE_QTY, Math.max(1, Math.floor(n) || 1)),
+    [],
+  );
 
   const estimate = useMemo(() => {
     const qty = clampQty(quantity);
@@ -172,19 +181,19 @@ export function InstantQuoteSection() {
                     <input
                       type="range"
                       min={1}
-                      max={1000}
+                      max={MAX_ESTIMATE_QTY}
                       step={1}
                       value={quantity}
                       onChange={(e) => onRangeChange(Number(e.target.value))}
                       className={`h-2 flex-1 min-w-[8rem] cursor-pointer accent-[#C7A96B] ${focusRing} rounded-full`}
                       aria-valuemin={1}
-                      aria-valuemax={1000}
+                      aria-valuemax={MAX_ESTIMATE_QTY}
                       aria-valuenow={quantity}
                     />
                     <input
                       type="number"
                       min={1}
-                      max={1000}
+                      max={MAX_ESTIMATE_QTY}
                       value={quantity}
                       onChange={(e) => onNumberChange(e.target.value)}
                       className={`w-24 rounded-md border px-3 py-2 text-sm tabular-nums ${focusRing}`}
@@ -196,7 +205,9 @@ export function InstantQuoteSection() {
                     />
                   </div>
                   <p className="mt-2 text-xs leading-relaxed" style={{ color: CARD_BODY }}>
-                    1 deck = prototype pricing · 25–200 decks = small batch · 500+ = production rates
+                    Estimates use the same tiers as the scale above: $78 prototype (1 deck), then per-deck rates at
+                    5+, 10+, 20+, and 50+ decks. This slider goes up to {MAX_ESTIMATE_QTY} decks; for larger runs,
+                    request an exact quote.
                   </p>
                 </div>
 
@@ -446,6 +457,7 @@ export function InstantQuoteSection() {
                   id="quote-qty"
                   type="number"
                   min={1}
+                  max={MAX_ESTIMATE_QTY}
                   value={formQuantity}
                   onChange={(e) => setFormQuantity(clampQty(Number(e.target.value)))}
                   className={`mt-2 w-full rounded-md border px-4 py-3 text-sm ${focusRing}`}
@@ -504,7 +516,7 @@ export function InstantQuoteSection() {
                   rows={4}
                   value={formNotes}
                   onChange={(e) => setFormNotes(e.target.value)}
-                  placeholder="e.g. rush order, international shipping, large volume pricing…"
+                  placeholder="e.g. rush order, international shipping, runs over 100 decks…"
                   className={`mt-2 w-full rounded-md border px-4 py-3 text-sm placeholder:text-white/35 ${focusRing}`}
                   style={{ backgroundColor: INPUT_BG, borderColor: INPUT_BORDER, color: HEADING }}
                 />
