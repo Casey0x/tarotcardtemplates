@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { getAllTemplates } from "@/lib/templates";
 import TemplateCard from "@/components/template-card";
 import type { Metadata } from "next";
+import { getUserCurrency } from "@/lib/getUserCurrency";
+import { formatUsdAsLocalCurrency } from "@/lib/formatPrice";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +16,7 @@ export const metadata: Metadata = {
 
 export default async function ReadyMadeTemplatesPage() {
   const templates = await getAllTemplates();
+  const { currency } = getUserCurrency(headers());
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
@@ -27,7 +31,11 @@ export default async function ReadyMadeTemplatesPage() {
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {templates.map((template) => (
             <Link key={template.slug} href={`/templates/${template.slug}`}>
-              <TemplateCard template={template} />
+              <TemplateCard
+                template={template}
+                templatePriceDisplay={formatUsdAsLocalCurrency(template.templatePrice, currency)}
+                currencyCode={currency}
+              />
             </Link>
           ))}
         </div>

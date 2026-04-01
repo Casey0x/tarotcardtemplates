@@ -9,7 +9,7 @@ export type TarotTemplate = {
 };
 
 export const TEMPLATE_PRICE = 18.95;
-export const PRINT_PRICE = 45;
+export const PRINT_PRICE = 24.95;
 
 export const tarotTemplates: TarotTemplate[] = [
   {

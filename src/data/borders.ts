@@ -39,6 +39,15 @@ export type Border = {
   isActive: boolean;
 };
 
+/** USD border list price in cents when Supabase has no value (`price_major_arcana` / `price_full_deck`). */
+export const DEFAULT_BORDER_PRICE_CENTS = 895;
+
+/** Format border price from DB cents to USD display (e.g. "8.95"). */
+export function borderPriceUsdFormatted(border: Pick<Border, 'priceMajorArcana' | 'priceFullDeck'>): string {
+  const cents = border.priceMajorArcana ?? border.priceFullDeck ?? DEFAULT_BORDER_PRICE_CENTS;
+  return (Number(cents) / 100).toFixed(2);
+}
+
 function borderFromStatic(t: BorderTemplate): Border {
   return {
     id: `static-${t.slug}`,

@@ -31,7 +31,7 @@ Session Summary: Hamburger menu, SEO content dynamically moved to database, Drea
 - style_note: text
 - includes: text[]
 - template_price: numeric (18.95)
-- print_price: numeric (45.00)
+- print_price: numeric (24.95)
 - featured: boolean
 - preview_images: text[] (array of image URLs - first image is thumbnail)
 - download_file_url: text (nullable)

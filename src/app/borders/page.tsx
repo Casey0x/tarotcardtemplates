@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { fetchBorders, FALLBACK_BORDER_IMAGE } from '@/data/borders';
+import { borderPriceUsdFormatted, fetchBorders, FALLBACK_BORDER_IMAGE } from '@/data/borders';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -47,7 +47,7 @@ export default async function BordersPage() {
               </div>
               <h2 className="mb-1 text-sm font-semibold text-charcoal">{border.name}</h2>
               <p className="text-xs text-charcoal/80">{border.description}</p>
-              <p className="mt-3 text-sm font-medium text-charcoal">$9.95</p>
+              <p className="mt-3 text-sm font-medium text-charcoal">${borderPriceUsdFormatted(border)}</p>
             </Link>
             <Link
               href={`/studio-beta?border=${border.slug}`}

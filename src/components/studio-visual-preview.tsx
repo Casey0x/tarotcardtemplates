@@ -472,7 +472,7 @@ export function StudioVisualPreview({
                 Your free trial is complete
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-charcoal/75">
-                You&apos;ve previewed 2 cards with {currentBorderName}. Purchase it for $9.95 to design all 78 cards,
+                You&apos;ve previewed 2 cards with {currentBorderName}. Purchase it for $8.95 to design all 78 cards,
                 save your progress, and export print-ready files.
               </p>
             </div>
@@ -481,7 +481,7 @@ export function StudioVisualPreview({
                 href={`/borders/${borderSlug}`}
                 className="inline-flex w-full justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-3 text-center text-sm font-medium text-cream hover:bg-charcoal/90"
               >
-                Buy {currentBorderName} — $9.95
+                Buy {currentBorderName} — $8.95
               </Link>
               <Link
                 href="/borders"
@@ -541,7 +541,7 @@ export function StudioVisualPreview({
         ) : null}
         {showTrialCompleteLine ? (
           <p className="mt-2 text-xs text-charcoal/55">
-            Free trial complete. Purchase this border ($9.95) to continue designing.{' '}
+            Free trial complete. Purchase this border ($8.95) to continue designing.{' '}
             <Link href={`/borders/${borderSlug}`} className="font-medium text-charcoal underline underline-offset-2 hover:no-underline">
               Buy Border →
             </Link>
@@ -557,15 +557,15 @@ export function StudioVisualPreview({
         <div className="mb-4 w-full rounded-sm border border-amber-700/25 bg-amber-50/95 px-4 py-3 text-sm text-charcoal">
           <p className="font-medium">
             {sessionLoggedIn && trialRendersUsed < 2
-              ? `You're using ${currentBorderName} with your free trial. Purchase for $9.95 to save your work and export print-ready cards.`
-              : `You're previewing ${currentBorderName}. Purchase it for $9.95 to save your work and export print-ready cards.`}
+              ? `You're using ${currentBorderName} with your free trial. Purchase for $8.95 to save your work and export print-ready cards.`
+              : `You're previewing ${currentBorderName}. Purchase it for $8.95 to save your work and export print-ready cards.`}
           </p>
           <div className="mt-3 flex flex-wrap gap-3">
             <Link
               href={`/borders/${borderSlug}`}
               className="inline-flex rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-xs font-medium text-cream hover:bg-charcoal/90"
             >
-              Buy This Border — $9.95
+              Buy This Border — $8.95
             </Link>
             {!sessionLoggedIn ? (
               <Link

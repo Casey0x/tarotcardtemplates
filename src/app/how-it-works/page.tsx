@@ -34,7 +34,7 @@ export default function HowItWorksPage() {
             </p>
           </li>
           <li>
-            <h3 className="text-xl font-medium">3. Purchase your border ($9.95)</h3>
+            <h3 className="text-xl font-medium">3. Purchase your border ($8.95)</h3>
             <p className="mt-2 text-charcoal/80">
               Unlock saving, exporting, and print-ready file generation through the full Studio deck flow after checkout.
             </p>
@@ -70,7 +70,7 @@ export default function HowItWorksPage() {
             <li>
               <h3 className="text-xl font-medium">2. Purchase</h3>
               <p className="mt-2 text-charcoal/80">
-                Buy a digital template (typically $15.95–$18.95), or add the optional single printed deck at checkout
+                Buy a digital template ($18.95), or add the optional single printed deck at checkout
                 where available.
               </p>
             </li>

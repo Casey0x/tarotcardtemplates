@@ -34,7 +34,7 @@ function toTemplate(template: SanityTemplate): TarotTemplate | null {
     styleNote: template.styleNote || '',
     includes: template.includes || [],
     templatePrice: template.templatePrice ?? 18.95,
-    printPrice: template.printPrice ?? 45,
+    printPrice: template.printPrice ?? 24.95,
   };
 }
 

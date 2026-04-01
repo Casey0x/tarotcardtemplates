@@ -1,9 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { getAllTemplates } from "@/lib/templates";
 import TemplateCard from "@/components/template-card";
-import { fetchBorders, FALLBACK_BORDER_IMAGE } from "@/data/borders";
+import { borderPriceUsdFormatted, fetchBorders, FALLBACK_BORDER_IMAGE } from "@/data/borders";
+import { getUserCurrency } from "@/lib/getUserCurrency";
+import { formatUsdAsLocalCurrency } from "@/lib/formatPrice";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +19,7 @@ export const metadata: Metadata = {
 export default async function TemplatesPage() {
   const templates = await getAllTemplates();
   const borders = await fetchBorders();
+  const { currency } = getUserCurrency(headers());
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
@@ -29,7 +33,7 @@ export default async function TemplatesPage() {
           Border Templates — Design Your Own Deck
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-charcoal/75">
-          Choose a border frame, then use the Studio to add your own artwork to all 78 cards. $9.95 each.
+          Choose a border frame, then use the Studio to add your own artwork to all 78 cards. $8.95 each.
         </p>
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -56,7 +60,7 @@ export default async function TemplatesPage() {
               <div className="flex flex-grow flex-col p-6">
                 <h3 className="text-xl font-semibold">{border.name}</h3>
                 <p className="mt-3 flex-grow text-sm text-charcoal/80">{border.description}</p>
-                <p className="mt-4 text-sm font-medium">$9.95</p>
+                <p className="mt-4 text-sm font-medium">${borderPriceUsdFormatted(border)}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
                     href={`/borders/${border.slug}`}
@@ -94,7 +98,12 @@ export default async function TemplatesPage() {
             </p>
           )}
           {templates.map((template) => (
-            <TemplateCard key={template.slug} template={template} />
+            <TemplateCard
+              key={template.slug}
+              template={template}
+              templatePriceDisplay={formatUsdAsLocalCurrency(template.templatePrice, currency)}
+              currencyCode={currency}
+            />
           ))}
         </div>
       </section>

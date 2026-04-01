@@ -1,4 +1,4 @@
-import type { Border } from '@/data/borders';
+import { borderPriceUsdFormatted, type Border } from '@/data/borders';
 import type { TarotTemplate } from '@/lib/templates';
 import type { BlogPost } from '@/data/blog';
 import { SITE_URL, absoluteUrl } from '@/lib/site';
@@ -8,14 +8,7 @@ export function borderProductJsonLd(border: Border, slug: string) {
   const pageUrl = `${SITE_URL}/borders/${slug}`;
   const raw = border.image?.trim() ? border.image : '';
   const imageUrl = raw.startsWith('http') ? raw : absoluteUrl(raw || '/favicon.svg');
-  const priceMajor = border.priceMajorArcana;
-  const priceFull = border.priceFullDeck;
-  const price =
-    priceMajor != null && !Number.isNaN(Number(priceMajor))
-      ? String(priceMajor)
-      : priceFull != null && !Number.isNaN(Number(priceFull))
-        ? String(priceFull)
-        : '9.95';
+  const price = borderPriceUsdFormatted(border);
 
   return {
     '@context': 'https://schema.org',

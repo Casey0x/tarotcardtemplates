@@ -138,6 +138,45 @@ const heroMaskStyle = {
   maskRepeat: 'no-repeat',
 } as const;
 
+/** Display-only pricing scale (USD). */
+const PRINT_PRICING_SCALE = [
+  {
+    qtyLabel: '1',
+    priceDisplay: '$78',
+    priceNote: 'prototype total',
+    tierLabel: 'Prototype',
+    emphasis: 'none' as const,
+  },
+  {
+    qtyLabel: '5',
+    priceDisplay: '$23.95',
+    priceNote: 'per deck',
+    tierLabel: 'Most Popular',
+    emphasis: 'primary' as const,
+  },
+  {
+    qtyLabel: '10',
+    priceDisplay: '$21.95',
+    priceNote: 'per deck',
+    tierLabel: 'Better Value',
+    emphasis: 'none' as const,
+  },
+  {
+    qtyLabel: '20',
+    priceDisplay: '$19.95',
+    priceNote: 'per deck',
+    tierLabel: 'Best for Launching',
+    emphasis: 'secondary' as const,
+  },
+  {
+    qtyLabel: '50+',
+    priceDisplay: '$15.95',
+    priceNote: 'per deck',
+    tierLabel: 'Lowest Cost',
+    emphasis: 'none' as const,
+  },
+];
+
 export default function CustomPrintingPage() {
   return (
     <div
@@ -217,184 +256,77 @@ export default function CustomPrintingPage() {
 
       <InstantQuoteSection />
 
-      {/* SECTION 2 — Pricing */}
+      {/* SECTION 2 — Pricing scale (display only) */}
       <section className="px-6 py-20 md:px-8">
         <div className="mx-auto max-w-6xl">
-          <div className="mx-auto mb-14 max-w-2xl space-y-5 text-center md:mb-16">
-            <h2
-              className="font-serif text-3xl font-semibold tracking-tight md:text-[2rem]"
-              style={{ color: HEADING }}
-            >
-              Choose Your Print Run
-            </h2>
-            <p className="text-base leading-relaxed md:text-lg" style={{ color: CARD_BODY }}>
-              Start with a prototype, validate your idea, then scale into full production.
-            </p>
+          <h2
+            className="font-serif text-center text-3xl font-semibold tracking-tight md:text-[2rem]"
+            style={{ color: HEADING }}
+          >
+            Start small… then scale as your deck grows.
+          </h2>
+
+          <div
+            className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-4 md:mt-14 md:grid-cols-5 md:gap-3"
+            role="list"
+            aria-label="Print pricing by quantity"
+          >
+            {PRINT_PRICING_SCALE.map((tier) => {
+              const isPrimary = tier.emphasis === 'primary';
+              const isSecondary = tier.emphasis === 'secondary';
+              return (
+                <div
+                  key={tier.qtyLabel}
+                  role="listitem"
+                  className="flex flex-col rounded-lg border px-4 py-6 text-center transition-shadow md:min-h-[12rem] md:px-3 md:py-8"
+                  style={{
+                    backgroundColor: CARD_BG,
+                    borderColor: isPrimary
+                      ? FEATURED_GOLD
+                      : isSecondary
+                        ? 'rgba(199, 169, 107, 0.45)'
+                        : CARD_BORDER,
+                    boxShadow: isPrimary
+                      ? '0 0 0 1px rgba(212, 175, 55, 0.35), 0 12px 40px rgba(0,0,0,0.35)'
+                      : isSecondary
+                        ? '0 0 0 1px rgba(199, 169, 107, 0.2), inset 0 0 0 1px rgba(199, 169, 107, 0.08)'
+                        : undefined,
+                  }}
+                >
+                  <p
+                    className="font-serif text-2xl font-semibold tabular-nums tracking-tight md:text-3xl"
+                    style={{ color: HEADING }}
+                  >
+                    {tier.qtyLabel}
+                  </p>
+                  <p
+                    className="font-serif mt-5 text-2xl font-semibold tabular-nums tracking-tight md:text-[1.65rem] lg:text-3xl"
+                    style={{ color: HEADING }}
+                  >
+                    {tier.priceDisplay}
+                  </p>
+                  <p className="mt-1 text-xs leading-snug" style={{ color: CARD_BODY, opacity: 0.85 }}>
+                    {tier.priceNote}
+                  </p>
+                  <p
+                    className="mt-5 text-sm font-medium leading-snug"
+                    style={{
+                      color: isPrimary ? ACCENT : CARD_BODY,
+                    }}
+                  >
+                    {tier.tierLabel}
+                  </p>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="grid gap-8 py-2 lg:grid-cols-3 lg:items-stretch lg:gap-10 lg:py-6">
-            {/* Prototype */}
-            <div
-              className="group flex h-full min-h-0 flex-col rounded-lg border p-8 shadow-[0_10px_40px_rgba(0,0,0,0.38)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(0,0,0,0.5)]"
-              style={{ backgroundColor: CARD_BG, borderColor: CARD_BORDER }}
-            >
-              <h3 className="font-serif text-lg font-semibold" style={{ color: HEADING }}>
-                Prototype
-              </h3>
-              <p className="mt-1 text-xs font-medium uppercase tracking-wider" style={{ color: CARD_BODY }}>
-                1 deck
-              </p>
-              <div className="mt-6">
-                <p
-                  className="font-serif text-4xl font-semibold tabular-nums tracking-tight md:text-5xl"
-                  style={{ color: HEADING }}
-                >
-                  $78
-                </p>
-                <p className="mt-1 text-sm font-normal leading-snug" style={{ color: CARD_BODY }}>
-                  per deck
-                </p>
-              </div>
-              <ul className="mt-8 flex-1 space-y-3 text-sm leading-relaxed" style={{ color: CARD_BODY }}>
-                {['78-card full deck', '300gsm smooth stock', 'Tuck box included', 'Ships in 5–7 days'].map(
-                  (line) => (
-                    <li key={line} className="flex gap-2.5">
-                      <span style={{ color: ACCENT }} aria-hidden>
-                        •
-                      </span>
-                      <span>{line}</span>
-                    </li>
-                  ),
-                )}
-              </ul>
-              <Link
-                href="#"
-                className="mt-10 block w-full rounded-sm border bg-transparent px-5 py-3.5 text-center text-sm font-medium transition-colors hover:bg-white/[0.06]"
-                style={{ borderColor: HEADING, color: HEADING }}
-              >
-                Order Prototype
-              </Link>
-            </div>
-
-            {/* Small Batch — featured */}
-            <div
-              className="group relative z-[1] flex h-full min-h-0 flex-col rounded-lg border-2 p-8 shadow-[0_12px_44px_rgba(0,0,0,0.42)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_56px_rgba(212,175,55,0.18),0_0_0_1px_rgba(212,175,55,0.25)] lg:scale-[1.05] lg:origin-center"
-              style={{ backgroundColor: CARD_BG, borderColor: FEATURED_GOLD }}
-            >
-              <div
-                className="absolute -top-3 left-1/2 z-[2] -translate-x-1/2 whitespace-nowrap rounded-full px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] shadow-md"
-                style={{ backgroundColor: FEATURED_GOLD, color: BTN_DARK_TEXT }}
-              >
-                Most popular
-              </div>
-              <h3 className="mt-2 font-serif text-lg font-semibold" style={{ color: HEADING }}>
-                Small Batch
-              </h3>
-              <p className="mt-1 text-xs font-medium uppercase tracking-wider" style={{ color: CARD_BODY }}>
-                25–200 decks
-              </p>
-              <div className="mt-5">
-                <p className="text-xs font-medium uppercase tracking-wider" style={{ color: CARD_BODY }}>
-                  From
-                </p>
-                <p
-                  className="font-serif text-4xl font-semibold tabular-nums tracking-tight md:text-5xl"
-                  style={{ color: HEADING }}
-                >
-                  $9.50
-                </p>
-                <p className="mt-1 text-sm font-normal leading-snug" style={{ color: CARD_BODY }}>
-                  per deck
-                </p>
-              </div>
-              <p className="mt-5 text-sm leading-snug" style={{ color: ACCENT }}>
-                Includes CardCrafter integration
-              </p>
-              <p className="mt-1.5 text-xs leading-relaxed" style={{ color: CARD_BODY, opacity: 0.85 }}>
-                Standard printing available on request
-              </p>
-              <ul className="mt-8 flex-1 space-y-3 text-sm leading-relaxed" style={{ color: CARD_BODY }}>
-                {[
-                  '25–200 deck runs',
-                  '300gsm or 350gsm black core',
-                  'Gloss or Linen finish · tuck box included',
-                  'Ships in 10–14 days',
-                ].map((line) => (
-                  <li key={line} className="flex gap-2.5">
-                    <span style={{ color: FEATURED_GOLD }} aria-hidden>
-                      •
-                    </span>
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="#quote-form"
-                className="mt-10 block w-full rounded-sm px-5 py-3.5 text-center text-sm font-semibold shadow-lg transition-all hover:brightness-105"
-                style={{ backgroundColor: FEATURED_GOLD, color: BTN_DARK_TEXT }}
-              >
-                Get a Quote
-              </Link>
-              <p
-                className="mt-3 text-center text-xs leading-relaxed"
-                style={{ color: CARD_BODY, opacity: 0.9 }}
-              >
-                Perfect for launching your first deck
-              </p>
-            </div>
-
-            {/* Full Production */}
-            <div
-              className="group flex h-full min-h-0 flex-col rounded-lg border p-8 shadow-[0_10px_40px_rgba(0,0,0,0.38)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(0,0,0,0.5)]"
-              style={{ backgroundColor: CARD_BG, borderColor: CARD_BORDER }}
-            >
-              <h3 className="font-serif text-lg font-semibold" style={{ color: HEADING }}>
-                Full Production
-              </h3>
-              <p className="mt-1 text-xs font-medium uppercase tracking-wider" style={{ color: CARD_BODY }}>
-                500+ decks
-              </p>
-              <div className="mt-5">
-                <p className="text-xs font-medium uppercase tracking-wider" style={{ color: CARD_BODY }}>
-                  From
-                </p>
-                <p
-                  className="font-serif text-4xl font-semibold tabular-nums tracking-tight md:text-5xl"
-                  style={{ color: HEADING }}
-                >
-                  $3.50
-                </p>
-                <p className="mt-1 text-sm font-normal leading-snug" style={{ color: CARD_BODY }}>
-                  per deck
-                </p>
-              </div>
-              <p className="mt-5 text-sm leading-snug" style={{ color: ACCENT }}>
-                Includes CardCrafter integration
-              </p>
-              <ul className="mt-8 flex-1 space-y-3 text-sm leading-relaxed" style={{ color: CARD_BODY }}>
-                {[
-                  '500+ deck volume pricing',
-                  'Gloss or Linen finish',
-                  'Tuck box included · shrink wrap optional',
-                  'Ships in 3–4 weeks',
-                ].map((line) => (
-                  <li key={line} className="flex gap-2.5">
-                    <span style={{ color: ACCENT }} aria-hidden>
-                      •
-                    </span>
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="#quote-form"
-                className="mt-10 block w-full rounded-sm border bg-transparent px-5 py-3.5 text-center text-sm font-medium transition-colors hover:bg-white/[0.06]"
-                style={{ borderColor: HEADING, color: HEADING }}
-              >
-                Start Production
-              </Link>
-            </div>
-          </div>
+          <p
+            className="mx-auto mt-10 max-w-xl text-center text-sm leading-relaxed md:mt-12 md:text-base"
+            style={{ color: CARD_BODY }}
+          >
+            The more decks you print, the lower your cost per deck.
+          </p>
         </div>
       </section>
 

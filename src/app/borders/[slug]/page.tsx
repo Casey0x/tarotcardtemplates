@@ -83,91 +83,91 @@ interface BorderPageProps {
 const MARBLE_TEMPLE_META = {
   title: 'Marble Temple Border – Tarot Card Border Template',
   description:
-    'Download the Marble Temple tarot border template — classical marble columns and arched window. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Marble Temple tarot border template — classical marble columns and arched window. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/marble-temple',
 };
 
 const VINTAGE_VELVET_META = {
   title: 'Vintage Velvet Border – Tarot Card Border Template',
   description:
-    'Download the Vintage Velvet tarot border template — ornate gold flourishes on rich velvet, inspired by Victorian tarot design. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Vintage Velvet tarot border template — ornate gold flourishes on rich velvet, inspired by Victorian tarot design. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/vintage-velvet',
 };
 
 const CELESTIAL_GILDED_META = {
   title: 'Celestial Gilded Border – Tarot Card Border Template',
   description:
-    'Download the Celestial Gilded tarot border template — gold celestial linework with stars and cosmic ornament. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Celestial Gilded tarot border template — gold celestial linework with stars and cosmic ornament. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/celestial-gilded',
 };
 
 const STEAMPUNK_BRASS_META = {
   title: 'Steampunk Brass Border – Tarot Card Border Template',
   description:
-    'Download the Steampunk Brass tarot border template — ornate brass gears, gauges and mechanical detailing. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Steampunk Brass tarot border template — ornate brass gears, gauges and mechanical detailing. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/steampunk-brass',
 };
 
 const JAPANESE_ZEN_META = {
   title: 'Japanese Zen Border – Tarot Card Border Template',
   description:
-    'Download the Japanese Zen tarot border template — hand-painted cherry blossoms, bamboo, clouds and seigaiha waves on warm cream. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Japanese Zen tarot border template — hand-painted cherry blossoms, bamboo, clouds and seigaiha waves on warm cream. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/japanese-zen',
 };
 
 const ENCHANTED_FOREST_META = {
   title: 'Enchanted Forest Border – Tarot Card Border Template',
   description:
-    'Download the Enchanted Forest tarot border template — twisted woodland vines, oak leaves, acorns, moss and glowing fireflies. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Enchanted Forest tarot border template — twisted woodland vines, oak leaves, acorns, moss and glowing fireflies. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/enchanted-forest',
 };
 
 const DAY_OF_THE_DEAD_META = {
   title: 'Day of the Dead Border – Tarot Card Border Template',
   description:
-    'Download the Day of the Dead tarot border template — decorated sugar skulls, marigolds and papel picado. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Day of the Dead tarot border template — decorated sugar skulls, marigolds and papel picado. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/day-of-the-dead',
 };
 
 const OCEAN_MERMAID_META = {
   title: 'Ocean Depths Border – Tarot Card Border Template',
   description:
-    'Download the Ocean Depths tarot border template — turquoise seaweed ribbons, coral pink branches, pearls, shells, starfish and shimmering bubbles. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Ocean Depths tarot border template — turquoise seaweed ribbons, coral pink branches, pearls, shells, starfish and shimmering bubbles. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/ocean-mermaid',
 };
 
 const DRAGON_SCALE_META = {
   title: 'Dragon Scale Border – Tarot Card Border Template',
   description:
-    'Download the Dragon Scale tarot border template — layered dragon scales, bronze plaques and fantasy spikes. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Dragon Scale tarot border template — layered dragon scales, bronze plaques and fantasy spikes. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/dragon-scale',
 };
 
 const GOTHIC_ROMANCE_META = {
   title: 'Gothic Romance Border – Tarot Card Border Template',
   description:
-    'Download the Gothic Romance tarot border template — Victorian engraving, bats, thorny roses and Gothic spires on aged parchment. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Gothic Romance tarot border template — Victorian engraving, bats, thorny roses and Gothic spires on aged parchment. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/gothic-romance',
 };
 
 const ART_NOUVEAU_LILY_META = {
   title: 'Art Nouveau Lily Border – Tarot Card Border Template',
   description:
-    'Download the Art Nouveau Lily tarot border template — cream and peach lilies, golden whiplash curves and blush pink Belle Époque florals. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Art Nouveau Lily tarot border template — cream and peach lilies, golden whiplash curves and blush pink Belle Époque florals. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/art-nouveau-lily',
 };
 
 const MYSTIC_CANDLELIGHT_META = {
   title: 'Mystic Candlelight Border – Tarot Card Border Template',
   description:
-    'Download the Mystic Candlelight tarot border template — melting honey-amber wax, corner candles and warm ritual glow. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Mystic Candlelight tarot border template — melting honey-amber wax, corner candles and warm ritual glow. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/mystic-candlelight',
 };
 
 const GOLDEN_HONEYCOMB_META = {
   title: 'Golden Honeycomb Border – Tarot Card Border Template',
   description:
-    'Download the Golden Honeycomb tarot border template — honeycomb, bees, dripping honey, daisies and beehive centerpiece on cream. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.',
+    'Download the Golden Honeycomb tarot border template — honeycomb, bees, dripping honey, daisies and beehive centerpiece on cream. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
   canonical: 'https://www.tarotcardtemplates.com/borders/golden-honeycomb',
 };
 
@@ -302,7 +302,7 @@ export async function generateMetadata({
     title,
     description:
       params.slug === 'minimal-line'
-        ? 'Download the Minimal Line tarot border template — clean geometric frame for modern and AI-generated tarot decks. PNG, PSD and Canva. 70×120mm, 3mm bleed. $9.95.'
+        ? 'Download the Minimal Line tarot border template — clean geometric frame for modern and AI-generated tarot decks. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.'
         : border.description,
     alternates: {
       canonical: `https://www.tarotcardtemplates.com/borders/${params.slug}`,

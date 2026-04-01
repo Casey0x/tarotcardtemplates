@@ -1,10 +1,13 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { fetchBorders, FALLBACK_BORDER_IMAGE } from '@/data/borders';
 import Image from 'next/image';
 import { JsonLd } from '@/components/json-ld';
 import { SITE_URL, absoluteUrl } from '@/lib/site';
 import { getAllTemplates } from '@/lib/templates';
+import { getUserCurrency } from '@/lib/getUserCurrency';
+import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
 import TemplateCard from '@/components/template-card';
 
 export const dynamic = 'force-dynamic';
@@ -20,6 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page() {
   const borders = await fetchBorders();
   const templates = await getAllTemplates();
+  const { currency } = getUserCurrency(headers());
 
   const homeJsonLd = {
     '@context': 'https://schema.org',
@@ -218,7 +222,12 @@ export default async function Page() {
             </p>
           )}
           {templates.slice(0, 6).map((template) => (
-            <TemplateCard key={template.slug} template={template} />
+            <TemplateCard
+              key={template.slug}
+              template={template}
+              templatePriceDisplay={formatUsdAsLocalCurrency(template.templatePrice, currency)}
+              currencyCode={currency}
+            />
           ))}
         </div>
 

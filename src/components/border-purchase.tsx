@@ -5,9 +5,10 @@ import Link from 'next/link';
 
 type SuiteSize = 'single' | 'major' | 'full';
 
+/** Stripe `unit_amount` (USD cents) per tier. */
 const PRICING: { id: SuiteSize; label: string; cardCount: number; amountPence: number }[] = [
   { id: 'single', label: 'Single card', cardCount: 1, amountPence: 299 },
-  { id: 'major', label: 'Major Arcana (22 cards)', cardCount: 22, amountPence: 1999 },
+  { id: 'major', label: 'Major Arcana (22 cards)', cardCount: 22, amountPence: 895 },
   { id: 'full', label: 'Full deck (78 cards)', cardCount: 78, amountPence: 4999 },
 ];
 
@@ -100,7 +101,7 @@ export function BorderPurchase({
                       className="text-charcoal"
                     />
                     <span className="text-charcoal">{p.label}</span>
-                    <span className="text-charcoal/70">£{(p.amountPence / 100).toFixed(2)}</span>
+                    <span className="text-charcoal/70">${(p.amountPence / 100).toFixed(2)}</span>
                   </label>
                 </li>
               ))}
@@ -110,7 +111,7 @@ export function BorderPurchase({
         ) : (
           <>
             <p className="mb-4 text-charcoal/90">
-              <span className="font-medium">Price: $9.95</span> — Includes PNG, PSD, and Canva-compatible files. Use the
+              <span className="font-medium">Price: $8.95</span> — Includes PNG, PSD, and Canva-compatible files. Use the
               Studio after purchase to place your artwork in the frame.
             </p>
             <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
@@ -152,7 +153,7 @@ export function BorderPurchase({
                     className="text-charcoal"
                   />
                   <span className="text-charcoal">{p.label}</span>
-                  <span className="text-charcoal/70">£{(p.amountPence / 100).toFixed(2)}</span>
+                  <span className="text-charcoal/70">${(p.amountPence / 100).toFixed(2)}</span>
                 </label>
               </li>
             ))}
@@ -168,14 +169,16 @@ export function BorderPurchase({
             disabled={loading}
             className="border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream transition-colors hover:bg-charcoal/90 disabled:opacity-50"
           >
-            {loading ? 'Redirecting to checkout…' : 'Purchase — $9.95'}
+            {loading
+              ? 'Redirecting to checkout…'
+              : `Purchase — $${(option.amountPence / 100).toFixed(2)}`}
           </button>
           <p className="mt-2 text-xs text-charcoal/70">After payment you’ll design each card in the Studio.</p>
         </>
       ) : (
         <>
           <p className="mb-4 text-charcoal/90">
-            <span className="font-medium">Price: $9.95</span> — Includes PNG, PSD, and Canva-compatible files. Use the
+            <span className="font-medium">Price: $8.95</span> — Includes PNG, PSD, and Canva-compatible files. Use the
             Studio after purchase to place your artwork in the frame.
           </p>
           <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>

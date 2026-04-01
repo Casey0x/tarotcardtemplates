@@ -214,7 +214,7 @@ You'll need at least 3 images:
   "style_note": "Best for readers wanting...",
   "includes": ["78 card fronts", "Print-ready bleed marks"],
   "template_price": 18.95,
-  "print_price": 45.00,
+  "print_price": 24.95,
   "featured": true,
   "preview_images": [
     "https://[project].supabase.co/storage/v1/object/public/template-previews/my-template-name/thumb.png",

@@ -44,7 +44,7 @@ export const templateType = defineType({
       name: 'printPrice',
       title: 'Print price',
       type: 'number',
-      initialValue: 45,
+      initialValue: 24.95,
     }),
     defineField({
       name: 'previewImages',

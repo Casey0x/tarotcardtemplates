@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       line_items: [
         {
           price_data: {
-            currency: 'gbp',
+            currency: 'usd',
             product_data: {
               name: `${body.borderName} — ${body.suiteSize}`,
             },

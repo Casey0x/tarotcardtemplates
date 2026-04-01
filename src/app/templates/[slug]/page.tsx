@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { getTemplateBySlug, getTemplatePreviewImages } from "@/lib/templates";
+import { getUserCurrency } from "@/lib/getUserCurrency";
+import { formatUsdAsLocalCurrency } from "@/lib/formatPrice";
 import TemplateGallery from "@/components/template-gallery";
 import HollowSaintPhysicalDeckImage from "@/components/hollow-saint-physical-deck-image";
 import type { Metadata } from "next";
@@ -698,6 +701,10 @@ export default async function TemplateDetailPage({
     notFound();
   }
 
+  const { currency } = getUserCurrency(headers());
+  const templatePriceDisplay = formatUsdAsLocalCurrency(template.templatePrice, currency);
+  const printPriceDisplay = formatUsdAsLocalCurrency(template.printPrice, currency);
+
   const physicalDeckImage = "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/" + template.slug.toUpperCase() + "/physical-deck.png";
 
   const hollowSaintPrintedDeckSrc =
@@ -793,11 +800,19 @@ export default async function TemplateDetailPage({
         <aside className="space-y-6">
           <div className="border border-charcoal/15 bg-white p-6">
             <h2 className="text-xl font-semibold">Purchase options</h2>
+            {currency !== "USD" && (
+              <p className="mt-1 text-xs text-charcoal/55">Prices shown in {currency}.</p>
+            )}
             <div className="mt-6 space-y-4">
               <form action="/api/checkout" method="post" className="space-y-2 border border-charcoal/10 p-4">
                 <input type="hidden" name="templateSlug" value={template.slug} />
                 <input type="hidden" name="purchaseType" value="template" />
-                <p className="font-medium">Buy template (${template.templatePrice.toFixed(2)})</p>
+                <p className="font-medium">
+                  Buy template ({templatePriceDisplay})
+                  {currency !== "USD" && (
+                    <span className="ml-1.5 text-xs font-normal text-charcoal/50">{currency}</span>
+                  )}
+                </p>
                 <button
                   type="submit"
                   className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream hover:bg-charcoal/90 transition-colors"
@@ -846,7 +861,12 @@ export default async function TemplateDetailPage({
               <form action="/api/checkout" method="post" className="space-y-2 border border-charcoal/10 p-4">
                 <input type="hidden" name="templateSlug" value={template.slug} />
                 <input type="hidden" name="purchaseType" value="print" />
-                <p className="font-medium">Buy printed deck from template (${template.printPrice.toFixed(2)})</p>
+                <p className="font-medium">
+                  Buy printed deck from template ({printPriceDisplay})
+                  {currency !== "USD" && (
+                    <span className="ml-1.5 text-xs font-normal text-charcoal/50">{currency}</span>
+                  )}
+                </p>
                 <button
                   type="submit"
                   className="w-full border-2 border-charcoal bg-white px-4 py-2 text-sm text-charcoal hover:bg-charcoal hover:text-cream transition-colors"
@@ -970,7 +990,7 @@ export default async function TemplateDetailPage({
               type="submit"
               className="w-full bg-charcoal text-cream py-3 px-3 text-xs font-semibold hover:bg-charcoal/90 transition-colors"
             >
-              Template ${template.templatePrice.toFixed(2)}
+              Template {templatePriceDisplay}
             </button>
           </form>
           <form action="/api/checkout" method="post" className="flex-1">
@@ -980,7 +1000,7 @@ export default async function TemplateDetailPage({
               type="submit"
               className="w-full border-2 border-charcoal bg-white text-charcoal py-3 px-3 text-xs font-semibold hover:bg-charcoal hover:text-cream transition-colors"
             >
-              Printed ${template.printPrice.toFixed(2)}
+              Printed {printPriceDisplay}
             </button>
           </form>
         </div>
