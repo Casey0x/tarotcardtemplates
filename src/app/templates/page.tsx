@@ -4,7 +4,12 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { getAllTemplates } from "@/lib/templates";
 import TemplateCard from "@/components/template-card";
-import { borderPriceUsdFormatted, fetchBorders, FALLBACK_BORDER_IMAGE } from "@/data/borders";
+import {
+  DEFAULT_BORDER_PRICE_CENTS,
+  fetchBorders,
+  FALLBACK_BORDER_IMAGE,
+  formatBorderPriceLocalized,
+} from "@/data/borders";
 import { getUserCurrency } from "@/lib/getUserCurrency";
 import { formatUsdAsLocalCurrency } from "@/lib/formatPrice";
 
@@ -33,7 +38,8 @@ export default async function TemplatesPage() {
           Border Templates — Design Your Own Deck
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-charcoal/75">
-          Choose a border frame, then use the Studio to add your own artwork to all 78 cards. $8.95 each.
+          Choose a border frame, then use the Studio to add your own artwork to all 78 cards.{' '}
+          {formatUsdAsLocalCurrency(DEFAULT_BORDER_PRICE_CENTS / 100, currency)} each.
         </p>
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -60,7 +66,9 @@ export default async function TemplatesPage() {
               <div className="flex flex-grow flex-col p-6">
                 <h3 className="text-xl font-semibold">{border.name}</h3>
                 <p className="mt-3 flex-grow text-sm text-charcoal/80">{border.description}</p>
-                <p className="mt-4 text-sm font-medium">${borderPriceUsdFormatted(border)}</p>
+                <p className="mt-4 text-sm font-medium">
+                  {formatBorderPriceLocalized(border, currency)}
+                </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
                     href={`/borders/${border.slug}`}

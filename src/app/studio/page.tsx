@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { StudioSessionRedirect } from '@/components/studio-session-redirect';
 import { StudioVisualPreview } from '@/components/studio-visual-preview';
-import { fetchBorders } from '@/data/borders';
+import { DEFAULT_BORDER_PRICE_CENTS, fetchBorders } from '@/data/borders';
+import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
+import { getUserCurrency } from '@/lib/getUserCurrency';
 import {
   protectedBorderImageUrl,
   publicBorderThumbPath,
@@ -58,6 +61,9 @@ export default async function StudioPage({
   const initialBorderSlug =
     q && dropdownBorders.some((b) => b.slug === q) ? q : dropdownBorders[0]?.slug;
 
+  const { currency } = getUserCurrency(headers());
+  const borderListPriceDisplay = formatUsdAsLocalCurrency(DEFAULT_BORDER_PRICE_CENTS / 100, currency);
+
   return (
     <>
       <StudioSessionRedirect />
@@ -70,6 +76,7 @@ export default async function StudioPage({
         isLoggedIn={isLoggedIn}
         trialExhaustedNoPurchase={trialExhaustedNoPurchase}
         noPurchasedBordersEmpty={noPurchasedBordersEmpty}
+        borderListPriceDisplay={borderListPriceDisplay}
       />
     </>
   );

@@ -1,14 +1,21 @@
-import { borderPriceUsdFormatted, type Border } from '@/data/borders';
+import { borderPriceUsdAmount, type Border } from '@/data/borders';
 import type { TarotTemplate } from '@/lib/templates';
 import type { BlogPost } from '@/data/blog';
+import { convertPrice } from '@/lib/convertCurrency';
+import type { SupportedCurrency } from '@/lib/getUserCurrency';
 import { SITE_URL, absoluteUrl } from '@/lib/site';
 import { getTemplatePreviewImages } from '@/lib/templates';
 
-export function borderProductJsonLd(border: Border, slug: string) {
+function localizedOfferAmount(amountUsd: number, currency: SupportedCurrency): { price: string; priceCurrency: string } {
+  const n = currency === 'USD' ? amountUsd : convertPrice(amountUsd, currency);
+  return { price: n.toFixed(2), priceCurrency: currency };
+}
+
+export function borderProductJsonLd(border: Border, slug: string, currency: SupportedCurrency = 'USD') {
   const pageUrl = `${SITE_URL}/borders/${slug}`;
   const raw = border.image?.trim() ? border.image : '';
   const imageUrl = raw.startsWith('http') ? raw : absoluteUrl(raw || '/favicon.svg');
-  const price = borderPriceUsdFormatted(border);
+  const { price, priceCurrency } = localizedOfferAmount(borderPriceUsdAmount(border), currency);
 
   return {
     '@context': 'https://schema.org',
@@ -20,17 +27,19 @@ export function borderProductJsonLd(border: Border, slug: string) {
     offers: {
       '@type': 'Offer',
       price,
-      priceCurrency: 'USD',
+      priceCurrency,
       availability: 'https://schema.org/InStock',
       url: pageUrl,
     },
   };
 }
 
-export function templateProductJsonLd(template: TarotTemplate) {
+export function templateProductJsonLd(template: TarotTemplate, currency: SupportedCurrency = 'USD') {
   const pageUrl = `${SITE_URL}/templates/${template.slug}`;
   const previews = getTemplatePreviewImages(template);
   const imageUrl = previews[0]?.startsWith('http') ? previews[0] : absoluteUrl(previews[0] || '/favicon.svg');
+  const digital = localizedOfferAmount(template.templatePrice, currency);
+  const printed = localizedOfferAmount(template.printPrice, currency);
 
   return {
     '@context': 'https://schema.org',
@@ -43,16 +52,16 @@ export function templateProductJsonLd(template: TarotTemplate) {
       {
         '@type': 'Offer',
         name: 'Digital template',
-        price: String(template.templatePrice),
-        priceCurrency: 'USD',
+        price: digital.price,
+        priceCurrency: digital.priceCurrency,
         availability: 'https://schema.org/InStock',
         url: pageUrl,
       },
       {
         '@type': 'Offer',
         name: 'Printed deck from template',
-        price: String(template.printPrice),
-        priceCurrency: 'USD',
+        price: printed.price,
+        priceCurrency: printed.priceCurrency,
         availability: 'https://schema.org/InStock',
         url: pageUrl,
       },

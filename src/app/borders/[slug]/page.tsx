@@ -2,7 +2,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { BORDER_TEMPLATES, fetchBorderBySlug, FALLBACK_BORDER_IMAGE } from '@/data/borders';
+import { headers } from 'next/headers';
+import { BORDER_TEMPLATES, fetchBorderBySlug, FALLBACK_BORDER_IMAGE, formatBorderPriceLocalized } from '@/data/borders';
+import { getUserCurrency } from '@/lib/getUserCurrency';
 import { BorderPurchase } from '@/components/border-purchase';
 import { JsonLd } from '@/components/json-ld';
 import { createClient } from '@/lib/supabase-server';
@@ -338,12 +340,15 @@ export default async function BorderPage({ params }: BorderPageProps) {
   const purchasedSlugs = await fetchPurchasedBorderSlugsForUser();
   const ownsBorder = purchasedSlugs.includes(slug);
 
+  const { currency } = getUserCurrency(headers());
+  const borderListPriceDisplay = formatBorderPriceLocalized(border, currency);
+
   const videoTitle = `How to Design Tarot Cards Using the ${border.name}`;
   const studioLink = `/studio-beta?border=${slug}`;
 
   return (
     <div className="space-y-10 bg-cream -mx-6 -my-12 px-6 py-12">
-      <JsonLd data={borderProductJsonLd(border, slug)} />
+      <JsonLd data={borderProductJsonLd(border, slug, currency)} />
       <Link
         href="/"
         className="inline-block text-sm underline underline-offset-4 text-charcoal/80 hover:text-charcoal"
@@ -453,6 +458,8 @@ export default async function BorderPage({ params }: BorderPageProps) {
                 templatedTemplateId={border.templatedTemplateId}
                 isLoggedIn={isLoggedIn}
                 ownsBorder={ownsBorder}
+                listPriceDisplay={borderListPriceDisplay}
+                currency={currency}
               />
               <div>
                 <h2 className="mb-2 text-lg font-semibold text-charcoal">
@@ -499,6 +506,8 @@ export default async function BorderPage({ params }: BorderPageProps) {
                 templatedTemplateId={border.templatedTemplateId}
                 isLoggedIn={isLoggedIn}
                 ownsBorder={ownsBorder}
+                listPriceDisplay={borderListPriceDisplay}
+                currency={currency}
               />
             </>
           )}

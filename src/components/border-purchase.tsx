@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import type { SupportedCurrency } from '@/lib/getUserCurrency';
+import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
 
 type SuiteSize = 'single' | 'major' | 'full';
 
@@ -18,6 +20,9 @@ interface BorderPurchaseProps {
   templatedTemplateId: string | null;
   isLoggedIn: boolean;
   ownsBorder: boolean;
+  /** Localized list price for copy when checkout tiers are unavailable (USD base from DB). */
+  listPriceDisplay: string;
+  currency: SupportedCurrency;
 }
 
 export function BorderPurchase({
@@ -26,6 +31,8 @@ export function BorderPurchase({
   templatedTemplateId,
   isLoggedIn,
   ownsBorder,
+  listPriceDisplay,
+  currency,
 }: BorderPurchaseProps) {
   const [suiteSize, setSuiteSize] = useState<SuiteSize>('major');
   const [loading, setLoading] = useState(false);
@@ -101,7 +108,9 @@ export function BorderPurchase({
                       className="text-charcoal"
                     />
                     <span className="text-charcoal">{p.label}</span>
-                    <span className="text-charcoal/70">${(p.amountPence / 100).toFixed(2)}</span>
+                    <span className="text-charcoal/70">
+                      {formatUsdAsLocalCurrency(p.amountPence / 100, currency)}
+                    </span>
                   </label>
                 </li>
               ))}
@@ -111,8 +120,8 @@ export function BorderPurchase({
         ) : (
           <>
             <p className="mb-4 text-charcoal/90">
-              <span className="font-medium">Price: $8.95</span> — Includes PNG, PSD, and Canva-compatible files. Use the
-              Studio after purchase to place your artwork in the frame.
+              <span className="font-medium">Price: {listPriceDisplay}</span> — Includes PNG, PSD, and Canva-compatible
+              files. Use the Studio after purchase to place your artwork in the frame.
             </p>
             <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
             <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
@@ -153,7 +162,9 @@ export function BorderPurchase({
                     className="text-charcoal"
                   />
                   <span className="text-charcoal">{p.label}</span>
-                  <span className="text-charcoal/70">${(p.amountPence / 100).toFixed(2)}</span>
+                  <span className="text-charcoal/70">
+                    {formatUsdAsLocalCurrency(p.amountPence / 100, currency)}
+                  </span>
                 </label>
               </li>
             ))}
@@ -171,27 +182,27 @@ export function BorderPurchase({
           >
             {loading
               ? 'Redirecting to checkout…'
-              : `Purchase — $${(option.amountPence / 100).toFixed(2)}`}
+              : `Purchase — ${formatUsdAsLocalCurrency(option.amountPence / 100, currency)}`}
           </button>
           <p className="mt-2 text-xs text-charcoal/70">After payment you’ll design each card in the Studio.</p>
         </>
       ) : (
         <>
           <p className="mb-4 text-charcoal/90">
-            <span className="font-medium">Price: $8.95</span> — Includes PNG, PSD, and Canva-compatible files. Use the
-            Studio after purchase to place your artwork in the frame.
+            <span className="font-medium">Price: {listPriceDisplay}</span> — Includes PNG, PSD, and Canva-compatible
+            files. Use the Studio after purchase to place your artwork in the frame.
           </p>
           <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
-          <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
-            <li>PNG border</li>
-            <li>PSD layered file</li>
-            <li>Canva compatible</li>
-            <li>70×120mm tarot card size</li>
-            <li>3mm bleed included</li>
-          </ul>
-          <p className="mb-4 text-sm text-charcoal/75">
-            Online checkout for this border is not available yet. You can still try the frame in the Studio.
-          </p>
+            <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
+              <li>PNG border</li>
+              <li>PSD layered file</li>
+              <li>Canva compatible</li>
+              <li>70×120mm tarot card size</li>
+              <li>3mm bleed included</li>
+            </ul>
+            <p className="mb-4 text-sm text-charcoal/75">
+              Online checkout for this border is not available yet. You can still try the frame in the Studio.
+            </p>
           <Link
             href={studioHref}
             className="inline-block border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream transition-colors hover:bg-charcoal/90"

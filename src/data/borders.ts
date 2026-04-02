@@ -9,6 +9,7 @@
 import { createServiceClient } from '@/lib/supabase-server';
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
 import { BORDER_TEMPLATES, type BorderTemplate } from '@/data/border-templates-static';
+import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
 
 export { FALLBACK_BORDER_IMAGE, BORDER_TEMPLATES, type BorderTemplate };
 
@@ -42,10 +43,23 @@ export type Border = {
 /** USD border list price in cents when Supabase has no value (`price_major_arcana` / `price_full_deck`). */
 export const DEFAULT_BORDER_PRICE_CENTS = 895;
 
-/** Format border price from DB cents to USD display (e.g. "8.95"). */
-export function borderPriceUsdFormatted(border: Pick<Border, 'priceMajorArcana' | 'priceFullDeck'>): string {
+/** Stored DB values are USD cents → dollar amount for conversion/display. */
+export function borderPriceUsdAmount(border: Pick<Border, 'priceMajorArcana' | 'priceFullDeck'>): number {
   const cents = border.priceMajorArcana ?? border.priceFullDeck ?? DEFAULT_BORDER_PRICE_CENTS;
-  return (Number(cents) / 100).toFixed(2);
+  return Number(cents) / 100;
+}
+
+/** Plain USD string (no currency symbol); prefer `formatBorderPriceLocalized` for UI. */
+export function borderPriceUsdFormatted(border: Pick<Border, 'priceMajorArcana' | 'priceFullDeck'>): string {
+  return borderPriceUsdAmount(border).toFixed(2);
+}
+
+/** Border list price (USD from DB) → localized display. Safe for Server Components only if `borders` was fetched server-side. */
+export function formatBorderPriceLocalized(
+  border: Pick<Border, 'priceMajorArcana' | 'priceFullDeck'>,
+  currency: string,
+): string {
+  return formatUsdAsLocalCurrency(borderPriceUsdAmount(border), currency);
 }
 
 function borderFromStatic(t: BorderTemplate): Border {

@@ -71,4 +71,15 @@ export const STUDIO_BORDER_TEMPLATE_CONFIG: StudioBorderTemplateConfig[] = [
     name: 'Dragon Scale Border',
     templateId: '7cd886df-fbd2-4547-a160-411fd65c5695',
   },
+  {
+    id: 'marble-temple',
+    name: 'Marble Temple',
+    templateId: '06d37726-78e4-4bea-a6ba-97f5dfcde7b2',
+    frame: {
+      left: 12,
+      top: 14,
+      width: 76,
+      height: 68,
+    },
+  },
 ];

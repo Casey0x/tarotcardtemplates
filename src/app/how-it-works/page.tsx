@@ -1,4 +1,9 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
+import { DEFAULT_BORDER_PRICE_CENTS } from '@/data/borders';
+import { TEMPLATE_PRICE } from '@/data/templates';
+import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
+import { getUserCurrency } from '@/lib/getUserCurrency';
 
 export const metadata: Metadata = {
   title: 'How it works',
@@ -7,7 +12,11 @@ export const metadata: Metadata = {
   alternates: { canonical: '/how-it-works' },
 };
 
-export default function HowItWorksPage() {
+export default async function HowItWorksPage() {
+  const { currency } = getUserCurrency(headers());
+  const borderPriceDisplay = formatUsdAsLocalCurrency(DEFAULT_BORDER_PRICE_CENTS / 100, currency);
+  const templateDownloadPriceDisplay = formatUsdAsLocalCurrency(TEMPLATE_PRICE, currency);
+
   return (
     <div className="max-w-3xl space-y-14">
       <header>
@@ -34,7 +43,7 @@ export default function HowItWorksPage() {
             </p>
           </li>
           <li>
-            <h3 className="text-xl font-medium">3. Purchase your border ($8.95)</h3>
+            <h3 className="text-xl font-medium">3. Purchase your border ({borderPriceDisplay})</h3>
             <p className="mt-2 text-charcoal/80">
               Unlock saving, exporting, and print-ready file generation through the full Studio deck flow after checkout.
             </p>
@@ -70,7 +79,8 @@ export default function HowItWorksPage() {
             <li>
               <h3 className="text-xl font-medium">2. Purchase</h3>
               <p className="mt-2 text-charcoal/80">
-                Buy a digital template ($18.95), or add the optional single printed deck at checkout
+                Buy a digital template ({templateDownloadPriceDisplay}), or add the optional single printed deck at
+                checkout
                 where available.
               </p>
             </li>

@@ -44,7 +44,7 @@ export const BORDER_TEMPLATES: BorderTemplate[] = [
   },
   {
     slug: 'marble-temple',
-    name: 'Marble Temple Tarot Border',
+    name: 'Marble Temple',
     description:
       'Classical marble tarot card border with fluted columns and an arched central window for your artwork.',
     productDescription:

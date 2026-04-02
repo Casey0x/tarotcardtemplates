@@ -726,7 +726,7 @@ export default async function TemplateDetailPage({
 
   return (
     <>
-      <JsonLd data={templateProductJsonLd(template)} />
+      <JsonLd data={templateProductJsonLd(template, currency)} />
       <article className="grid gap-10 lg:grid-cols-2">
         <section>
           <TemplateGallery images={getTemplatePreviewImages(template)} templateName={template.name} />

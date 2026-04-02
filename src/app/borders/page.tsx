@@ -1,7 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { borderPriceUsdFormatted, fetchBorders, FALLBACK_BORDER_IMAGE } from '@/data/borders';
+import { headers } from 'next/headers';
+import { fetchBorders, FALLBACK_BORDER_IMAGE, formatBorderPriceLocalized } from '@/data/borders';
+import { getUserCurrency } from '@/lib/getUserCurrency';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -15,6 +17,7 @@ export const metadata: Metadata = {
 
 export default async function BordersPage() {
   const borders = await fetchBorders();
+  const { currency } = getUserCurrency(headers());
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
@@ -47,7 +50,9 @@ export default async function BordersPage() {
               </div>
               <h2 className="mb-1 text-sm font-semibold text-charcoal">{border.name}</h2>
               <p className="text-xs text-charcoal/80">{border.description}</p>
-              <p className="mt-3 text-sm font-medium text-charcoal">${borderPriceUsdFormatted(border)}</p>
+              <p className="mt-3 text-sm font-medium text-charcoal">
+                {formatBorderPriceLocalized(border, currency)}
+              </p>
             </Link>
             <Link
               href={`/studio-beta?border=${border.slug}`}
