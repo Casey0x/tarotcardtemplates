@@ -172,6 +172,15 @@ const GOLDEN_HONEYCOMB_META = {
   canonical: 'https://www.tarotcardtemplates.com/borders/golden-honeycomb',
 };
 
+/** SEO copy embeds a USD list token; replace with the same localized price as the page body. */
+function localizedBorderMetaDescription(
+  description: string,
+  border: Parameters<typeof formatBorderPriceLocalized>[0],
+  currency: string,
+): string {
+  return description.replace(/\$8\.95/g, formatBorderPriceLocalized(border, currency));
+}
+
 const HAS_FULL_LAYOUT = (s: string) =>
   s === 'marble-temple' ||
   s === 'vintage-velvet' ||
@@ -194,10 +203,11 @@ export async function generateMetadata({
   if (!border) {
     return { title: 'Border Not Found' };
   }
+  const { currency } = getUserCurrency();
   if (params.slug === 'marble-temple') {
     return {
       title: MARBLE_TEMPLE_META.title,
-      description: MARBLE_TEMPLE_META.description,
+      description: localizedBorderMetaDescription(MARBLE_TEMPLE_META.description, border, currency),
       alternates: { canonical: MARBLE_TEMPLE_META.canonical },
       openGraph: { title: MARBLE_TEMPLE_META.title },
     };
@@ -205,7 +215,7 @@ export async function generateMetadata({
   if (params.slug === 'vintage-velvet') {
     return {
       title: VINTAGE_VELVET_META.title,
-      description: VINTAGE_VELVET_META.description,
+      description: localizedBorderMetaDescription(VINTAGE_VELVET_META.description, border, currency),
       alternates: { canonical: VINTAGE_VELVET_META.canonical },
       openGraph: { title: VINTAGE_VELVET_META.title },
     };
@@ -213,7 +223,7 @@ export async function generateMetadata({
   if (params.slug === 'celestial-gilded') {
     return {
       title: CELESTIAL_GILDED_META.title,
-      description: CELESTIAL_GILDED_META.description,
+      description: localizedBorderMetaDescription(CELESTIAL_GILDED_META.description, border, currency),
       alternates: { canonical: CELESTIAL_GILDED_META.canonical },
       openGraph: { title: CELESTIAL_GILDED_META.title },
     };
@@ -221,7 +231,7 @@ export async function generateMetadata({
   if (params.slug === 'steampunk-brass') {
     return {
       title: STEAMPUNK_BRASS_META.title,
-      description: STEAMPUNK_BRASS_META.description,
+      description: localizedBorderMetaDescription(STEAMPUNK_BRASS_META.description, border, currency),
       alternates: { canonical: STEAMPUNK_BRASS_META.canonical },
       openGraph: { title: STEAMPUNK_BRASS_META.title },
     };
@@ -229,7 +239,7 @@ export async function generateMetadata({
   if (params.slug === 'japanese-zen') {
     return {
       title: JAPANESE_ZEN_META.title,
-      description: JAPANESE_ZEN_META.description,
+      description: localizedBorderMetaDescription(JAPANESE_ZEN_META.description, border, currency),
       alternates: { canonical: JAPANESE_ZEN_META.canonical },
       openGraph: { title: JAPANESE_ZEN_META.title },
     };
@@ -237,7 +247,7 @@ export async function generateMetadata({
   if (params.slug === 'enchanted-forest') {
     return {
       title: ENCHANTED_FOREST_META.title,
-      description: ENCHANTED_FOREST_META.description,
+      description: localizedBorderMetaDescription(ENCHANTED_FOREST_META.description, border, currency),
       alternates: { canonical: ENCHANTED_FOREST_META.canonical },
       openGraph: { title: ENCHANTED_FOREST_META.title },
     };
@@ -245,7 +255,7 @@ export async function generateMetadata({
   if (params.slug === 'day-of-the-dead') {
     return {
       title: DAY_OF_THE_DEAD_META.title,
-      description: DAY_OF_THE_DEAD_META.description,
+      description: localizedBorderMetaDescription(DAY_OF_THE_DEAD_META.description, border, currency),
       alternates: { canonical: DAY_OF_THE_DEAD_META.canonical },
       openGraph: { title: DAY_OF_THE_DEAD_META.title },
     };
@@ -253,7 +263,7 @@ export async function generateMetadata({
   if (params.slug === 'ocean-mermaid') {
     return {
       title: OCEAN_MERMAID_META.title,
-      description: OCEAN_MERMAID_META.description,
+      description: localizedBorderMetaDescription(OCEAN_MERMAID_META.description, border, currency),
       alternates: { canonical: OCEAN_MERMAID_META.canonical },
       openGraph: { title: OCEAN_MERMAID_META.title },
     };
@@ -261,7 +271,7 @@ export async function generateMetadata({
   if (params.slug === 'dragon-scale') {
     return {
       title: DRAGON_SCALE_META.title,
-      description: DRAGON_SCALE_META.description,
+      description: localizedBorderMetaDescription(DRAGON_SCALE_META.description, border, currency),
       alternates: { canonical: DRAGON_SCALE_META.canonical },
       openGraph: { title: DRAGON_SCALE_META.title },
     };
@@ -269,7 +279,7 @@ export async function generateMetadata({
   if (params.slug === 'gothic-romance') {
     return {
       title: GOTHIC_ROMANCE_META.title,
-      description: GOTHIC_ROMANCE_META.description,
+      description: localizedBorderMetaDescription(GOTHIC_ROMANCE_META.description, border, currency),
       alternates: { canonical: GOTHIC_ROMANCE_META.canonical },
       openGraph: { title: GOTHIC_ROMANCE_META.title },
     };
@@ -277,7 +287,7 @@ export async function generateMetadata({
   if (params.slug === 'art-nouveau-lily') {
     return {
       title: ART_NOUVEAU_LILY_META.title,
-      description: ART_NOUVEAU_LILY_META.description,
+      description: localizedBorderMetaDescription(ART_NOUVEAU_LILY_META.description, border, currency),
       alternates: { canonical: ART_NOUVEAU_LILY_META.canonical },
       openGraph: { title: ART_NOUVEAU_LILY_META.title },
     };
@@ -285,7 +295,7 @@ export async function generateMetadata({
   if (params.slug === 'mystic-candlelight') {
     return {
       title: MYSTIC_CANDLELIGHT_META.title,
-      description: MYSTIC_CANDLELIGHT_META.description,
+      description: localizedBorderMetaDescription(MYSTIC_CANDLELIGHT_META.description, border, currency),
       alternates: { canonical: MYSTIC_CANDLELIGHT_META.canonical },
       openGraph: { title: MYSTIC_CANDLELIGHT_META.title },
     };
@@ -293,7 +303,7 @@ export async function generateMetadata({
   if (params.slug === 'golden-honeycomb') {
     return {
       title: GOLDEN_HONEYCOMB_META.title,
-      description: GOLDEN_HONEYCOMB_META.description,
+      description: localizedBorderMetaDescription(GOLDEN_HONEYCOMB_META.description, border, currency),
       alternates: { canonical: GOLDEN_HONEYCOMB_META.canonical },
       openGraph: { title: GOLDEN_HONEYCOMB_META.title },
     };
@@ -303,7 +313,11 @@ export async function generateMetadata({
     title,
     description:
       params.slug === 'minimal-line'
-        ? 'Download the Minimal Line tarot border template — clean geometric frame for modern and AI-generated tarot decks. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.'
+        ? localizedBorderMetaDescription(
+            'Download the Minimal Line tarot border template — clean geometric frame for modern and AI-generated tarot decks. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+            border,
+            currency,
+          )
         : border.description,
     alternates: {
       canonical: `https://www.tarotcardtemplates.com/borders/${params.slug}`,
