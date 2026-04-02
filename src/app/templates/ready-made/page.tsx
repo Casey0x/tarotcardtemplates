@@ -2,7 +2,7 @@ import { getAllTemplates } from "@/lib/templates";
 import TemplateCard from "@/components/template-card";
 import type { Metadata } from "next";
 import { getUserCurrency } from "@/lib/getUserCurrency";
-import { formatUsdAsLocalCurrency } from "@/lib/formatPrice";
+import { formatTemplatePriceDisplay } from "@/lib/template-pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +31,7 @@ export default async function ReadyMadeTemplatesPage() {
             <TemplateCard
               key={template.slug}
               template={template}
-              templatePriceDisplay={formatUsdAsLocalCurrency(template.templatePrice, currency)}
+                templatePriceDisplay={formatTemplatePriceDisplay(currency)}
               currencyCode={currency}
             />
           ))}

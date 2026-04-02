@@ -5,6 +5,7 @@ import { convertPrice } from '@/lib/convertCurrency';
 import type { SupportedCurrency } from '@/lib/getUserCurrency';
 import { SITE_URL, absoluteUrl } from '@/lib/site';
 import { getTemplatePreviewImages } from '@/lib/templates';
+import { getTemplatePriceByCurrency } from '@/lib/template-pricing';
 
 function localizedOfferAmount(amountUsd: number, currency: SupportedCurrency): { price: string; priceCurrency: string } {
   const n = currency === 'USD' ? amountUsd : convertPrice(amountUsd, currency);
@@ -38,7 +39,8 @@ export function templateProductJsonLd(template: TarotTemplate, currency: Support
   const pageUrl = `${SITE_URL}/templates/${template.slug}`;
   const previews = getTemplatePreviewImages(template);
   const imageUrl = previews[0]?.startsWith('http') ? previews[0] : absoluteUrl(previews[0] || '/favicon.svg');
-  const digital = localizedOfferAmount(template.templatePrice, currency);
+  const digitalAmount = getTemplatePriceByCurrency(currency);
+  const digital = { price: digitalAmount.toFixed(2), priceCurrency: currency };
   const printed = localizedOfferAmount(template.printPrice, currency);
 
   return {

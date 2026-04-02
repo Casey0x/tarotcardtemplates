@@ -8,7 +8,8 @@ export type TarotTemplate = {
   printPrice: number;
 };
 
-export const TEMPLATE_PRICE = 18.95;
+/** Fallback USD list in local mocks only; UI uses `getTemplatePriceByCurrency` for display. */
+export const TEMPLATE_PRICE = 14.95;
 export const PRINT_PRICE = 24.95;
 
 export const tarotTemplates: TarotTemplate[] = [

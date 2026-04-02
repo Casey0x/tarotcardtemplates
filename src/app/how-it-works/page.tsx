@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { DEFAULT_BORDER_PRICE_CENTS } from '@/data/borders';
-import { TEMPLATE_PRICE } from '@/data/templates';
 import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
 import { getUserCurrency } from '@/lib/getUserCurrency';
+import { formatTemplatePriceDisplay } from '@/lib/template-pricing';
 
 export const metadata: Metadata = {
   title: 'How it works',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function HowItWorksPage() {
   const { currency } = getUserCurrency();
   const borderPriceDisplay = formatUsdAsLocalCurrency(DEFAULT_BORDER_PRICE_CENTS / 100, currency);
-  const templateDownloadPriceDisplay = formatUsdAsLocalCurrency(TEMPLATE_PRICE, currency);
+  const templateDownloadPriceDisplay = formatTemplatePriceDisplay(currency);
 
   return (
     <div className="max-w-3xl space-y-14">

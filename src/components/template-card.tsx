@@ -5,7 +5,7 @@ import type { SupportedCurrency } from "@/lib/getUserCurrency";
 
 interface TemplateCardProps {
   template: TarotTemplate;
-  /** Localized template download price, e.g. `$18.95` or `NZ$31.27` */
+  /** Fixed regional template download price, e.g. `$14.95` or `NZ$24.95` */
   templatePriceDisplay: string;
   /** ISO currency code for an optional label (hide or USD for cleaner USD rows). */
   currencyCode: SupportedCurrency;

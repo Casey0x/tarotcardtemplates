@@ -6,7 +6,7 @@ import { JsonLd } from '@/components/json-ld';
 import { SITE_URL, absoluteUrl } from '@/lib/site';
 import { getAllTemplates } from '@/lib/templates';
 import { getUserCurrency } from '@/lib/getUserCurrency';
-import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
+import { formatTemplatePriceDisplay } from '@/lib/template-pricing';
 import TemplateCard from '@/components/template-card';
 
 export const dynamic = 'force-dynamic';
@@ -224,7 +224,7 @@ export default async function Page() {
             <TemplateCard
               key={template.slug}
               template={template}
-              templatePriceDisplay={formatUsdAsLocalCurrency(template.templatePrice, currency)}
+              templatePriceDisplay={formatTemplatePriceDisplay(currency)}
               currencyCode={currency}
             />
           ))}

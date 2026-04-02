@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTemplateBySlug, getTemplatePreviewImages } from "@/lib/templates";
 import { getUserCurrency } from "@/lib/getUserCurrency";
 import { formatUsdAsLocalCurrency } from "@/lib/formatPrice";
+import { formatTemplatePriceDisplay } from "@/lib/template-pricing";
 import TemplateGallery from "@/components/template-gallery";
 import HollowSaintPhysicalDeckImage from "@/components/hollow-saint-physical-deck-image";
 import type { Metadata } from "next";
@@ -700,7 +701,7 @@ export default async function TemplateDetailPage({
   if (!template) {
     notFound();
   }
-  const templatePriceDisplay = formatUsdAsLocalCurrency(template.templatePrice, currency);
+  const templatePriceDisplay = formatTemplatePriceDisplay(currency);
   const printPriceDisplay = formatUsdAsLocalCurrency(template.printPrice, currency);
 
   const physicalDeckImage = "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/" + template.slug.toUpperCase() + "/physical-deck.png";
