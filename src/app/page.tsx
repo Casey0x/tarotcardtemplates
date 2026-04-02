@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { fetchBorders, FALLBACK_BORDER_IMAGE } from '@/data/borders';
 import Image from 'next/image';
 import { JsonLd } from '@/components/json-ld';
@@ -23,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page() {
   const borders = await fetchBorders();
   const templates = await getAllTemplates();
-  const { currency } = getUserCurrency(headers());
+  const { currency } = getUserCurrency();
 
   const homeJsonLd = {
     '@context': 'https://schema.org',

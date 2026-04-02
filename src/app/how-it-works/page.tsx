@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { DEFAULT_BORDER_PRICE_CENTS } from '@/data/borders';
 import { TEMPLATE_PRICE } from '@/data/templates';
 import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
@@ -13,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HowItWorksPage() {
-  const { currency } = getUserCurrency(headers());
+  const { currency } = getUserCurrency();
   const borderPriceDisplay = formatUsdAsLocalCurrency(DEFAULT_BORDER_PRICE_CENTS / 100, currency);
   const templateDownloadPriceDisplay = formatUsdAsLocalCurrency(TEMPLATE_PRICE, currency);
 

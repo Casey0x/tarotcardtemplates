@@ -1,4 +1,9 @@
-import { countryCodeFromIncomingHeaders, countryFromLocaleTag } from '@/lib/request-country';
+import { cookies, headers } from 'next/headers';
+import {
+  TCT_COUNTRY_COOKIE,
+  countryCodeFromIncomingHeaders,
+  countryFromLocaleTag,
+} from '@/lib/request-country';
 
 export type SupportedCurrency = 'USD' | 'AUD' | 'NZD';
 
@@ -24,24 +29,22 @@ export function getCountryFromLocaleString(locale: string | null | undefined): s
   return countryFromLocaleTag(locale);
 }
 
-function getCountryFromHeaders(headersList: Headers): string | null {
-  return countryCodeFromIncomingHeaders(headersList);
-}
-
 /**
  * Resolve currency for the current request (server).
- * Priority: IP/country headers → Accept-Language region (AU/NZ only).
+ * Priority: `x-detected-country` (middleware) → CDN headers → Accept-Language → `tct_country` cookie.
  *
  * For client components, pass the result from a parent server component to avoid
  * hydration mismatches. Optional: `getUserCurrencyFromNavigator()` after mount only.
  */
-export function getUserCurrency(headersList: Headers): UserCurrency {
-  return countryCodeToCurrency(getCountryFromHeaders(headersList));
+export function getUserCurrency(): UserCurrency {
+  const headersList = headers();
+  const pricingCookie = cookies().get(TCT_COUNTRY_COOKIE)?.value ?? null;
+  return countryCodeToCurrency(countryCodeFromIncomingHeaders(headersList, pricingCookie));
 }
 
 /**
  * Client-only fallback using `navigator.language` (call after mount if needed).
- * Do not use during SSR — prefer `getUserCurrency(headers)` on the server and pass down.
+ * Do not use during SSR — prefer `getUserCurrency()` on the server and pass down.
  */
 export function getUserCurrencyFromNavigator(): UserCurrency {
   if (typeof navigator === 'undefined') {

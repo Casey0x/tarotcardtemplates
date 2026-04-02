@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { headers } from "next/headers";
 import { getAllTemplates } from "@/lib/templates";
 import TemplateCard from "@/components/template-card";
 import type { Metadata } from "next";
@@ -16,7 +15,7 @@ export const metadata: Metadata = {
 
 export default async function ReadyMadeTemplatesPage() {
   const templates = await getAllTemplates();
-  const { currency } = getUserCurrency(headers());
+  const { currency } = getUserCurrency();
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">

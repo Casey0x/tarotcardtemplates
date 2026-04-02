@@ -1,5 +1,8 @@
 import type { NextRequest } from 'next/server';
 
+/** Persisted AU/NZ hint when geo CDN headers are missing (e.g. some Netlify setups). */
+export const TCT_COUNTRY_COOKIE = 'tct_country';
+
 /**
  * Headers some CDNs / hosts set for visitor country (ISO 3166-1 alpha-2).
  * Not including `x-detected-country` — that is our normalized copy for downstream RSC.
@@ -43,11 +46,37 @@ export function countryFromLocaleTag(locale: string | null | undefined): string 
   return null;
 }
 
+export function countryFromAcceptLanguageHeader(
+  acceptLang: string | null | undefined,
+): string | null {
+  if (!acceptLang) return null;
+  const parts = acceptLang.split(',').map((s) => s.split(';')[0].trim());
+  for (const p of parts) {
+    const fromLocale = countryFromLocaleTag(p);
+    if (fromLocale) return fromLocale;
+  }
+  return null;
+}
+
 /**
- * Full resolution for Server Components (`headers()`): normalized country header,
- * then CDN headers, then Accept-Language regions.
+ * Middleware: CDN/geo first, then Accept-Language AU/NZ only. Sets `x-detected-country`
+ * and (for NZ/AU) `tct_country` on the response so RSC can read `cookies()` if header
+ * forwarding is unreliable.
  */
-export function countryCodeFromIncomingHeaders(headersList: Headers): string | null {
+export function resolveCountryForPricingMiddleware(request: NextRequest): string | null {
+  const edge = inferCountryFromEdgeRequest(request);
+  if (edge) return edge;
+  return countryFromAcceptLanguageHeader(request.headers.get('accept-language'));
+}
+
+/**
+ * Full resolution for Server Components (`headers()` + optional pricing cookie):
+ * normalized country header, CDN headers, Accept-Language, then `tct_country` cookie.
+ */
+export function countryCodeFromIncomingHeaders(
+  headersList: Headers,
+  pricingCookie?: string | null,
+): string | null {
   const detected = normalizeCountry(headersList.get('x-detected-country'));
   if (detected) return detected;
 
@@ -56,14 +85,11 @@ export function countryCodeFromIncomingHeaders(headersList: Headers): string | n
     if (c) return c;
   }
 
-  const acceptLang = headersList.get('accept-language');
-  if (acceptLang) {
-    const parts = acceptLang.split(',').map((s) => s.split(';')[0].trim());
-    for (const p of parts) {
-      const fromLocale = countryFromLocaleTag(p);
-      if (fromLocale) return fromLocale;
-    }
-  }
+  const fromAccept = countryFromAcceptLanguageHeader(headersList.get('accept-language'));
+  if (fromAccept) return fromAccept;
+
+  const fromCookie = normalizeCountry(pricingCookie ?? undefined);
+  if (fromCookie === 'NZ' || fromCookie === 'AU') return fromCookie;
 
   return null;
 }

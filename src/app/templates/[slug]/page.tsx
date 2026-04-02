@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { headers } from "next/headers";
 import { getTemplateBySlug, getTemplatePreviewImages } from "@/lib/templates";
 import { getUserCurrency } from "@/lib/getUserCurrency";
 import { formatUsdAsLocalCurrency } from "@/lib/formatPrice";
@@ -701,7 +700,7 @@ export default async function TemplateDetailPage({
     notFound();
   }
 
-  const { currency } = getUserCurrency(headers());
+  const { currency } = getUserCurrency();
   const templatePriceDisplay = formatUsdAsLocalCurrency(template.templatePrice, currency);
   const printPriceDisplay = formatUsdAsLocalCurrency(template.printPrice, currency);
 

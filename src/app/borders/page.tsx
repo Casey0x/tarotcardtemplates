@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { fetchBorders, FALLBACK_BORDER_IMAGE, formatBorderPriceLocalized } from '@/data/borders';
 import { getUserCurrency } from '@/lib/getUserCurrency';
 
@@ -17,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function BordersPage() {
   const borders = await fetchBorders();
-  const { currency } = getUserCurrency(headers());
+  const { currency } = getUserCurrency();
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">

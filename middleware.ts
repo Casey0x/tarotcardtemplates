@@ -1,23 +1,42 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { inferCountryFromEdgeRequest } from '@/lib/request-country';
+import {
+  TCT_COUNTRY_COOKIE,
+  resolveCountryForPricingMiddleware,
+} from '@/lib/request-country';
+
+const PRICING_COUNTRY_COOKIE_OPTS = {
+  path: '/',
+  maxAge: 60 * 60 * 24 * 180,
+  sameSite: 'lax' as const,
+};
+
+function applyPricingCountryCookies(res: NextResponse, resolved: string | null) {
+  if (resolved === 'NZ' || resolved === 'AU') {
+    res.cookies.set(TCT_COUNTRY_COOKIE, resolved, PRICING_COUNTRY_COOKIE_OPTS);
+  } else if (resolved) {
+    res.cookies.delete(TCT_COUNTRY_COOKIE);
+  }
+}
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const requestHeaders = new Headers(request.headers);
 
-  const inferredCountry = inferCountryFromEdgeRequest(request);
-  if (inferredCountry) {
-    requestHeaders.set('x-detected-country', inferredCountry);
+  const resolved = resolveCountryForPricingMiddleware(request);
+  if (resolved) {
+    requestHeaders.set('x-detected-country', resolved);
   }
 
   const isStudio = path.startsWith('/studio');
   const isAuth = path.startsWith('/auth');
 
   if (!isStudio || isAuth) {
-    return NextResponse.next({
+    const res = NextResponse.next({
       request: { headers: requestHeaders },
     });
+    applyPricingCountryCookies(res, resolved);
+    return res;
   }
 
   let response = NextResponse.next({
@@ -53,9 +72,12 @@ export async function middleware(request: NextRequest) {
   if (!session) {
     const loginUrl = new URL('/account', request.url);
     loginUrl.searchParams.set('redirect', path);
-    return NextResponse.redirect(loginUrl);
+    const redirect = NextResponse.redirect(loginUrl);
+    applyPricingCountryCookies(redirect, resolved);
+    return redirect;
   }
 
+  applyPricingCountryCookies(response, resolved);
   return response;
 }
 

@@ -2,7 +2,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { BORDER_TEMPLATES, fetchBorderBySlug, FALLBACK_BORDER_IMAGE, formatBorderPriceLocalized } from '@/data/borders';
 import { getUserCurrency } from '@/lib/getUserCurrency';
 import { BorderPurchase } from '@/components/border-purchase';
@@ -340,7 +339,7 @@ export default async function BorderPage({ params }: BorderPageProps) {
   const purchasedSlugs = await fetchPurchasedBorderSlugsForUser();
   const ownsBorder = purchasedSlugs.includes(slug);
 
-  const { currency } = getUserCurrency(headers());
+  const { currency } = getUserCurrency();
   const borderListPriceDisplay = formatBorderPriceLocalized(border, currency);
 
   const videoTitle = `How to Design Tarot Cards Using the ${border.name}`;

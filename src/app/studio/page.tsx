@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { StudioSessionRedirect } from '@/components/studio-session-redirect';
 import { StudioVisualPreview } from '@/components/studio-visual-preview';
 import { DEFAULT_BORDER_PRICE_CENTS, fetchBorders } from '@/data/borders';
@@ -61,7 +60,7 @@ export default async function StudioPage({
   const initialBorderSlug =
     q && dropdownBorders.some((b) => b.slug === q) ? q : dropdownBorders[0]?.slug;
 
-  const { currency } = getUserCurrency(headers());
+  const { currency } = getUserCurrency();
   const borderListPriceDisplay = formatUsdAsLocalCurrency(DEFAULT_BORDER_PRICE_CENTS / 100, currency);
 
   return (

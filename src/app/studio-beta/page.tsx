@@ -2,7 +2,6 @@ import { StudioSessionRedirect } from '@/components/studio-session-redirect';
 import { StudioVisualPreview } from '@/components/studio-visual-preview';
 import { BORDER_TEMPLATES } from '@/data/border-templates-static';
 import { DEFAULT_BORDER_PRICE_CENTS } from '@/data/borders';
-import { headers } from 'next/headers';
 import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
 import { getUserCurrency } from '@/lib/getUserCurrency';
 import {
@@ -56,7 +55,7 @@ export default async function StudioBetaPage({
   const initialBorderSlug =
     q && dropdownBorders.some((b) => b.slug === q) ? q : dropdownBorders[0]?.slug;
 
-  const { currency } = getUserCurrency(headers());
+  const { currency } = getUserCurrency();
   const borderListPriceDisplay = formatUsdAsLocalCurrency(DEFAULT_BORDER_PRICE_CENTS / 100, currency);
 
   return (
