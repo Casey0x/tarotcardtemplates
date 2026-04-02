@@ -8,18 +8,19 @@ const nextConfig = {
       'templated-assets.s3.amazonaws.com',
     ],
   },
-  // Borders index is dynamic; avoid CDN/browser serving old HTML after deploys (stale layout).
+  // Geo/currency pricing is per-request; avoid CDN/browser serving stale HTML (USD) while other
+  // routes show localized prices (e.g. /borders had no-store but /templates did not).
   async headers() {
+    const noStore = {
+      key: 'Cache-Control',
+      value: 'private, no-cache, no-store, must-revalidate',
+    };
     return [
-      {
-        source: '/borders',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'private, no-cache, no-store, must-revalidate',
-          },
-        ],
-      },
+      { source: '/', headers: [noStore] },
+      { source: '/borders', headers: [noStore] },
+      { source: '/borders/:path*', headers: [noStore] },
+      { source: '/templates', headers: [noStore] },
+      { source: '/templates/:path*', headers: [noStore] },
     ];
   },
 };

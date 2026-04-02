@@ -20,9 +20,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
+  const { currency } = getUserCurrency();
   const borders = await fetchBorders();
   const templates = await getAllTemplates();
-  const { currency } = getUserCurrency();
 
   const homeJsonLd = {
     '@context': 'https://schema.org',

@@ -21,9 +21,9 @@ export const metadata: Metadata = {
 };
 
 export default async function TemplatesPage() {
+  const { currency } = getUserCurrency();
   const templates = await getAllTemplates();
   const borders = await fetchBorders();
-  const { currency } = getUserCurrency();
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">

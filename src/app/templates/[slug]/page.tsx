@@ -694,13 +694,12 @@ export default async function TemplateDetailPage({
 }: {
   params: { slug: string };
 }) {
+  const { currency } = getUserCurrency();
   const template = await getTemplateBySlug(params.slug);
 
   if (!template) {
     notFound();
   }
-
-  const { currency } = getUserCurrency();
   const templatePriceDisplay = formatUsdAsLocalCurrency(template.templatePrice, currency);
   const printPriceDisplay = formatUsdAsLocalCurrency(template.printPrice, currency);
 

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getAllTemplates } from "@/lib/templates";
 import TemplateCard from "@/components/template-card";
 import type { Metadata } from "next";
@@ -14,8 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function ReadyMadeTemplatesPage() {
-  const templates = await getAllTemplates();
   const { currency } = getUserCurrency();
+  const templates = await getAllTemplates();
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-12">
@@ -29,13 +28,12 @@ export default async function ReadyMadeTemplatesPage() {
       ) : (
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {templates.map((template) => (
-            <Link key={template.slug} href={`/templates/${template.slug}`}>
-              <TemplateCard
-                template={template}
-                templatePriceDisplay={formatUsdAsLocalCurrency(template.templatePrice, currency)}
-                currencyCode={currency}
-              />
-            </Link>
+            <TemplateCard
+              key={template.slug}
+              template={template}
+              templatePriceDisplay={formatUsdAsLocalCurrency(template.templatePrice, currency)}
+              currencyCode={currency}
+            />
           ))}
         </div>
       )}
