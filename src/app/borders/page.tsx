@@ -53,12 +53,20 @@ export default async function BordersPage() {
                 {formatBorderPriceLocalized(border, currency)}
               </p>
             </Link>
-            <Link
-              href={`/studio-beta?border=${border.slug}`}
-              className="mt-3 text-xs font-medium text-charcoal underline underline-offset-2 hover:text-charcoal/80"
-            >
-              Try in Studio →
-            </Link>
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <Link
+                href={`/studio-beta?border=${border.slug}`}
+                className="text-xs font-medium text-charcoal underline underline-offset-2 hover:text-charcoal/80"
+              >
+                Try in Studio →
+              </Link>
+              <Link
+                href={`/borders/${border.slug}`}
+                className="text-xs text-charcoal/65 hover:text-charcoal/90"
+              >
+                {formatBorderPriceLocalized(border, currency)}
+              </Link>
+            </div>
           </div>
         ))}
       </div>

@@ -53,12 +53,13 @@ export default async function StudioPage({
     borderOptions,
     purchasedBorderSlugs,
     trialRendersUsed,
-    isLoggedIn,
-    q
+    isLoggedIn
   );
 
   const initialBorderSlug =
-    q && dropdownBorders.some((b) => b.slug === q) ? q : dropdownBorders[0]?.slug;
+    q && borderOptions.some((b) => b.slug === q)
+      ? q
+      : purchasedBorderSlugs[0] ?? borderOptions[0]?.slug;
 
   const { currency } = getUserCurrency();
   const borderListPriceDisplay = formatUsdAsLocalCurrency(DEFAULT_BORDER_PRICE_CENTS / 100, currency);

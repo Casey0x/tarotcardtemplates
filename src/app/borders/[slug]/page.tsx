@@ -357,7 +357,6 @@ export default async function BorderPage({ params }: BorderPageProps) {
   const borderListPriceDisplay = formatBorderPriceLocalized(border, currency);
 
   const videoTitle = `How to Design Tarot Cards Using the ${border.name}`;
-  const studioLink = `/studio-beta?border=${slug}`;
 
   return (
     <div className="space-y-10 bg-cream -mx-6 -my-12 px-6 py-12">
@@ -451,15 +450,6 @@ export default async function BorderPage({ params }: BorderPageProps) {
               <li>Export your finished tarot cards as print-ready files.</li>
               <li>Optional: order professional tarot card printing through our printing partners.</li>
             </ul>
-          </div>
-
-          <div className="rounded-sm border border-charcoal/15 bg-cream/70 p-4">
-            <Link
-              href={studioLink}
-              className="inline-flex w-full items-center justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-3 text-center text-sm font-medium text-cream transition hover:bg-charcoal/90"
-            >
-              {ownsBorder ? 'Open in Studio →' : 'Try this border in Studio →'}
-            </Link>
           </div>
 
           {/* Full layout sidebar: Design Your Deck (Stripe checkout), Included Files, Template Features */}

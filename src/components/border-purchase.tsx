@@ -42,6 +42,7 @@ export function BorderPurchase({
   const canPurchase = !!templatedTemplateId;
   const loginRedirect = `/auth/login?redirect=${encodeURIComponent(`/borders/${borderSlug}`)}`;
   const studioHref = `/studio-beta?border=${borderSlug}`;
+  const purchasePageHref = `/borders/${borderSlug}/purchase`;
 
   async function handlePurchase() {
     if (!templatedTemplateId) return;
@@ -89,126 +90,148 @@ export function BorderPurchase({
     );
   }
 
-  if (!isLoggedIn) {
-    return (
-      <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
-        <h2 className="mb-4 text-lg font-semibold text-charcoal">Border Template — Studio</h2>
-        {canPurchase ? (
-          <>
-            <p className="mb-2 text-sm font-medium text-charcoal/80">Choose size:</p>
-            <ul className="mb-4 space-y-2">
-              {PRICING.map((p) => (
-                <li key={p.id}>
-                  <label className="flex cursor-pointer items-center gap-2">
-                    <input
-                      type="radio"
-                      name="suiteSize"
-                      checked={suiteSize === p.id}
-                      onChange={() => setSuiteSize(p.id)}
-                      className="text-charcoal"
-                    />
-                    <span className="text-charcoal">{p.label}</span>
-                    <span className="text-charcoal/70">
-                      {formatUsdAsLocalCurrency(p.amountPence / 100, currency)}
-                    </span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-            <p className="mb-4 text-xs text-charcoal/70">Sign in to continue to secure checkout for your selection.</p>
-          </>
-        ) : (
-          <>
-            <p className="mb-4 text-charcoal/90">
-              <span className="font-medium">Price: {listPriceDisplay}</span> — Includes PNG, PSD, and Canva-compatible
-              files. Use the Studio after purchase to place your artwork in the frame.
-            </p>
-            <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
-            <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
-              <li>PNG border</li>
-              <li>PSD layered file</li>
-              <li>Canva compatible</li>
-              <li>70×120mm tarot card size</li>
-              <li>3mm bleed included</li>
-            </ul>
-          </>
-        )}
-        <Link
-          href={loginRedirect}
-          className="inline-block border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream transition-colors hover:bg-charcoal/90"
-        >
-          Sign in to purchase
-        </Link>
-      </div>
-    );
-  }
+  const tryButtonClass =
+    'inline-flex min-h-[44px] flex-1 min-w-[10rem] items-center justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-3 text-center text-sm font-medium text-cream transition-colors hover:bg-charcoal/90';
+  const purchaseOutlineClass =
+    'inline-flex min-h-[44px] flex-1 min-w-[10rem] items-center justify-center rounded-sm border-2 border-charcoal bg-white px-4 py-3 text-center text-sm font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-cream';
 
-  // Logged in, does not own
-  return (
-    <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
-      <h2 className="mb-4 text-lg font-semibold text-charcoal">Border Template — Studio</h2>
-      {canPurchase ? (
-        <>
-          <p className="mb-2 text-sm font-medium text-charcoal/80">Choose size:</p>
-          <ul className="mb-4 space-y-2">
-            {PRICING.map((p) => (
-              <li key={p.id}>
-                <label className="flex cursor-pointer items-center gap-2">
-                  <input
-                    type="radio"
-                    name="suiteSize"
-                    checked={suiteSize === p.id}
-                    onChange={() => setSuiteSize(p.id)}
-                    className="text-charcoal"
-                  />
-                  <span className="text-charcoal">{p.label}</span>
-                  <span className="text-charcoal/70">
-                    {formatUsdAsLocalCurrency(p.amountPence / 100, currency)}
-                  </span>
-                </label>
-              </li>
-            ))}
-          </ul>
-          {error && (
-            <p className="mb-2 text-sm text-red-600" role="alert">
-              {error}
-            </p>
-          )}
+  const topRow = (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-3">
+        <Link href={studioHref} className={tryButtonClass}>
+          Try in Studio →
+        </Link>
+        {!canPurchase ? (
+          <Link href={purchasePageHref} className={purchaseOutlineClass}>
+            Purchase — {listPriceDisplay}
+          </Link>
+        ) : isLoggedIn ? (
           <button
             type="button"
             onClick={() => void handlePurchase()}
             disabled={loading}
-            className="border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream transition-colors hover:bg-charcoal/90 disabled:opacity-50"
+            className={`${purchaseOutlineClass} disabled:cursor-not-allowed disabled:opacity-50`}
           >
             {loading
               ? 'Redirecting to checkout…'
               : `Purchase — ${formatUsdAsLocalCurrency(option.amountPence / 100, currency)}`}
           </button>
-          <p className="mt-2 text-xs text-charcoal/70">After payment you’ll design each card in the Studio.</p>
+        ) : (
+          <Link href={loginRedirect} className={purchaseOutlineClass}>
+            Sign in to purchase
+          </Link>
+        )}
+      </div>
+      <p className="text-sm text-charcoal/60">
+        Try the border free in the Studio. Purchase to unlock exporting.
+      </p>
+    </div>
+  );
+
+  return (
+    <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
+      <h2 className="mb-4 text-lg font-semibold text-charcoal">Border Template — Studio</h2>
+
+      {topRow}
+
+      {!isLoggedIn ? (
+        <>
+          {canPurchase ? (
+            <>
+              <p className="mb-2 mt-6 text-sm font-medium text-charcoal/80">Choose size:</p>
+              <ul className="mb-4 space-y-2">
+                {PRICING.map((p) => (
+                  <li key={p.id}>
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="radio"
+                        name="suiteSize"
+                        checked={suiteSize === p.id}
+                        onChange={() => setSuiteSize(p.id)}
+                        className="text-charcoal"
+                      />
+                      <span className="text-charcoal">{p.label}</span>
+                      <span className="text-charcoal/70">
+                        {formatUsdAsLocalCurrency(p.amountPence / 100, currency)}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              <p className="text-xs text-charcoal/70">
+                Use <span className="font-medium">Sign in to purchase</span> above after choosing a size.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mb-4 mt-6 text-charcoal/90">
+                <span className="font-medium">Price: {listPriceDisplay}</span> — Includes PNG, PSD, and Canva-compatible
+                files. Use the Studio after purchase to place your artwork in the frame.
+              </p>
+              <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
+              <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
+                <li>PNG border</li>
+                <li>PSD layered file</li>
+                <li>Canva compatible</li>
+                <li>70×120mm tarot card size</li>
+                <li>3mm bleed included</li>
+              </ul>
+              <Link
+                href={loginRedirect}
+                className="inline-block border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream transition-colors hover:bg-charcoal/90"
+              >
+                Sign in to purchase
+              </Link>
+            </>
+          )}
         </>
       ) : (
         <>
-          <p className="mb-4 text-charcoal/90">
-            <span className="font-medium">Price: {listPriceDisplay}</span> — Includes PNG, PSD, and Canva-compatible
-            files. Use the Studio after purchase to place your artwork in the frame.
-          </p>
-          <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
-            <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
-              <li>PNG border</li>
-              <li>PSD layered file</li>
-              <li>Canva compatible</li>
-              <li>70×120mm tarot card size</li>
-              <li>3mm bleed included</li>
-            </ul>
-            <p className="mb-4 text-sm text-charcoal/75">
-              Online checkout for this border is not available yet. You can still try the frame in the Studio.
-            </p>
-          <Link
-            href={studioHref}
-            className="inline-block border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream transition-colors hover:bg-charcoal/90"
-          >
-            Try in Studio →
-          </Link>
+          {canPurchase ? (
+            <>
+              <p className="mb-2 mt-6 text-sm font-medium text-charcoal/80">Choose size:</p>
+              <ul className="mb-4 space-y-2">
+                {PRICING.map((p) => (
+                  <li key={p.id}>
+                    <label className="flex cursor-pointer items-center gap-2">
+                      <input
+                        type="radio"
+                        name="suiteSize"
+                        checked={suiteSize === p.id}
+                        onChange={() => setSuiteSize(p.id)}
+                        className="text-charcoal"
+                      />
+                      <span className="text-charcoal">{p.label}</span>
+                      <span className="text-charcoal/70">
+                        {formatUsdAsLocalCurrency(p.amountPence / 100, currency)}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              {error && (
+                <p className="mb-2 text-sm text-red-600" role="alert">
+                  {error}
+                </p>
+              )}
+              <p className="mt-2 text-xs text-charcoal/70">After payment you’ll design each card in the Studio.</p>
+            </>
+          ) : (
+            <>
+              <p className="mt-6 text-charcoal/90">
+                <span className="font-medium">Price: {listPriceDisplay}</span> — Includes PNG, PSD, and Canva-compatible
+                files. Use the Studio after purchase to place your artwork in the frame.
+              </p>
+              <p className="mb-2 mt-4 text-sm font-medium text-charcoal/80">Includes:</p>
+              <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
+                <li>PNG border</li>
+                <li>PSD layered file</li>
+                <li>Canva compatible</li>
+                <li>70×120mm tarot card size</li>
+                <li>3mm bleed included</li>
+              </ul>
+            </>
+          )}
         </>
       )}
     </div>

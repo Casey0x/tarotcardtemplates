@@ -62,25 +62,29 @@ export function StudioVisualPreview({
 }: Props) {
   const router = useRouter();
   const catalog = borderCatalog.length ? borderCatalog : borders;
+  /** Full list for the border dropdown (same as server `borderCatalog` when provided). */
+  const dropdownSource = catalog.length ? catalog : borders;
 
-  const firstSlug = borders[0]?.slug ?? '';
+  const firstSlug = dropdownSource[0]?.slug ?? '';
   const resolvedInitial =
-    initialBorderSlug && borders.some((b) => b.slug === initialBorderSlug) ? initialBorderSlug : firstSlug;
+    initialBorderSlug && dropdownSource.some((b) => b.slug === initialBorderSlug)
+      ? initialBorderSlug
+      : firstSlug;
   const [borderSlug, setBorderSlug] = useState(resolvedInitial);
   const [selectedCardIndex, setSelectedCardIndex] = useState(0);
 
   useEffect(() => {
-    if (initialBorderSlug && borders.some((b) => b.slug === initialBorderSlug)) {
+    if (initialBorderSlug && dropdownSource.some((b) => b.slug === initialBorderSlug)) {
       setBorderSlug(initialBorderSlug);
     }
-  }, [initialBorderSlug, borders]);
+  }, [initialBorderSlug, dropdownSource]);
 
   useEffect(() => {
-    if (!borders.length) return;
-    if (!borders.some((b) => b.slug === borderSlug)) {
-      setBorderSlug(borders[0].slug);
+    if (!dropdownSource.length) return;
+    if (!dropdownSource.some((b) => b.slug === borderSlug)) {
+      setBorderSlug(dropdownSource[0].slug);
     }
-  }, [borders, borderSlug]);
+  }, [dropdownSource, borderSlug]);
 
   const [sessionLoggedIn, setSessionLoggedIn] = useState(isLoggedIn);
   useEffect(() => {
@@ -386,7 +390,7 @@ export function StudioVisualPreview({
     );
   }
 
-  if (trialExhaustedNoPurchase && borders.length === 0) {
+  if (trialExhaustedNoPurchase && dropdownSource.length === 0) {
     return (
       <div className="mx-auto w-full max-w-7xl px-6 py-8">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-4">
@@ -600,24 +604,38 @@ export function StudioVisualPreview({
         <div className="space-y-4 rounded-sm border border-charcoal/10 bg-cream/80 p-4 lg:col-start-3 lg:row-start-1">
           <div>
             <h2 className="text-sm font-semibold text-charcoal">Border</h2>
-            {borders.length === 0 ? (
+            {dropdownSource.length === 0 ? (
               <p className="mt-1 text-xs text-charcoal/70">No borders loaded.</p>
             ) : (
-              <label className="mt-2 block text-xs text-charcoal/70">
-                <span className="sr-only">Choose border</span>
-                <select
-                  className="mt-1 w-full rounded-sm border border-charcoal/20 bg-cream px-2 py-2 text-sm text-charcoal"
-                  value={borderSlug}
-                  onChange={(e) => setBorderSlug(e.target.value)}
-                >
-                  {borders.map((b) => (
-                    <option key={b.slug} value={b.slug}>
-                      {b.name}
-                      {b.isTrial ? ' (Trial)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <>
+                <label className="mt-2 block text-xs text-charcoal/70">
+                  <span className="sr-only">Choose border</span>
+                  <select
+                    className="mt-1 w-full rounded-sm border border-charcoal/20 bg-cream px-2 py-2 text-sm text-charcoal"
+                    value={borderSlug}
+                    onChange={(e) => setBorderSlug(e.target.value)}
+                  >
+                    {dropdownSource.map((b) => (
+                      <option key={b.slug} value={b.slug}>
+                        {b.name}
+                        {sessionLoggedIn && !purchasedBorderSlugs.includes(b.slug) ? ' (Trial)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {sessionLoggedIn && !borderOwned ? (
+                  <p className="mt-2 text-xs leading-relaxed text-charcoal/60">
+                    Preview mode —{' '}
+                    <Link
+                      href={`/borders/${borderSlug}`}
+                      className="font-medium text-charcoal underline underline-offset-2 hover:no-underline"
+                    >
+                      Purchase this border ({borderListPriceDisplay})
+                    </Link>{' '}
+                    to export cards.
+                  </p>
+                ) : null}
+              </>
             )}
           </div>
 

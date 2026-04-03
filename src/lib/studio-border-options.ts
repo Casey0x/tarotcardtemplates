@@ -20,8 +20,7 @@ export function resolveStudioBorderOptions(
   all: StudioPreviewItem[],
   purchasedSlugs: string[],
   trialRendersUsed: number,
-  isLoggedIn: boolean,
-  trialBorderSlug?: string | null
+  isLoggedIn: boolean
 ): ResolvedStudioBorders {
   if (!isLoggedIn) {
     return {
@@ -32,26 +31,16 @@ export function resolveStudioBorderOptions(
   }
 
   const purchasedSet = new Set(purchasedSlugs);
-  const owned = all.filter((b) => purchasedSet.has(b.slug));
-
-  const q = trialBorderSlug?.trim();
-  const canTrialUnowned = trialRendersUsed < 2;
-  let list: StudioPreviewItem[] = [...owned];
-
-  if (q && !purchasedSet.has(q) && canTrialUnowned) {
-    const t = all.find((b) => b.slug === q);
-    if (t) {
-      const withoutQ = list.filter((b) => b.slug !== q);
-      list = [...withoutQ, { ...t, isTrial: true }];
-    }
-  }
+  const dropdownBorders = all.map((b) => ({
+    ...b,
+    isTrial: !purchasedSet.has(b.slug),
+  }));
 
   const trialExhaustedNoPurchase = trialRendersUsed >= 2 && purchasedSlugs.length === 0;
-  const noPurchasedBordersEmpty =
-    purchasedSlugs.length === 0 && list.length === 0 && !trialExhaustedNoPurchase;
+  const noPurchasedBordersEmpty = all.length === 0;
 
   return {
-    dropdownBorders: list,
+    dropdownBorders,
     trialExhaustedNoPurchase,
     noPurchasedBordersEmpty,
   };
