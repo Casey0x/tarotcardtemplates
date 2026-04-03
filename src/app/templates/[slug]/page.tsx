@@ -5,6 +5,7 @@ import { getUserCurrency } from "@/lib/getUserCurrency";
 import { formatUsdAsLocalCurrency } from "@/lib/formatPrice";
 import { formatTemplatePriceDisplay } from "@/lib/template-pricing";
 import TemplateGallery from "@/components/template-gallery";
+import { CheckoutButton } from "@/components/checkout-button";
 import HollowSaintPhysicalDeckImage from "@/components/hollow-saint-physical-deck-image";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/json-ld";
@@ -803,25 +804,21 @@ export default async function TemplateDetailPage({
               <p className="mt-1 text-xs text-charcoal/55">Prices shown in {currency}.</p>
             )}
             <div className="mt-6 space-y-4">
-              <form action="/api/checkout" method="post" className="space-y-2 border border-charcoal/10 p-4">
-                <input type="hidden" name="templateSlug" value={template.slug} />
-                <input type="hidden" name="purchaseType" value="template" />
-                <p className="font-medium">
-                  Buy template ({templatePriceDisplay})
-                  {currency !== "USD" && (
-                    <span className="ml-1.5 text-xs font-normal text-charcoal/50">{currency}</span>
-                  )}
-                </p>
-                <button
-                  type="submit"
-                  className="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream hover:bg-charcoal/90 transition-colors"
-                >
-                  Continue to checkout
-                </button>
-                <p className="mt-2 text-sm text-neutral-500">
-                  Instant digital download. Print-ready files included.
-                </p>
-              </form>
+              <CheckoutButton
+                templateSlug={template.slug}
+                purchaseType="template"
+                label={
+                  <>
+                    Buy template ({templatePriceDisplay})
+                    {currency !== "USD" && (
+                      <span className="ml-1.5 text-xs font-normal text-charcoal/50">{currency}</span>
+                    )}
+                  </>
+                }
+                sublabel="Instant digital download. Print-ready files included."
+                className="space-y-2 border border-charcoal/10 p-4"
+                buttonClassName="w-full border border-charcoal bg-charcoal px-4 py-2 text-sm text-cream hover:bg-charcoal/90 transition-colors disabled:opacity-60"
+              />
 
               <div className="border border-charcoal/10 p-4 overflow-hidden">
                 <p className="mb-3 text-sm font-medium text-charcoal/70">The Printed Deck</p>
@@ -857,25 +854,21 @@ export default async function TemplateDetailPage({
                 </ul>
               </div>
 
-              <form action="/api/checkout" method="post" className="space-y-2 border border-charcoal/10 p-4">
-                <input type="hidden" name="templateSlug" value={template.slug} />
-                <input type="hidden" name="purchaseType" value="print" />
-                <p className="font-medium">
-                  Buy printed deck from template ({printPriceDisplay})
-                  {currency !== "USD" && (
-                    <span className="ml-1.5 text-xs font-normal text-charcoal/50">{currency}</span>
-                  )}
-                </p>
-                <button
-                  type="submit"
-                  className="w-full border-2 border-charcoal bg-white px-4 py-2 text-sm text-charcoal hover:bg-charcoal hover:text-cream transition-colors"
-                >
-                  Continue to checkout
-                </button>
-                <p className="mt-2 text-sm text-neutral-500">
-                  Professionally printed and shipped.
-                </p>
-              </form>
+              <CheckoutButton
+                templateSlug={template.slug}
+                purchaseType="print"
+                label={
+                  <>
+                    Buy printed deck from template ({printPriceDisplay})
+                    {currency !== "USD" && (
+                      <span className="ml-1.5 text-xs font-normal text-charcoal/50">{currency}</span>
+                    )}
+                  </>
+                }
+                sublabel="Professionally printed and shipped."
+                className="space-y-2 border border-charcoal/10 p-4"
+                buttonClassName="w-full border-2 border-charcoal bg-white px-4 py-2 text-sm text-charcoal hover:bg-charcoal hover:text-cream transition-colors disabled:opacity-60"
+              />
             </div>
             <Link href="/how-it-works" className="mt-6 inline-block text-sm underline underline-offset-4">
               Review how purchasing works
@@ -982,26 +975,20 @@ export default async function TemplateDetailPage({
       {/* Sticky Mobile Purchase Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-charcoal/20 p-3 lg:hidden z-50 shadow-lg">
         <div className="max-w-md mx-auto flex gap-2">
-          <form action="/api/checkout" method="post" className="flex-1">
-            <input type="hidden" name="templateSlug" value={template.slug} />
-            <input type="hidden" name="purchaseType" value="template" />
-            <button
-              type="submit"
-              className="w-full bg-charcoal text-cream py-3 px-3 text-xs font-semibold hover:bg-charcoal/90 transition-colors"
-            >
-              Template {templatePriceDisplay}
-            </button>
-          </form>
-          <form action="/api/checkout" method="post" className="flex-1">
-            <input type="hidden" name="templateSlug" value={template.slug} />
-            <input type="hidden" name="purchaseType" value="print" />
-            <button
-              type="submit"
-              className="w-full border-2 border-charcoal bg-white text-charcoal py-3 px-3 text-xs font-semibold hover:bg-charcoal hover:text-cream transition-colors"
-            >
-              Printed {printPriceDisplay}
-            </button>
-          </form>
+          <CheckoutButton
+            templateSlug={template.slug}
+            purchaseType="template"
+            buttonText={`Template ${templatePriceDisplay}`}
+            className="flex-1"
+            buttonClassName="w-full bg-charcoal text-cream py-3 px-3 text-xs font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-60"
+          />
+          <CheckoutButton
+            templateSlug={template.slug}
+            purchaseType="print"
+            buttonText={`Printed ${printPriceDisplay}`}
+            className="flex-1"
+            buttonClassName="w-full border-2 border-charcoal bg-white text-charcoal py-3 px-3 text-xs font-semibold hover:bg-charcoal hover:text-cream transition-colors disabled:opacity-60"
+          />
         </div>
       </div>
     </>

@@ -6,6 +6,7 @@ const footerLinks = [
   { href: '/how-it-works', label: 'How It Works' },
   { href: '/blog', label: 'Blog' },
   { href: '/custom-printing', label: 'Custom Printing' },
+  { href: 'mailto:casey@choiceprint.co.nz', label: 'Contact' },
 ];
 
 export function SiteFooter() {
@@ -22,9 +23,18 @@ export function SiteFooter() {
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             {footerLinks.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="text-charcoal/80 underline-offset-4 hover:text-charcoal hover:underline">
-                  {item.label}
-                </Link>
+                {item.href.startsWith('mailto:') ? (
+                  <a
+                    href={item.href}
+                    className="text-charcoal/80 underline-offset-4 hover:text-charcoal hover:underline"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link href={item.href} className="text-charcoal/80 underline-offset-4 hover:text-charcoal hover:underline">
+                    {item.label}
+                  </Link>
+                )}
               </li>
             ))}
             <li>

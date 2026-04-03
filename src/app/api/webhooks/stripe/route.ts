@@ -30,72 +30,109 @@ export async function POST(request: Request) {
 
   const session = event.data.object as Stripe.Checkout.Session;
   const meta = session.metadata;
-  if (!meta?.user_id || !meta?.borderSlug || !meta?.borderName || !meta?.templatedTemplateId || !meta?.suiteSize || !meta?.cardCount) {
-    return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
-  }
-
-  const cardCount = parseInt(meta.cardCount, 10);
-  const amountPaid = typeof session.amount_total === 'number' ? session.amount_total : 0;
 
   const supabase = createServiceClient();
 
-  const { data: purchase, error: purchaseError } = await supabase
-    .from('purchases')
-    .insert({
-      user_id: meta.user_id,
-      border_slug: meta.borderSlug,
-      border_name: meta.borderName,
-      templated_template_id: meta.templatedTemplateId,
-      suite_size: meta.suiteSize,
-      card_count: cardCount,
+  if (
+    meta?.user_id &&
+    meta?.borderSlug &&
+    meta?.borderName &&
+    meta?.templatedTemplateId &&
+    meta?.suiteSize &&
+    meta?.cardCount
+  ) {
+    const cardCount = parseInt(meta.cardCount, 10);
+    const amountPaid = typeof session.amount_total === 'number' ? session.amount_total : 0;
+
+    const { data: purchase, error: purchaseError } = await supabase
+      .from('purchases')
+      .insert({
+        user_id: meta.user_id,
+        border_slug: meta.borderSlug,
+        border_name: meta.borderName,
+        templated_template_id: meta.templatedTemplateId,
+        suite_size: meta.suiteSize,
+        card_count: cardCount,
+        amount_paid: amountPaid,
+        stripe_session_id: session.id,
+        status: 'paid',
+      })
+      .select('id')
+      .single();
+
+    if (purchaseError || !purchase) {
+      console.error('Purchase insert failed', purchaseError);
+      return NextResponse.json({ error: 'Failed to create purchase' }, { status: 500 });
+    }
+
+    const { data: deck, error: deckError } = await supabase
+      .from('decks')
+      .insert({
+        user_id: meta.user_id,
+        purchase_id: purchase.id,
+        border_slug: meta.borderSlug,
+        border_name: meta.borderName,
+        templated_template_id: meta.templatedTemplateId,
+        total_cards: cardCount,
+        completed_cards: 0,
+        status: 'in_progress',
+      })
+      .select('id')
+      .single();
+
+    if (deckError || !deck) {
+      console.error('Deck insert failed', deckError);
+      return NextResponse.json({ error: 'Failed to create deck' }, { status: 500 });
+    }
+
+    const defaults = cardCount === 78 ? TAROT_CARDS_78 : cardCount === 22 ? TAROT_CARDS_22 : null;
+    const cardRows = Array.from({ length: cardCount }, (_, i) => {
+      const d = defaults ? defaults[i] : getTarotDefault(i);
+      return {
+        deck_id: deck.id,
+        card_index: i,
+        card_name: d?.name ?? null,
+        numeral: d?.numeral ?? null,
+        status: 'empty',
+      };
+    });
+    const { error: cardsError } = await supabase.from('cards').insert(cardRows);
+    if (cardsError) {
+      console.error('Cards insert failed', cardsError);
+      // Don't fail the webhook; deck exists, cards can be created on first edit
+    }
+
+    return NextResponse.json({ received: true, deckId: deck.id });
+  }
+
+  const purchaseType = meta?.purchaseType;
+  if (purchaseType === 'template' || purchaseType === 'print') {
+    const templateSlug = meta?.templateSlug;
+    const templateName = meta?.templateName;
+    if (!templateSlug || !templateName) {
+      return NextResponse.json({ error: 'Missing template metadata' }, { status: 400 });
+    }
+
+    const amountPaid = typeof session.amount_total === 'number' ? session.amount_total : 0;
+    const email = session.customer_details?.email ?? null;
+
+    const { error: templatePurchaseError } = await supabase.from('template_purchases').insert({
+      email,
+      template_slug: templateSlug,
+      template_name: templateName,
+      purchase_type: purchaseType,
       amount_paid: amountPaid,
       stripe_session_id: session.id,
-      status: 'paid',
-    })
-    .select('id')
-    .single();
+      status: purchaseType === 'template' ? 'paid' : 'ordered',
+    });
 
-  if (purchaseError || !purchase) {
-    console.error('Purchase insert failed', purchaseError);
-    return NextResponse.json({ error: 'Failed to create purchase' }, { status: 500 });
+    if (templatePurchaseError) {
+      console.error('template_purchases insert failed', templatePurchaseError);
+      return NextResponse.json({ error: 'Failed to record purchase' }, { status: 500 });
+    }
+
+    return NextResponse.json({ received: true });
   }
 
-  const { data: deck, error: deckError } = await supabase
-    .from('decks')
-    .insert({
-      user_id: meta.user_id,
-      purchase_id: purchase.id,
-      border_slug: meta.borderSlug,
-      border_name: meta.borderName,
-      templated_template_id: meta.templatedTemplateId,
-      total_cards: cardCount,
-      completed_cards: 0,
-      status: 'in_progress',
-    })
-    .select('id')
-    .single();
-
-  if (deckError || !deck) {
-    console.error('Deck insert failed', deckError);
-    return NextResponse.json({ error: 'Failed to create deck' }, { status: 500 });
-  }
-
-  const defaults = cardCount === 78 ? TAROT_CARDS_78 : cardCount === 22 ? TAROT_CARDS_22 : null;
-  const cardRows = Array.from({ length: cardCount }, (_, i) => {
-    const d = defaults ? defaults[i] : getTarotDefault(i);
-    return {
-      deck_id: deck.id,
-      card_index: i,
-      card_name: d?.name ?? null,
-      numeral: d?.numeral ?? null,
-      status: 'empty',
-    };
-  });
-  const { error: cardsError } = await supabase.from('cards').insert(cardRows);
-  if (cardsError) {
-    console.error('Cards insert failed', cardsError);
-    // Don't fail the webhook; deck exists, cards can be created on first edit
-  }
-
-  return NextResponse.json({ received: true, deckId: deck.id });
+  return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
 }
