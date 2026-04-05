@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 const ACCENT = '#C7A96B';
 const HEADING = '#f0ece4';
@@ -69,6 +69,8 @@ export function InstantQuoteSection() {
   const [formShrink, setFormShrink] = useState(false);
   const [formNotes, setFormNotes] = useState('');
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
+  const quoteSubmitLockRef = useRef(false);
 
   const clampQty = useCallback(
     (n: number) => Math.min(MAX_ESTIMATE_QTY, Math.max(1, Math.floor(n) || 1)),
@@ -129,26 +131,48 @@ export function InstantQuoteSection() {
     setQuantity(clampQty(n));
   };
 
+  const finishLabel =
+    formFinish === 'gloss' ? 'Gloss' : formFinish === 'linen' ? 'Linen' : 'Not sure';
+  const shrinkWrapLabel = formShrink ? 'Yes please' : 'No thanks';
+
   const onSubmitQuote = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (quoteSubmitLockRef.current || formStatus === 'submitting') return;
+    quoteSubmitLockRef.current = true;
+    setFormErrorMessage(null);
     setFormStatus('submitting');
     try {
-      const res = await fetch('/api/print-quote', {
+      const res = await fetch('/api/send-quote-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formName,
           email: formEmail,
           quantity: formQuantity,
-          finishPreference: formFinish,
-          shrinkWrap: formShrink,
-          specialRequirements: formNotes,
+          finish: finishLabel,
+          shrinkWrap: shrinkWrapLabel,
+          specialRequirements: formNotes.trim().length > 0 ? formNotes : undefined,
         }),
       });
-      if (res.ok) setFormStatus('success');
-      else setFormStatus('error');
+      let data: { ok?: boolean; error?: string } = {};
+      try {
+        data = (await res.json()) as typeof data;
+      } catch {
+        /* ignore */
+      }
+      if (!res.ok || data.ok !== true) {
+        setFormStatus('error');
+        setFormErrorMessage(
+          typeof data.error === 'string' ? data.error : 'Something went wrong. Please try again.',
+        );
+        quoteSubmitLockRef.current = false;
+        return;
+      }
+      setFormStatus('success');
     } catch {
       setFormStatus('error');
+      setFormErrorMessage('Network error. Please check your connection and try again.');
+      quoteSubmitLockRef.current = false;
     }
   };
 
@@ -416,8 +440,12 @@ export function InstantQuoteSection() {
           </p>
 
           {formStatus === 'success' ? (
-            <p className="mt-8 rounded-lg border border-[#C7A96B]/40 bg-[#C7A96B]/10 px-4 py-3 text-sm" style={{ color: HEADING }}>
-              Thanks! We&apos;ll be in touch within one business day.
+            <p
+              className="mt-8 rounded-lg border border-[#C7A96B]/40 bg-[#C7A96B]/10 px-4 py-4 text-sm leading-relaxed"
+              style={{ color: HEADING }}
+              role="status"
+            >
+              Quote request sent! Check your inbox for a confirmation.
             </p>
           ) : (
             <form onSubmit={onSubmitQuote} className="mt-10 space-y-6">
@@ -524,13 +552,15 @@ export function InstantQuoteSection() {
               <button
                 type="submit"
                 disabled={formStatus === 'submitting'}
-                className="w-full rounded-sm py-3.5 text-sm font-semibold transition-opacity disabled:opacity-60"
+                className="w-full rounded-sm py-3.5 text-sm font-semibold transition-opacity disabled:cursor-not-allowed disabled:opacity-60"
                 style={{ backgroundColor: FEATURED_GOLD, color: BTN_DARK_TEXT }}
               >
                 {formStatus === 'submitting' ? 'Sending…' : 'Send Quote Request'}
               </button>
               {formStatus === 'error' && (
-                <p className="text-sm text-red-400">Something went wrong. Please try again.</p>
+                <p className="rounded-lg border border-red-500/40 bg-red-950/40 px-4 py-3 text-sm text-red-300" role="alert">
+                  {formErrorMessage ?? 'Something went wrong. Please try again.'}
+                </p>
               )}
             </form>
           )}

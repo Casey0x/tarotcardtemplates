@@ -4,10 +4,6 @@ import { parseQuoteRequestBody } from '@/lib/parse-quote-request-body';
 
 export const runtime = 'nodejs';
 
-/**
- * Legacy/alternate path for print quote requests — same behavior as POST /api/send-quote-request.
- * Accepts `finish` or `finishPreference`, and `shrinkWrap` as boolean or string.
- */
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -30,7 +26,7 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to send quote emails';
-    console.error('[print-quote]', message, err instanceof Error ? err.stack : '');
+    console.error('[send-quote-request]', message, err instanceof Error ? err.stack : '');
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

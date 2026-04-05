@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { getEmailFrom, getEmailReplyTo } from '@/lib/email-env';
 
 export type SendPurchaseEmailParams = {
   to: string;
@@ -104,14 +105,8 @@ function buildPurchaseEmailHtml(params: SendPurchaseEmailParams): string {
  * Requires RESEND_API_KEY, EMAIL_FROM, and EMAIL_REPLY_TO in the environment.
  */
 export async function sendPurchaseEmail(params: SendPurchaseEmailParams): Promise<{ id: string | undefined }> {
-  const from = process.env.EMAIL_FROM;
-  const replyTo = process.env.EMAIL_REPLY_TO;
-  if (!from) {
-    throw new Error('EMAIL_FROM is not configured');
-  }
-  if (!replyTo) {
-    throw new Error('EMAIL_REPLY_TO is not configured');
-  }
+  const from = getEmailFrom();
+  const replyTo = getEmailReplyTo();
 
   const resend = getResend();
   const { data, error } = await resend.emails.send({

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sendPurchaseEmail, type SendPurchaseEmailParams } from '@/lib/email';
 
+export const runtime = 'nodejs';
+
 type Body = Partial<SendPurchaseEmailParams>;
 
 function isNonEmptyString(v: unknown): v is string {
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, id: result.id });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to send email';
-    console.error('[send-purchase-email]', message);
+    console.error('[send-purchase-email]', message, err instanceof Error ? err.stack : '');
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

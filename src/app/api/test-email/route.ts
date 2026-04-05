@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sendPurchaseEmail } from '@/lib/email';
+import { getEmailReplyTo } from '@/lib/email-env';
+
+export const runtime = 'nodejs';
 
 /**
  * Dev-only: GET /api/test-email
@@ -11,7 +14,13 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const to = searchParams.get('to')?.trim() || process.env.EMAIL_REPLY_TO;
+  let defaultTo: string | undefined;
+  try {
+    defaultTo = getEmailReplyTo();
+  } catch {
+    defaultTo = undefined;
+  }
+  const to = searchParams.get('to')?.trim() || defaultTo;
 
   if (!to) {
     return NextResponse.json(
@@ -35,7 +44,7 @@ export async function GET(request: Request) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to send test email';
-    console.error('[test-email]', message);
+    console.error('[test-email]', message, err instanceof Error ? err.stack : '');
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

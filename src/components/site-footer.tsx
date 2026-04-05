@@ -6,7 +6,7 @@ const footerLinks = [
   { href: '/how-it-works', label: 'How It Works' },
   { href: '/blog', label: 'Blog' },
   { href: '/custom-printing', label: 'Custom Printing' },
-  { href: 'mailto:casey@choiceprint.co.nz', label: 'Contact' },
+  { href: 'mailto:casey@tarotcardtemplates.com', label: 'Contact' },
 ];
 
 export function SiteFooter() {
