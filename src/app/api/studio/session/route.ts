@@ -47,10 +47,10 @@ export async function GET(request: Request) {
     .select('id')
     .eq('purchase_id', purchase.id)
     .eq('user_id', session.user.id)
-    .single();
+    .maybeSingle();
 
-  if (!deck) {
-    return NextResponse.json({ error: 'Deck not found' }, { status: 404 });
+  if (!deck?.id) {
+    return NextResponse.json({ deckId: null as string | null });
   }
 
   return NextResponse.json({ deckId: deck.id });

@@ -5,31 +5,25 @@ import { cookies } from 'next/headers';
 import { createServiceClient } from '@/lib/supabase-server';
 import { getUserCurrency } from '@/lib/getUserCurrency';
 import {
+  getDeckExportPriceByCurrency,
   getPrintedDeckPriceByCurrency,
   getTemplatePriceByCurrency,
 } from '@/lib/template-pricing';
 
 type PurchaseType = 'template' | 'print';
 
-/** Border purchase payload (Stripe flow). */
-interface BorderCheckoutBody {
+interface DeckExportCheckoutBody {
+  purchaseType: 'deck_export';
   borderSlug: string;
   borderName: string;
-  templatedTemplateId: string;
-  suiteSize: string;
-  cardCount: number;
-  amountPence: number;
 }
 
-function isBorderCheckoutBody(body: unknown): body is BorderCheckoutBody {
+function isDeckExportCheckoutBody(body: unknown): body is DeckExportCheckoutBody {
   const b = body as Record<string, unknown>;
   return (
+    b?.purchaseType === 'deck_export' &&
     typeof b?.borderSlug === 'string' &&
-    typeof b?.borderName === 'string' &&
-    typeof b?.templatedTemplateId === 'string' &&
-    typeof b?.suiteSize === 'string' &&
-    typeof b?.cardCount === 'number' &&
-    typeof b?.amountPence === 'number'
+    typeof b?.borderName === 'string'
   );
 }
 
@@ -46,15 +40,11 @@ export async function POST(request: Request) {
     };
   }
 
-  // Border purchase → Stripe (requires auth)
-  if (isBorderCheckoutBody(body)) {
+  if (isDeckExportCheckoutBody(body)) {
     const stripeSecret = process.env.STRIPE_SECRET_KEY;
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
     if (!stripeSecret || !siteUrl) {
-      return NextResponse.json(
-        { error: 'Checkout not configured' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Checkout not configured' }, { status: 500 });
     }
 
     const cookieStore = await cookies();
@@ -71,35 +61,43 @@ export async function POST(request: Request) {
         },
       }
     );
-    const { data: { session: authSession } } = await supabase.auth.getSession();
+    const {
+      data: { session: authSession },
+    } = await supabase.auth.getSession();
     if (!authSession?.user) {
       return NextResponse.json({ error: 'Sign in to purchase' }, { status: 401 });
     }
 
+    const { currency } = getUserCurrency();
+    const amount = getDeckExportPriceByCurrency(currency);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return NextResponse.json({ error: 'Invalid price for this product' }, { status: 400 });
+    }
+
+    const unitAmount = Math.round(amount * 100);
+    const stripeCurrency = currency.toLowerCase();
     const stripe = new Stripe(stripeSecret);
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
-            currency: 'usd',
+            currency: stripeCurrency,
             product_data: {
-              name: `${body.borderName} — ${body.suiteSize}`,
+              name: `${body.borderName} — Full deck export`,
             },
-            unit_amount: body.amountPence,
+            unit_amount: unitAmount,
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${siteUrl}/studio?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/borders/${body.borderSlug}`,
+      success_url: `${siteUrl}/studio?session_id={CHECKOUT_SESSION_ID}&border=${encodeURIComponent(body.borderSlug)}`,
+      cancel_url: `${siteUrl}/studio?border=${encodeURIComponent(body.borderSlug)}`,
       metadata: {
+        purchaseType: 'deck_export',
         borderSlug: body.borderSlug,
         borderName: body.borderName,
-        templatedTemplateId: body.templatedTemplateId,
-        suiteSize: body.suiteSize,
-        cardCount: String(body.cardCount),
         user_id: authSession.user.id,
       },
     });
@@ -107,7 +105,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: session.url });
   }
 
-  // Template / print → Stripe (no auth)
   const templateSlug = String(body.templateSlug ?? '');
   const purchaseType = (body.purchaseType as PurchaseType) || 'template';
   if (!templateSlug || !['template', 'print'].includes(purchaseType)) {
@@ -117,10 +114,7 @@ export async function POST(request: Request) {
   const stripeSecret = process.env.STRIPE_SECRET_KEY;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '');
   if (!stripeSecret || !siteUrl) {
-    return NextResponse.json(
-      { error: 'Checkout not configured' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Checkout not configured' }, { status: 500 });
   }
 
   const supabase = createServiceClient();
@@ -131,10 +125,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (fetchError || !row) {
-    return NextResponse.json(
-      { error: 'Template not found' },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: 'Template not found' }, { status: 404 });
   }
 
   const templateName = String(row.name);
@@ -144,18 +135,13 @@ export async function POST(request: Request) {
       ? getTemplatePriceByCurrency(currency)
       : getPrintedDeckPriceByCurrency(currency);
   if (!Number.isFinite(amount) || amount <= 0) {
-    return NextResponse.json(
-      { error: 'Invalid price for this product' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid price for this product' }, { status: 400 });
   }
 
   const unitAmount = Math.round(amount * 100);
   const stripeCurrency = currency.toLowerCase();
   const lineItemName =
-    purchaseType === 'print'
-      ? `${templateName} — Printed Deck`
-      : templateName;
+    purchaseType === 'print' ? `${templateName} — Printed Deck` : templateName;
 
   const successUrl =
     purchaseType === 'template'

@@ -45,10 +45,6 @@ export default async function StudioBetaPage({
       ? q
       : purchasedBorderSlugs[0] ?? borderOptions[0]?.slug;
 
-  const borderCheckoutBySlug = Object.fromEntries(
-    borders.map((b) => [b.slug, { name: b.name, templatedTemplateId: b.templatedTemplateId }]),
-  );
-
   return (
     <>
       <StudioSessionRedirect />
@@ -60,7 +56,6 @@ export default async function StudioBetaPage({
         exportUnlockedBorderSlugs={purchasedBorderSlugs}
         isLoggedIn={isLoggedIn}
         noBordersInCatalog={noBordersInCatalog}
-        borderCheckoutBySlug={borderCheckoutBySlug}
       />
     </>
   );

@@ -29,8 +29,6 @@ function studioObjectPathFromPublicUrl(url: string): string | null {
   }
 }
 
-type BorderCheckoutMeta = { name: string; templatedTemplateId: string | null };
-
 type Props = {
   borders: StudioPreviewItem[];
   /** Full border list (names / slugs) when `borders` is filtered for the dropdown. */
@@ -44,8 +42,6 @@ type Props = {
   isLoggedIn?: boolean;
   /** No borders configured in the catalog. */
   noBordersInCatalog?: boolean;
-  /** Per-slug metadata for full-deck Stripe checkout. */
-  borderCheckoutBySlug: Record<string, BorderCheckoutMeta>;
 };
 
 export function StudioVisualPreview({
@@ -56,7 +52,6 @@ export function StudioVisualPreview({
   exportUnlockedBorderSlugs = [],
   isLoggedIn = false,
   noBordersInCatalog = false,
-  borderCheckoutBySlug,
 }: Props) {
   const router = useRouter();
   const catalog = borderCatalog.length ? borderCatalog : borders;
@@ -328,23 +323,15 @@ export function StudioVisualPreview({
   const loginRedirect = `${studioBasePath}${borderSlug ? `?border=${encodeURIComponent(borderSlug)}` : ''}`;
 
   async function startFullDeckCheckout() {
-    const meta = borderCheckoutBySlug[borderSlug];
-    if (!meta?.templatedTemplateId) {
-      window.location.href = `/borders/${borderSlug}/purchase`;
-      return;
-    }
     setExportCheckoutLoading(true);
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          purchaseType: 'deck_export',
           borderSlug,
-          borderName: meta.name,
-          templatedTemplateId: meta.templatedTemplateId,
-          suiteSize: 'Full deck (78 cards)',
-          cardCount: 78,
-          amountPence: 4999,
+          borderName: currentBorderName,
         }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
@@ -509,7 +496,7 @@ export function StudioVisualPreview({
                 {exportCheckoutLoading ? 'Redirecting…' : 'Pay $49.99 — secure checkout'}
               </button>
               <Link
-                href={`/borders/${borderSlug}/purchase`}
+                href={`/borders/${borderSlug}`}
                 className="inline-flex w-full justify-center rounded-sm border border-charcoal/30 bg-transparent px-4 py-3 text-sm text-charcoal hover:bg-charcoal/5"
               >
                 View border details
@@ -551,47 +538,44 @@ export function StudioVisualPreview({
         <p className="mt-1 text-xs text-charcoal/60">Progress: {completedCount} / 78 cards with artwork</p>
       </div>
 
-      <div className="mb-4 w-full rounded-sm border border-charcoal/10 bg-cream/80 px-4 py-4">
-        <h2 className="text-sm font-semibold text-charcoal">Full deck export</h2>
-        <p className="mt-1 text-xs text-charcoal/65">
-          Preview your deck for free. Pay only when you&apos;re ready to export.
-        </p>
-        {exportUnlocked ? (
-          <p className="mt-2 text-sm text-emerald-900">
-            ✓ Export unlocked for {currentBorderName}. Download includes every card you&apos;ve previewed.
+      {completedCount > 0 ? (
+        <div className="mb-4 w-full rounded-sm border border-charcoal/10 bg-cream/80 px-4 py-4">
+          <h2 className="text-sm font-semibold text-charcoal">Full deck export</h2>
+          <p className="mt-1 text-xs text-charcoal/65">
+            Preview your deck for free. Pay only when you&apos;re ready to export.
           </p>
-        ) : (
-          <p className="mt-2 text-xs text-charcoal/60">
-            Unlock your full tarot deck export → <span className="font-medium text-charcoal">$49.99</span> — full deck
-            (78 cards), high-resolution, print-ready.
-          </p>
-        )}
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => void handleExportDeckZip()}
-            disabled={exportZipLoading}
-            className="inline-flex rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-xs font-medium text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {exportZipLoading ? 'Building ZIP…' : 'Download full deck (ZIP)'}
-          </button>
-          {!exportUnlocked ? (
+          {exportUnlocked ? (
+            <p className="mt-2 text-sm text-emerald-900">
+              ✓ Export unlocked for {currentBorderName}. Download includes every card you&apos;ve previewed.
+            </p>
+          ) : null}
+          <div className="mt-4 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => {
-                if (!sessionLoggedIn) {
-                  openSignInPrompt();
-                  return;
-                }
-                setShowExportPaywall(true);
-              }}
-              className="inline-flex rounded-sm border border-charcoal/35 bg-cream px-4 py-2 text-xs font-medium text-charcoal hover:bg-charcoal/5"
+              onClick={() => void handleExportDeckZip()}
+              disabled={exportZipLoading}
+              className="inline-flex rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-xs font-medium text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Unlock export — $49.99
+              {exportZipLoading ? 'Building ZIP…' : 'Download full deck (ZIP)'}
             </button>
-          ) : null}
+            {!exportUnlocked ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!sessionLoggedIn) {
+                    openSignInPrompt();
+                    return;
+                  }
+                  setShowExportPaywall(true);
+                }}
+                className="inline-flex rounded-sm border border-charcoal/35 bg-cream px-4 py-2 text-xs font-medium text-charcoal hover:bg-charcoal/5"
+              >
+                Unlock export
+              </button>
+            ) : null}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <section className="mt-5 hidden max-w-2xl border-b border-charcoal/5 pb-5 lg:block" aria-label="About this builder">
         <h2 className="text-xs font-medium uppercase tracking-wide text-charcoal/50">About this builder</h2>

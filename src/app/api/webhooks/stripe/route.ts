@@ -3,7 +3,6 @@ import { Resend } from 'resend';
 import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase-server';
 import { getEmailFrom, getEmailReplyTo } from '@/lib/email-env';
-import { TAROT_CARDS_78, TAROT_CARDS_22, getTarotDefault } from '@/lib/tarot-cards';
 
 function escapeHtml(text: string): string {
   return text
@@ -92,76 +91,36 @@ export async function POST(request: Request) {
 
   const supabase = createServiceClient();
 
-  if (
-    meta?.user_id &&
-    meta?.borderSlug &&
-    meta?.borderName &&
-    meta?.templatedTemplateId &&
-    meta?.suiteSize &&
-    meta?.cardCount
-  ) {
-    const cardCount = parseInt(meta.cardCount, 10);
+  if (meta?.purchaseType === 'deck_export' && meta?.user_id && meta?.borderSlug) {
     const amountPaid = typeof session.amount_total === 'number' ? session.amount_total : 0;
+    const customerDetails = session.customer_details;
+    const email = customerDetails?.email ?? session.customer_email ?? null;
+    const borderName = meta.borderName ?? meta.borderSlug;
 
-    const { data: purchase, error: purchaseError } = await supabase
-      .from('purchases')
-      .insert({
-        user_id: meta.user_id,
-        border_slug: meta.borderSlug,
-        border_name: meta.borderName,
-        templated_template_id: meta.templatedTemplateId,
-        suite_size: meta.suiteSize,
-        card_count: cardCount,
-        amount_paid: amountPaid,
-        stripe_session_id: session.id,
-        status: 'paid',
-      })
-      .select('id')
-      .single();
-
-    if (purchaseError || !purchase) {
-      console.error('Purchase insert failed', purchaseError);
-      return NextResponse.json({ error: 'Failed to create purchase' }, { status: 500 });
-    }
-
-    const { data: deck, error: deckError } = await supabase
-      .from('decks')
-      .insert({
-        user_id: meta.user_id,
-        purchase_id: purchase.id,
-        border_slug: meta.borderSlug,
-        border_name: meta.borderName,
-        templated_template_id: meta.templatedTemplateId,
-        total_cards: cardCount,
-        completed_cards: 0,
-        status: 'in_progress',
-      })
-      .select('id')
-      .single();
-
-    if (deckError || !deck) {
-      console.error('Deck insert failed', deckError);
-      return NextResponse.json({ error: 'Failed to create deck' }, { status: 500 });
-    }
-
-    const defaults = cardCount === 78 ? TAROT_CARDS_78 : cardCount === 22 ? TAROT_CARDS_22 : null;
-    const cardRows = Array.from({ length: cardCount }, (_, i) => {
-      const d = defaults ? defaults[i] : getTarotDefault(i);
-      return {
-        deck_id: deck.id,
-        card_index: i,
-        card_name: d?.name ?? null,
-        numeral: d?.numeral ?? null,
-        status: 'empty',
-      };
+    const { error: purchaseError } = await supabase.from('purchases').insert({
+      user_id: meta.user_id,
+      border_slug: meta.borderSlug,
+      border_name: borderName,
+      purchase_type: 'deck_export',
+      email,
+      amount_paid: amountPaid,
+      stripe_session_id: session.id,
+      status: 'paid',
+      templated_template_id: null,
+      suite_size: null,
+      card_count: null,
     });
-    const { error: cardsError } = await supabase.from('cards').insert(cardRows);
-    if (cardsError) {
-      console.error('Cards insert failed', cardsError);
-      // Don't fail the webhook; deck exists, cards can be created on first edit
+
+    if (purchaseError) {
+      console.error('[stripe-webhook] deck_export purchases insert failed', purchaseError);
+      return NextResponse.json({ error: 'Failed to record purchase' }, { status: 500 });
     }
 
-    return NextResponse.json({ received: true, deckId: deck.id });
+    console.log('[stripe-webhook] deck_export purchase recorded', {
+      sessionId: session.id,
+      borderSlug: meta.borderSlug,
+    });
+    return NextResponse.json({ received: true });
   }
 
   const purchaseType = meta?.purchaseType;

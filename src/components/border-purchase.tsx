@@ -2,47 +2,30 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { formatPrice } from '@/lib/formatPrice';
-
-type SuiteSize = 'single' | 'major' | 'full';
-
-/** Stripe `unit_amount` (USD cents) per tier. */
-const PRICING: { id: SuiteSize; label: string; cardCount: number; amountPence: number }[] = [
-  { id: 'single', label: 'Single card', cardCount: 1, amountPence: 299 },
-  { id: 'major', label: 'Major Arcana (22 cards)', cardCount: 22, amountPence: 895 },
-  { id: 'full', label: 'Full deck (78 cards)', cardCount: 78, amountPence: 4999 },
-];
 
 interface BorderPurchaseProps {
   borderSlug: string;
   borderName: string;
-  templatedTemplateId: string | null;
   isLoggedIn: boolean;
-  ownsBorder: boolean;
-  /** Localized list price for copy when checkout tiers are unavailable (fixed regional). */
-  listPriceDisplay: string;
+  ownsExport: boolean;
+  /** Regional full-deck export price label (matches checkout). */
+  deckExportPriceDisplay: string;
 }
 
 export function BorderPurchase({
   borderSlug,
   borderName,
-  templatedTemplateId,
   isLoggedIn,
-  ownsBorder,
-  listPriceDisplay,
+  ownsExport,
+  deckExportPriceDisplay,
 }: BorderPurchaseProps) {
-  const [suiteSize, setSuiteSize] = useState<SuiteSize>('major');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const option = PRICING.find((p) => p.id === suiteSize)!;
-  const canPurchase = !!templatedTemplateId;
   const loginRedirect = `/auth/login?redirect=${encodeURIComponent(`/borders/${borderSlug}`)}`;
   const studioHref = `/studio-beta?border=${borderSlug}`;
-  const purchasePageHref = `/borders/${borderSlug}/purchase`;
 
-  async function handlePurchase() {
-    if (!templatedTemplateId) return;
+  async function handleCheckout() {
     setError(null);
     setLoading(true);
     try {
@@ -50,15 +33,12 @@ export function BorderPurchase({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          purchaseType: 'deck_export',
           borderSlug,
           borderName,
-          templatedTemplateId,
-          suiteSize: option.label,
-          cardCount: option.cardCount,
-          amountPence: option.amountPence,
         }),
       });
-      const data = await res.json();
+      const data = (await res.json()) as { url?: string; error?: string };
       if (!res.ok) {
         if (res.status === 401) {
           window.location.href = loginRedirect;
@@ -73,10 +53,10 @@ export function BorderPurchase({
     }
   }
 
-  if (ownsBorder) {
+  if (ownsExport) {
     return (
       <div className="rounded-sm border border-green-200 bg-green-50 p-6">
-        <p className="text-sm font-medium text-emerald-900">✓ You own this border</p>
+        <p className="text-sm font-medium text-emerald-900">✓ Full deck export unlocked for this border</p>
         <Link
           href={studioHref}
           className="mt-4 inline-flex w-full items-center justify-center rounded-sm border border-emerald-800/30 bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-950 transition hover:bg-emerald-100/80"
@@ -92,145 +72,39 @@ export function BorderPurchase({
   const purchaseOutlineClass =
     'inline-flex min-h-[44px] flex-1 min-w-[10rem] items-center justify-center rounded-sm border-2 border-charcoal bg-white px-4 py-3 text-center text-sm font-medium text-charcoal transition-colors hover:bg-charcoal hover:text-cream';
 
-  const topRow = (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-3">
-        <Link href={studioHref} className={tryButtonClass}>
-          Try in Studio →
-        </Link>
-        {!canPurchase ? (
-          <Link href={purchasePageHref} className={purchaseOutlineClass}>
-            Purchase — {listPriceDisplay}
-          </Link>
-        ) : isLoggedIn ? (
-          <button
-            type="button"
-            onClick={() => void handlePurchase()}
-            disabled={loading}
-            className={`${purchaseOutlineClass} disabled:cursor-not-allowed disabled:opacity-50`}
-          >
-            {loading
-              ? 'Redirecting to checkout…'
-              : `Purchase — ${formatPrice(option.amountPence / 100, 'USD')}`}
-          </button>
-        ) : (
-          <Link href={loginRedirect} className={purchaseOutlineClass}>
-            Sign in to purchase
-          </Link>
-        )}
-      </div>
-      <p className="text-sm text-charcoal/60">
-        Try the border free in the Studio. Purchase to unlock exporting.
-      </p>
-    </div>
-  );
-
   return (
     <div className="rounded-sm border border-charcoal/10 bg-cream/50 p-6">
-      <h2 className="mb-4 text-lg font-semibold text-charcoal">Border Template — Studio</h2>
+      <h2 className="mb-4 text-lg font-semibold text-charcoal">Full deck export — Studio</h2>
 
-      {topRow}
-
-      {!isLoggedIn ? (
-        <>
-          {canPurchase ? (
-            <>
-              <p className="mb-2 mt-6 text-sm font-medium text-charcoal/80">Choose size:</p>
-              <ul className="mb-4 space-y-2">
-                {PRICING.map((p) => (
-                  <li key={p.id}>
-                    <label className="flex cursor-pointer items-center gap-2">
-                      <input
-                        type="radio"
-                        name="suiteSize"
-                        checked={suiteSize === p.id}
-                        onChange={() => setSuiteSize(p.id)}
-                        className="text-charcoal"
-                      />
-                      <span className="text-charcoal">{p.label}</span>
-                      <span className="text-charcoal/70">
-                        {formatPrice(p.amountPence / 100, 'USD')}
-                      </span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-              <p className="text-xs text-charcoal/70">
-                Use <span className="font-medium">Sign in to purchase</span> above after choosing a size.
-              </p>
-            </>
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-3">
+          <Link href={studioHref} className={tryButtonClass}>
+            Try in Studio →
+          </Link>
+          {isLoggedIn ? (
+            <button
+              type="button"
+              onClick={() => void handleCheckout()}
+              disabled={loading}
+              className={`${purchaseOutlineClass} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              {loading ? 'Redirecting to checkout…' : `Continue to checkout — ${deckExportPriceDisplay}`}
+            </button>
           ) : (
-            <>
-              <p className="mb-4 mt-6 text-charcoal/90">
-                <span className="font-medium">Price: {listPriceDisplay}</span> — Includes PNG, PSD, and Canva-compatible
-                files. Use the Studio after purchase to place your artwork in the frame.
-              </p>
-              <p className="mb-2 text-sm font-medium text-charcoal/80">Includes:</p>
-              <ul className="mb-6 list-inside list-disc space-y-1 text-sm text-charcoal/80">
-                <li>PNG border</li>
-                <li>PSD layered file</li>
-                <li>Canva compatible</li>
-                <li>70×120mm tarot card size</li>
-                <li>3mm bleed included</li>
-              </ul>
-              <Link
-                href={loginRedirect}
-                className="inline-block border border-charcoal bg-charcoal px-6 py-3 text-sm text-cream transition-colors hover:bg-charcoal/90"
-              >
-                Sign in to purchase
-              </Link>
-            </>
+            <Link href={loginRedirect} className={purchaseOutlineClass}>
+              Sign in to continue
+            </Link>
           )}
-        </>
-      ) : (
-        <>
-          {canPurchase ? (
-            <>
-              <p className="mb-2 mt-6 text-sm font-medium text-charcoal/80">Choose size:</p>
-              <ul className="mb-4 space-y-2">
-                {PRICING.map((p) => (
-                  <li key={p.id}>
-                    <label className="flex cursor-pointer items-center gap-2">
-                      <input
-                        type="radio"
-                        name="suiteSize"
-                        checked={suiteSize === p.id}
-                        onChange={() => setSuiteSize(p.id)}
-                        className="text-charcoal"
-                      />
-                      <span className="text-charcoal">{p.label}</span>
-                      <span className="text-charcoal/70">
-                        {formatPrice(p.amountPence / 100, 'USD')}
-                      </span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-              {error && (
-                <p className="mb-2 text-sm text-red-600" role="alert">
-                  {error}
-                </p>
-              )}
-              <p className="mt-2 text-xs text-charcoal/70">After payment you’ll design each card in the Studio.</p>
-            </>
-          ) : (
-            <>
-              <p className="mt-6 text-charcoal/90">
-                <span className="font-medium">Price: {listPriceDisplay}</span> — Includes PNG, PSD, and Canva-compatible
-                files. Use the Studio after purchase to place your artwork in the frame.
-              </p>
-              <p className="mb-2 mt-4 text-sm font-medium text-charcoal/80">Includes:</p>
-              <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
-                <li>PNG border</li>
-                <li>PSD layered file</li>
-                <li>Canva compatible</li>
-                <li>70×120mm tarot card size</li>
-                <li>3mm bleed included</li>
-              </ul>
-            </>
-          )}
-        </>
-      )}
+        </div>
+        {error ? (
+          <p className="text-sm text-red-600" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <p className="text-sm text-charcoal/60">
+          Preview your deck in Studio for free. Pay only when you&apos;re ready to export the full deck (ZIP).
+        </p>
+      </div>
     </div>
   );
 }
