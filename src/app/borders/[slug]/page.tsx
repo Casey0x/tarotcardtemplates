@@ -2,13 +2,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { BORDER_TEMPLATES, fetchBorderBySlug, FALLBACK_BORDER_IMAGE, formatBorderPriceLocalized } from '@/data/borders';
+import { BORDER_TEMPLATES, fetchBorderBySlug, FALLBACK_BORDER_IMAGE } from '@/data/borders';
 import { getUserCurrency } from '@/lib/getUserCurrency';
-import { BorderPurchase } from '@/components/border-purchase';
 import { JsonLd } from '@/components/json-ld';
-import { createClient } from '@/lib/supabase-server';
 import { borderProductJsonLd } from '@/lib/structured-data';
-import { fetchPurchasedBorderSlugsForUser } from '@/lib/user-purchases';
 
 /** Other border templates for "You May Also Like" (exclude current slug) */
 function getRelatedBorders(currentSlug: string) {
@@ -84,102 +81,93 @@ interface BorderPageProps {
 const MARBLE_TEMPLE_META = {
   title: 'Marble Temple Border – Tarot Card Border Template',
   description:
-    'Download the Marble Temple tarot border template — classical marble columns and arched window. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Marble Temple tarot border — classical marble columns and arched window. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/marble-temple',
 };
 
 const VINTAGE_VELVET_META = {
   title: 'Vintage Velvet Border – Tarot Card Border Template',
   description:
-    'Download the Vintage Velvet tarot border template — ornate gold flourishes on rich velvet, inspired by Victorian tarot design. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Vintage Velvet tarot border — ornate gold flourishes on rich velvet, inspired by Victorian tarot design. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/vintage-velvet',
 };
 
 const CELESTIAL_GILDED_META = {
   title: 'Celestial Gilded Border – Tarot Card Border Template',
   description:
-    'Download the Celestial Gilded tarot border template — gold celestial linework with stars and cosmic ornament. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Celestial Gilded tarot border — gold celestial linework with stars and cosmic ornament. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/celestial-gilded',
 };
 
 const STEAMPUNK_BRASS_META = {
   title: 'Steampunk Brass Border – Tarot Card Border Template',
   description:
-    'Download the Steampunk Brass tarot border template — ornate brass gears, gauges and mechanical detailing. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Steampunk Brass tarot border — ornate brass gears, gauges and mechanical detailing. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/steampunk-brass',
 };
 
 const JAPANESE_ZEN_META = {
   title: 'Japanese Zen Border – Tarot Card Border Template',
   description:
-    'Download the Japanese Zen tarot border template — hand-painted cherry blossoms, bamboo, clouds and seigaiha waves on warm cream. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Japanese Zen tarot border — hand-painted cherry blossoms, bamboo, clouds and seigaiha waves on warm cream. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/japanese-zen',
 };
 
 const ENCHANTED_FOREST_META = {
   title: 'Enchanted Forest Border – Tarot Card Border Template',
   description:
-    'Download the Enchanted Forest tarot border template — twisted woodland vines, oak leaves, acorns, moss and glowing fireflies. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Enchanted Forest tarot border — twisted woodland vines, oak leaves, acorns, moss and glowing fireflies. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/enchanted-forest',
 };
 
 const DAY_OF_THE_DEAD_META = {
   title: 'Day of the Dead Border – Tarot Card Border Template',
   description:
-    'Download the Day of the Dead tarot border template — decorated sugar skulls, marigolds and papel picado. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Day of the Dead tarot border — decorated sugar skulls, marigolds and papel picado. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/day-of-the-dead',
 };
 
 const OCEAN_MERMAID_META = {
   title: 'Ocean Depths Border – Tarot Card Border Template',
   description:
-    'Download the Ocean Depths tarot border template — turquoise seaweed ribbons, coral pink branches, pearls, shells, starfish and shimmering bubbles. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Ocean Depths tarot border — turquoise seaweed ribbons, coral pink branches, pearls, shells, starfish and shimmering bubbles. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/ocean-mermaid',
 };
 
 const DRAGON_SCALE_META = {
   title: 'Dragon Scale Border – Tarot Card Border Template',
   description:
-    'Download the Dragon Scale tarot border template — layered dragon scales, bronze plaques and fantasy spikes. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Dragon Scale tarot border — layered dragon scales, bronze plaques and fantasy spikes. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/dragon-scale',
 };
 
 const GOTHIC_ROMANCE_META = {
   title: 'Gothic Romance Border – Tarot Card Border Template',
   description:
-    'Download the Gothic Romance tarot border template — Victorian engraving, bats, thorny roses and Gothic spires on aged parchment. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Gothic Romance tarot border — Victorian engraving, bats, thorny roses and Gothic spires on aged parchment. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/gothic-romance',
 };
 
 const ART_NOUVEAU_LILY_META = {
   title: 'Art Nouveau Lily Border – Tarot Card Border Template',
   description:
-    'Download the Art Nouveau Lily tarot border template — cream and peach lilies, golden whiplash curves and blush pink Belle Époque florals. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Art Nouveau Lily tarot border — cream and peach lilies, golden whiplash curves and blush pink Belle Époque florals. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/art-nouveau-lily',
 };
 
 const MYSTIC_CANDLELIGHT_META = {
   title: 'Mystic Candlelight Border – Tarot Card Border Template',
   description:
-    'Download the Mystic Candlelight tarot border template — melting honey-amber wax, corner candles and warm ritual glow. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Mystic Candlelight tarot border — melting honey-amber wax, corner candles and warm ritual glow. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/mystic-candlelight',
 };
 
 const GOLDEN_HONEYCOMB_META = {
   title: 'Golden Honeycomb Border – Tarot Card Border Template',
   description:
-    'Download the Golden Honeycomb tarot border template — honeycomb, bees, dripping honey, daisies and beehive centerpiece on cream. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
+    'Golden Honeycomb tarot border — honeycomb, bees, dripping honey, daisies and beehive centerpiece on cream. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/golden-honeycomb',
 };
-
-/** SEO copy embeds a USD list token; replace with the same localized price as the page body. */
-function localizedBorderMetaDescription(
-  description: string,
-  border: Parameters<typeof formatBorderPriceLocalized>[0],
-  currency: string,
-): string {
-  return description.replace(/\$8\.95/g, formatBorderPriceLocalized(border, currency));
-}
 
 const HAS_FULL_LAYOUT = (s: string) =>
   s === 'marble-temple' ||
@@ -203,11 +191,10 @@ export async function generateMetadata({
   if (!border) {
     return { title: 'Border Not Found' };
   }
-  const { currency } = getUserCurrency();
   if (params.slug === 'marble-temple') {
     return {
       title: MARBLE_TEMPLE_META.title,
-      description: localizedBorderMetaDescription(MARBLE_TEMPLE_META.description, border, currency),
+      description: MARBLE_TEMPLE_META.description,
       alternates: { canonical: MARBLE_TEMPLE_META.canonical },
       openGraph: { title: MARBLE_TEMPLE_META.title },
     };
@@ -215,7 +202,7 @@ export async function generateMetadata({
   if (params.slug === 'vintage-velvet') {
     return {
       title: VINTAGE_VELVET_META.title,
-      description: localizedBorderMetaDescription(VINTAGE_VELVET_META.description, border, currency),
+      description: VINTAGE_VELVET_META.description,
       alternates: { canonical: VINTAGE_VELVET_META.canonical },
       openGraph: { title: VINTAGE_VELVET_META.title },
     };
@@ -223,7 +210,7 @@ export async function generateMetadata({
   if (params.slug === 'celestial-gilded') {
     return {
       title: CELESTIAL_GILDED_META.title,
-      description: localizedBorderMetaDescription(CELESTIAL_GILDED_META.description, border, currency),
+      description: CELESTIAL_GILDED_META.description,
       alternates: { canonical: CELESTIAL_GILDED_META.canonical },
       openGraph: { title: CELESTIAL_GILDED_META.title },
     };
@@ -231,7 +218,7 @@ export async function generateMetadata({
   if (params.slug === 'steampunk-brass') {
     return {
       title: STEAMPUNK_BRASS_META.title,
-      description: localizedBorderMetaDescription(STEAMPUNK_BRASS_META.description, border, currency),
+      description: STEAMPUNK_BRASS_META.description,
       alternates: { canonical: STEAMPUNK_BRASS_META.canonical },
       openGraph: { title: STEAMPUNK_BRASS_META.title },
     };
@@ -239,7 +226,7 @@ export async function generateMetadata({
   if (params.slug === 'japanese-zen') {
     return {
       title: JAPANESE_ZEN_META.title,
-      description: localizedBorderMetaDescription(JAPANESE_ZEN_META.description, border, currency),
+      description: JAPANESE_ZEN_META.description,
       alternates: { canonical: JAPANESE_ZEN_META.canonical },
       openGraph: { title: JAPANESE_ZEN_META.title },
     };
@@ -247,7 +234,7 @@ export async function generateMetadata({
   if (params.slug === 'enchanted-forest') {
     return {
       title: ENCHANTED_FOREST_META.title,
-      description: localizedBorderMetaDescription(ENCHANTED_FOREST_META.description, border, currency),
+      description: ENCHANTED_FOREST_META.description,
       alternates: { canonical: ENCHANTED_FOREST_META.canonical },
       openGraph: { title: ENCHANTED_FOREST_META.title },
     };
@@ -255,7 +242,7 @@ export async function generateMetadata({
   if (params.slug === 'day-of-the-dead') {
     return {
       title: DAY_OF_THE_DEAD_META.title,
-      description: localizedBorderMetaDescription(DAY_OF_THE_DEAD_META.description, border, currency),
+      description: DAY_OF_THE_DEAD_META.description,
       alternates: { canonical: DAY_OF_THE_DEAD_META.canonical },
       openGraph: { title: DAY_OF_THE_DEAD_META.title },
     };
@@ -263,7 +250,7 @@ export async function generateMetadata({
   if (params.slug === 'ocean-mermaid') {
     return {
       title: OCEAN_MERMAID_META.title,
-      description: localizedBorderMetaDescription(OCEAN_MERMAID_META.description, border, currency),
+      description: OCEAN_MERMAID_META.description,
       alternates: { canonical: OCEAN_MERMAID_META.canonical },
       openGraph: { title: OCEAN_MERMAID_META.title },
     };
@@ -271,7 +258,7 @@ export async function generateMetadata({
   if (params.slug === 'dragon-scale') {
     return {
       title: DRAGON_SCALE_META.title,
-      description: localizedBorderMetaDescription(DRAGON_SCALE_META.description, border, currency),
+      description: DRAGON_SCALE_META.description,
       alternates: { canonical: DRAGON_SCALE_META.canonical },
       openGraph: { title: DRAGON_SCALE_META.title },
     };
@@ -279,7 +266,7 @@ export async function generateMetadata({
   if (params.slug === 'gothic-romance') {
     return {
       title: GOTHIC_ROMANCE_META.title,
-      description: localizedBorderMetaDescription(GOTHIC_ROMANCE_META.description, border, currency),
+      description: GOTHIC_ROMANCE_META.description,
       alternates: { canonical: GOTHIC_ROMANCE_META.canonical },
       openGraph: { title: GOTHIC_ROMANCE_META.title },
     };
@@ -287,7 +274,7 @@ export async function generateMetadata({
   if (params.slug === 'art-nouveau-lily') {
     return {
       title: ART_NOUVEAU_LILY_META.title,
-      description: localizedBorderMetaDescription(ART_NOUVEAU_LILY_META.description, border, currency),
+      description: ART_NOUVEAU_LILY_META.description,
       alternates: { canonical: ART_NOUVEAU_LILY_META.canonical },
       openGraph: { title: ART_NOUVEAU_LILY_META.title },
     };
@@ -295,7 +282,7 @@ export async function generateMetadata({
   if (params.slug === 'mystic-candlelight') {
     return {
       title: MYSTIC_CANDLELIGHT_META.title,
-      description: localizedBorderMetaDescription(MYSTIC_CANDLELIGHT_META.description, border, currency),
+      description: MYSTIC_CANDLELIGHT_META.description,
       alternates: { canonical: MYSTIC_CANDLELIGHT_META.canonical },
       openGraph: { title: MYSTIC_CANDLELIGHT_META.title },
     };
@@ -303,7 +290,7 @@ export async function generateMetadata({
   if (params.slug === 'golden-honeycomb') {
     return {
       title: GOLDEN_HONEYCOMB_META.title,
-      description: localizedBorderMetaDescription(GOLDEN_HONEYCOMB_META.description, border, currency),
+      description: GOLDEN_HONEYCOMB_META.description,
       alternates: { canonical: GOLDEN_HONEYCOMB_META.canonical },
       openGraph: { title: GOLDEN_HONEYCOMB_META.title },
     };
@@ -313,11 +300,7 @@ export async function generateMetadata({
     title,
     description:
       params.slug === 'minimal-line'
-        ? localizedBorderMetaDescription(
-            'Download the Minimal Line tarot border template — clean geometric frame for modern and AI-generated tarot decks. PNG, PSD and Canva. 70×120mm, 3mm bleed. $8.95.',
-            border,
-            currency,
-          )
+        ? 'Minimal Line tarot border — clean geometric frame for modern and AI-generated tarot decks. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.'
         : border.description,
     alternates: {
       canonical: `https://www.tarotcardtemplates.com/borders/${params.slug}`,
@@ -334,7 +317,6 @@ export function generateStaticParams() {
   return BORDER_TEMPLATES.map((b) => ({ slug: b.slug }));
 }
 
-/** Auth + ownership for purchase UI require fresh request (cookies). */
 export const dynamic = 'force-dynamic';
 
 export default async function BorderPage({ params }: BorderPageProps) {
@@ -345,16 +327,7 @@ export default async function BorderPage({ params }: BorderPageProps) {
     notFound();
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const isLoggedIn = Boolean(user);
-  const purchasedSlugs = await fetchPurchasedBorderSlugsForUser();
-  const ownsBorder = purchasedSlugs.includes(slug);
-
   const { currency } = getUserCurrency();
-  const borderListPriceDisplay = formatBorderPriceLocalized(border, currency);
 
   const videoTitle = `How to Design Tarot Cards Using the ${border.name}`;
 
@@ -411,10 +384,11 @@ export default async function BorderPage({ params }: BorderPageProps) {
             />
           </div>
 
-          {/* Product Description — under image for all border pages */}
+          {/* Long-form copy — under image for all border pages */}
           {border.productDescription && (
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold text-charcoal">Product Description</h2>
+              <h2 className="text-lg font-semibold text-charcoal">About this design</h2>
+              <p className="text-sm text-charcoal/90">Use this design to create your tarot deck.</p>
               {border.productDescription.split('\n\n').map((paragraph, i) => (
                 <p key={i} className="text-sm text-charcoal/80">
                   {paragraph}
@@ -439,79 +413,46 @@ export default async function BorderPage({ params }: BorderPageProps) {
             </ul>
           </div>
 
-          {/* How It Works — in sidebar for all border pages */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-charcoal">How It Works</h2>
-            <ul className="list-inside list-disc space-y-2 text-sm text-charcoal/80">
-              <li>Purchase the {border.name} template.</li>
-              <li>Create a free account and open the Studio.</li>
-              <li>Upload your tarot artwork into the template.</li>
-              <li>Add card titles and numerals inside the frame.</li>
-              <li>Export your finished tarot cards as print-ready files.</li>
-              <li>Optional: order professional tarot card printing through our printing partners.</li>
-            </ul>
+          <div className="space-y-4 rounded-sm border border-charcoal/10 bg-white p-5">
+            <Link
+              href={`/studio-beta?border=${slug}`}
+              className="inline-flex w-full min-h-[44px] items-center justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-3 text-center text-sm font-medium text-cream transition-colors hover:bg-charcoal/90"
+            >
+              Try in Studio →
+            </Link>
+            <p className="text-sm text-charcoal/90">Create your tarot deck using this design</p>
+            <p className="text-sm text-charcoal/70">
+              Free to preview. Pay only when you export your full deck.
+            </p>
+            <p className="text-sm font-medium text-charcoal">Full deck export from $49.99</p>
           </div>
 
-          {/* Full layout sidebar: Design Your Deck (Stripe checkout), Included Files, Template Features */}
-          {HAS_FULL_LAYOUT(slug) ? (
-            <>
-              <BorderPurchase
-                borderSlug={slug}
-                borderName={border.name}
-                templatedTemplateId={border.templatedTemplateId}
-                isLoggedIn={isLoggedIn}
-                ownsBorder={ownsBorder}
-                listPriceDisplay={borderListPriceDisplay}
-              />
-              <div>
-                <h2 className="mb-2 text-lg font-semibold text-charcoal">
-                  Included files:
-                </h2>
-                <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
-                  <li>PNG border</li>
-                  <li>PSD layered file</li>
-                  <li>Canva compatible</li>
-                  <li>70×120mm tarot card size</li>
-                  <li>3mm bleed included</li>
-                </ul>
-              </div>
-              <div>
-                <h2 className="mb-2 text-lg font-semibold text-charcoal">
-                  Template Features
-                </h2>
-                <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-charcoal">How It Works</h2>
+            <ol className="list-inside list-decimal space-y-2 text-sm text-charcoal/80">
+              <li>Open this design in Studio</li>
+              <li>Upload your artwork</li>
+              <li>Preview your tarot deck</li>
+              <li>Export your full deck when you&apos;re ready</li>
+            </ol>
+          </div>
+
+          <div>
+            <h2 className="mb-2 text-lg font-semibold text-charcoal">Included with your export</h2>
+            <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
+              <li>PNG border</li>
+              <li>PSD layered file</li>
+              <li>Canva compatible</li>
+              <li>70×120mm tarot card size</li>
+              <li>3mm bleed included</li>
+              {HAS_FULL_LAYOUT(slug) && (
+                <>
                   <li>Transparent artwork window</li>
-                  <li>Standard tarot size (70 × 120 mm)</li>
-                  <li>3 mm bleed for professional printing</li>
-                  <li>PNG and PSD template files</li>
                   <li>Compatible with Canva and Photoshop</li>
-                </ul>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <h2 className="mb-2 text-lg font-semibold text-charcoal">
-                  Included files:
-                </h2>
-                <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/80">
-                  <li>PNG border</li>
-                  <li>PSD layered file</li>
-                  <li>Canva compatible</li>
-                  <li>70×120mm tarot card size</li>
-                  <li>3mm bleed included</li>
-                </ul>
-              </div>
-              <BorderPurchase
-                borderSlug={slug}
-                borderName={border.name}
-                templatedTemplateId={border.templatedTemplateId}
-                isLoggedIn={isLoggedIn}
-                ownsBorder={ownsBorder}
-                listPriceDisplay={borderListPriceDisplay}
-              />
-            </>
-          )}
+                </>
+              )}
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -1106,7 +1047,7 @@ export default async function BorderPage({ params }: BorderPageProps) {
         <>
           {/* Other borders: Product Description then Tutorial then SEO section */}
           <section className="space-y-4 border-t border-charcoal/10 pt-10">
-            <h2 className="text-xl font-semibold text-charcoal">Product Description</h2>
+            <h2 className="text-xl font-semibold text-charcoal">About this design</h2>
             {(border.productDescription ?? '').trim().length > 0 ? (
               border.productDescription.split('\n\n').map((paragraph, i) => (
                 <p key={i} className="text-sm text-charcoal/80">

@@ -4,17 +4,15 @@ import type { BlogPost } from '@/data/blog';
 import type { SupportedCurrency } from '@/lib/getUserCurrency';
 import { SITE_URL, absoluteUrl } from '@/lib/site';
 import { getTemplatePreviewImages } from '@/lib/templates';
-import {
-  getBorderListPriceByCurrency,
-  getPrintedDeckPriceByCurrency,
-  getTemplatePriceByCurrency,
-} from '@/lib/template-pricing';
+import { getPrintedDeckPriceByCurrency, getTemplatePriceByCurrency } from '@/lib/template-pricing';
 
-export function borderProductJsonLd(border: Border, slug: string, currency: SupportedCurrency = 'USD') {
+/** Full-deck Studio export (USD) — aligns with border checkout full-deck tier. */
+const BORDER_FULL_DECK_EXPORT_USD = 49.99;
+
+export function borderProductJsonLd(border: Border, slug: string, _currency: SupportedCurrency = 'USD') {
   const pageUrl = `${SITE_URL}/borders/${slug}`;
   const raw = border.image?.trim() ? border.image : '';
   const imageUrl = raw.startsWith('http') ? raw : absoluteUrl(raw || '/favicon.svg');
-  const amount = getBorderListPriceByCurrency(currency);
 
   return {
     '@context': 'https://schema.org',
@@ -25,8 +23,8 @@ export function borderProductJsonLd(border: Border, slug: string, currency: Supp
     brand: { '@type': 'Brand', name: 'Tarot Card Templates' },
     offers: {
       '@type': 'Offer',
-      price: amount.toFixed(2),
-      priceCurrency: currency,
+      price: BORDER_FULL_DECK_EXPORT_USD.toFixed(2),
+      priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
       url: pageUrl,
     },
