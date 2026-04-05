@@ -173,9 +173,11 @@ export async function POST(request: Request) {
     }
 
     const amountPaid = typeof session.amount_total === 'number' ? session.amount_total : 0;
-    const email = session.customer_details?.email ?? null;
+    const customerDetails = session.customer_details;
+    console.log('[stripe-webhook] customer_details', customerDetails);
+    const email = customerDetails?.email ?? null;
 
-    const { error: templatePurchaseError } = await supabase.from('template_purchases').insert({
+    const baseRow = {
       email,
       template_slug: templateSlug,
       template_name: templateName,
@@ -183,12 +185,33 @@ export async function POST(request: Request) {
       amount_paid: amountPaid,
       stripe_session_id: session.id,
       status: purchaseType === 'template' ? 'paid' : 'ordered',
-    });
+    };
+
+    const row =
+      purchaseType === 'print'
+        ? {
+            ...baseRow,
+            shipping_name: customerDetails?.name ?? null,
+            shipping_line1: customerDetails?.address?.line1 ?? null,
+            shipping_line2: customerDetails?.address?.line2 ?? null,
+            shipping_city: customerDetails?.address?.city ?? null,
+            shipping_postcode: customerDetails?.address?.postal_code ?? null,
+            shipping_country: customerDetails?.address?.country ?? null,
+          }
+        : baseRow;
+
+    const { error: templatePurchaseError } = await supabase.from('template_purchases').insert(row);
 
     if (templatePurchaseError) {
-      console.error('template_purchases insert failed', templatePurchaseError);
+      console.error('[stripe-webhook] template_purchases insert failed', templatePurchaseError);
       return NextResponse.json({ error: 'Failed to record purchase' }, { status: 500 });
     }
+
+    console.log('[stripe-webhook] template_purchases insert succeeded', {
+      sessionId: session.id,
+      templateSlug,
+      purchaseType,
+    });
 
     if (email && purchaseType === 'template') {
       try {
