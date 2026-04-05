@@ -178,6 +178,7 @@ export async function POST(request: Request) {
       },
     ],
     mode: 'payment',
+    customer_creation: 'always',
     success_url: successUrl,
     cancel_url: `${siteUrl}/templates/${encodeURIComponent(templateSlug)}`,
     metadata: {
@@ -185,6 +186,13 @@ export async function POST(request: Request) {
       purchaseType,
       templateName,
     },
+    ...(purchaseType === 'print'
+      ? {
+          shipping_address_collection: {
+            allowed_countries: ['NZ', 'AU', 'US'],
+          },
+        }
+      : {}),
   });
 
   return NextResponse.json({ url: session.url });
