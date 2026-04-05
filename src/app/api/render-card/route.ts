@@ -1,13 +1,8 @@
 import { STUDIO_BORDER_TEMPLATE_CONFIG } from '@/lib/studio-border-template-config';
-import { createClient, createServiceClient } from '@/lib/supabase-server';
-import { userOwnsBorderForUserId } from '@/lib/user-purchases';
-import { fetchTrialRendersUsedForUserId } from '@/lib/user-trial-renders';
+import { createClient } from '@/lib/supabase-server';
 
 const TEMPLATE_ID = '669959c5-4cca-476b-a484-5a9b1158e2a4';
 const TEMPLATED_RENDER_URL = 'https://api.templated.io/v1/render';
-
-const TRIAL_USAGE_WARN =
-  'Warning: Could not record trial usage. Check that the profiles table exists and SUPABASE_SERVICE_ROLE_KEY is set.';
 
 export async function POST(req: Request) {
   try {
@@ -44,18 +39,6 @@ export async function POST(req: Request) {
     const borderId = typeof border_id === 'string' && border_id.trim() ? border_id.trim() : undefined;
     if (!borderId) {
       return Response.json({ error: 'Missing border' }, { status: 400 });
-    }
-
-    const ownsBorder = await userOwnsBorderForUserId(user.id, borderId);
-
-    if (!ownsBorder) {
-      const trialRendersUsedCount = await fetchTrialRendersUsedForUserId(user.id, supabase);
-      if (trialRendersUsedCount >= 2) {
-        return Response.json(
-          { error: 'Free trial limit reached. Purchase this border to continue.' },
-          { status: 403 }
-        );
-      }
     }
 
     const templateForBorder = STUDIO_BORDER_TEMPLATE_CONFIG.find((c) => c.id === borderId);
@@ -116,35 +99,7 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Failed to render card' }, { status: 500 });
     }
 
-    let trialRendersUsed: number | undefined;
-    if (!ownsBorder) {
-      try {
-        const admin = createServiceClient();
-        const { data: existing } = await admin
-          .from('profiles')
-          .select('trial_renders_used')
-          .eq('id', user.id)
-          .maybeSingle();
-        const current = (existing as { trial_renders_used?: number } | null)?.trial_renders_used ?? 0;
-        const next = current + 1;
-        const { error: upErr } = await admin.from('profiles').upsert(
-          { id: user.id, trial_renders_used: next, updated_at: new Date().toISOString() },
-          { onConflict: 'id' }
-        );
-        if (upErr) {
-          console.warn(TRIAL_USAGE_WARN, upErr.message);
-        } else {
-          trialRendersUsed = next;
-        }
-      } catch (e) {
-        console.warn(TRIAL_USAGE_WARN, e);
-      }
-    }
-
-    return Response.json({
-      image_url,
-      ...(trialRendersUsed !== undefined ? { trial_renders_used: trialRendersUsed } : {}),
-    });
+    return Response.json({ image_url });
   } catch (error) {
     console.error('Render error:', error);
     return Response.json({ error: 'Failed to render card' }, { status: 500 });

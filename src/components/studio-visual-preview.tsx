@@ -29,6 +29,8 @@ function studioObjectPathFromPublicUrl(url: string): string | null {
   }
 }
 
+type BorderCheckoutMeta = { name: string; templatedTemplateId: string | null };
+
 type Props = {
   borders: StudioPreviewItem[];
   /** Full border list (names / slugs) when `borders` is filtered for the dropdown. */
@@ -37,15 +39,13 @@ type Props = {
   studioBasePath?: string;
   /** Pre-select in dropdown when valid. */
   initialBorderSlug?: string;
-  /** Paid `border_slug` values for the signed-in user. */
-  purchasedBorderSlugs?: string[];
-  trialRendersUsed?: number;
+  /** Border slugs with a paid export unlock (Stripe `purchases` / `orders`). */
+  exportUnlockedBorderSlugs?: string[];
   isLoggedIn?: boolean;
-  trialExhaustedNoPurchase?: boolean;
-  /** Logged-in, no purchases, no ?border= trial — prompt to browse borders. */
-  noPurchasedBordersEmpty?: boolean;
-  /** Localized typical border list price (USD → user currency). */
-  borderListPriceDisplay: string;
+  /** No borders configured in the catalog. */
+  noBordersInCatalog?: boolean;
+  /** Per-slug metadata for full-deck Stripe checkout. */
+  borderCheckoutBySlug: Record<string, BorderCheckoutMeta>;
 };
 
 export function StudioVisualPreview({
@@ -53,12 +53,10 @@ export function StudioVisualPreview({
   borderCatalog,
   studioBasePath = '/studio',
   initialBorderSlug,
-  purchasedBorderSlugs = [],
-  trialRendersUsed: trialRendersUsedProp = 0,
+  exportUnlockedBorderSlugs = [],
   isLoggedIn = false,
-  trialExhaustedNoPurchase = false,
-  noPurchasedBordersEmpty = false,
-  borderListPriceDisplay,
+  noBordersInCatalog = false,
+  borderCheckoutBySlug,
 }: Props) {
   const router = useRouter();
   const catalog = borderCatalog.length ? borderCatalog : borders;
@@ -100,11 +98,6 @@ export function StudioVisualPreview({
     return () => subscription.unsubscribe();
   }, [router]);
 
-  const [trialRendersUsed, setTrialRendersUsed] = useState(trialRendersUsedProp);
-  useEffect(() => {
-    setTrialRendersUsed(trialRendersUsedProp);
-  }, [trialRendersUsedProp]);
-
   const [cardName, setCardName] = useState(() => TAROT_CARDS_78[0]?.name ?? '');
   const [cardNumeral, setCardNumeral] = useState(() => TAROT_CARDS_78[0]?.numeral ?? '');
   const [artworkByCard, setArtworkByCard] = useState<Record<number, string>>({});
@@ -127,7 +120,9 @@ export function StudioVisualPreview({
   const [previewError, setPreviewError] = useState<string | null>(null);
 
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
-  const [showTrialPaywall, setShowTrialPaywall] = useState(false);
+  const [showExportPaywall, setShowExportPaywall] = useState(false);
+  const [exportCheckoutLoading, setExportCheckoutLoading] = useState(false);
+  const [exportZipLoading, setExportZipLoading] = useState(false);
 
   async function blobUrlToDataUrl(blobUrl: string): Promise<string> {
     const res = await fetch(blobUrl);
@@ -224,12 +219,6 @@ export function StudioVisualPreview({
     });
   }
 
-  function trialBlocksPreview(): boolean {
-    return (
-      sessionLoggedIn && !borderOwned && trialRendersUsed >= 2
-    );
-  }
-
   async function handlePreviewCard() {
     if (!sessionLoggedIn) {
       openSignInPrompt();
@@ -237,10 +226,6 @@ export function StudioVisualPreview({
     }
     if (uploading) {
       alert('Please wait for upload to finish');
-      return;
-    }
-    if (trialBlocksPreview()) {
-      setShowTrialPaywall(true);
       return;
     }
 
@@ -275,7 +260,7 @@ export function StudioVisualPreview({
         }),
       });
 
-      let data: { image_url?: string; error?: string; trial_renders_used?: number };
+      let data: { image_url?: string; error?: string };
       try {
         data = (await res.json()) as typeof data;
       } catch {
@@ -285,12 +270,6 @@ export function StudioVisualPreview({
           return next;
         });
         setPreviewError('Preview failed — check console');
-        return;
-      }
-
-      if (res.status === 403 && data.error) {
-        setShowTrialPaywall(true);
-        setPreviewError(null);
         return;
       }
 
@@ -309,10 +288,6 @@ export function StudioVisualPreview({
         alert(data.error || 'Render failed');
         setPreviewError('Preview failed — check console');
         return;
-      }
-
-      if (typeof data.trial_renders_used === 'number') {
-        setTrialRendersUsed(data.trial_renders_used);
       }
 
       setPreviewByCard((prev) => ({ ...prev, [selectedCardIndex]: data.image_url! }));
@@ -334,9 +309,9 @@ export function StudioVisualPreview({
     [artworkByCard]
   );
 
-  const borderOwned = useMemo(
-    () => purchasedBorderSlugs.includes(borderSlug),
-    [purchasedBorderSlugs, borderSlug]
+  const exportUnlocked = useMemo(
+    () => exportUnlockedBorderSlugs.includes(borderSlug),
+    [exportUnlockedBorderSlugs, borderSlug]
   );
 
   const currentBorderName = useMemo(
@@ -352,12 +327,89 @@ export function StudioVisualPreview({
   const mobileCardSelectValue = String(selectedCardIndex);
   const loginRedirect = `${studioBasePath}${borderSlug ? `?border=${encodeURIComponent(borderSlug)}` : ''}`;
 
-  const trialRemaining = Math.max(0, 2 - trialRendersUsed);
-  const showFreeTrialLine =
-    sessionLoggedIn && !borderOwned && trialRendersUsed < 2;
-  const showTrialCompleteLine = sessionLoggedIn && !borderOwned && trialRendersUsed >= 2;
+  async function startFullDeckCheckout() {
+    const meta = borderCheckoutBySlug[borderSlug];
+    if (!meta?.templatedTemplateId) {
+      window.location.href = `/borders/${borderSlug}/purchase`;
+      return;
+    }
+    setExportCheckoutLoading(true);
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          borderSlug,
+          borderName: meta.name,
+          templatedTemplateId: meta.templatedTemplateId,
+          suiteSize: 'Full deck (78 cards)',
+          cardCount: 78,
+          amountPence: 4999,
+        }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = `/auth/login?redirect=${encodeURIComponent(loginRedirect)}`;
+          return;
+        }
+        alert(data.error || 'Checkout failed');
+        return;
+      }
+      if (data.url) window.location.href = data.url;
+    } finally {
+      setExportCheckoutLoading(false);
+    }
+  }
 
-  if (noPurchasedBordersEmpty) {
+  async function handleExportDeckZip() {
+    if (!sessionLoggedIn) {
+      openSignInPrompt();
+      return;
+    }
+    if (!exportUnlocked) {
+      setShowExportPaywall(true);
+      return;
+    }
+    const indices = Object.keys(previewByCard)
+      .map(Number)
+      .sort((a, b) => a - b);
+    if (indices.length === 0) {
+      alert('Preview cards first — use Preview Card on each artwork to include it in your export.');
+      return;
+    }
+    setExportZipLoading(true);
+    try {
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const folder = zip.folder('tarot-deck-full');
+      if (!folder) return;
+      await Promise.all(
+        indices.map(async (cardIndex) => {
+          const url = previewByCard[cardIndex];
+          if (!url) return;
+          const res = await fetch(url);
+          const blob = await res.blob();
+          const card = TAROT_CARDS_78[cardIndex];
+          const name = (card?.name ?? `card_${cardIndex + 1}`).replace(/[^a-z0-9-_]/gi, '_');
+          folder.file(`${String(cardIndex + 1).padStart(2, '0')}_${name}.png`, blob);
+        }),
+      );
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `tarot-deck-${borderSlug}.zip`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      console.error(e);
+      alert('Could not build ZIP. Try again.');
+    } finally {
+      setExportZipLoading(false);
+    }
+  }
+
+  if (noBordersInCatalog) {
     return (
       <div className="mx-auto w-full max-w-7xl px-6 py-8">
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-4">
@@ -375,9 +427,9 @@ export function StudioVisualPreview({
           </Link>
         </div>
         <div className="rounded-sm border border-charcoal/15 bg-cream/80 px-5 py-10 text-center">
-          <p className="text-sm font-medium text-charcoal">You haven&apos;t purchased any borders yet.</p>
+          <p className="text-sm font-medium text-charcoal">No borders are available yet</p>
           <p className="mx-auto mt-3 max-w-md text-sm text-charcoal/70">
-            Browse borders to buy a frame, or open a style from the borders page with a trial link to preview it here.
+            The border catalog is empty. Check back soon or contact support if this persists.
           </p>
           <Link
             href="/borders"
@@ -385,47 +437,6 @@ export function StudioVisualPreview({
           >
             Browse borders
           </Link>
-        </div>
-      </div>
-    );
-  }
-
-  if (trialExhaustedNoPurchase && dropdownSource.length === 0) {
-    return (
-      <div className="mx-auto w-full max-w-7xl px-6 py-8">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold text-charcoal">Studio</h1>
-            <p className="mt-2 text-sm text-charcoal/70">
-              Design your tarot deck card by card. Choose a border, upload your artwork, and export print-ready files.
-            </p>
-          </div>
-          <Link
-            href={`${studioBasePath}/projects`}
-            className="text-sm text-charcoal underline underline-offset-2 hover:no-underline"
-          >
-            My deck projects →
-          </Link>
-        </div>
-        <div className="rounded-sm border border-charcoal/15 bg-cream/80 px-5 py-10 text-center">
-          <p className="text-sm font-medium text-charcoal">Your free trial is complete</p>
-          <p className="mx-auto mt-3 max-w-md text-sm text-charcoal/70">
-            Purchase a border to keep designing all 78 cards, save your progress, and export print-ready files.
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/borders"
-              className="inline-flex rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-xs font-medium text-cream hover:bg-charcoal/90"
-            >
-              Browse borders
-            </Link>
-            <Link
-              href="/account"
-              className="inline-flex rounded-sm border border-charcoal/35 bg-cream px-4 py-2 text-xs font-medium text-charcoal hover:bg-charcoal/5"
-            >
-              Account
-            </Link>
-          </div>
         </div>
       </div>
     );
@@ -445,7 +456,7 @@ export function StudioVisualPreview({
               Sign in to continue
             </h2>
             <p className="mt-2 text-sm text-charcoal/75">
-              Sign in to start your free trial — preview 2 cards for free with any border.
+              Sign in to upload artwork, preview cards, and sync your deck projects.
             </p>
             <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Link
@@ -466,41 +477,47 @@ export function StudioVisualPreview({
         </div>
       ) : null}
 
-      {showTrialPaywall ? (
+      {showExportPaywall ? (
         <div
           className="fixed inset-0 z-[60] flex flex-col bg-charcoal/40 lg:items-center lg:justify-center lg:p-6"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="studio-paywall-title"
+          aria-labelledby="studio-export-paywall-title"
         >
           <div className="flex min-h-0 flex-1 flex-col bg-cream lg:min-h-0 lg:max-h-[90vh] lg:max-w-md lg:flex-none lg:rounded-sm lg:border lg:border-charcoal/15 lg:shadow-lg">
             <div className="flex-1 overflow-y-auto p-6 lg:flex-none">
-              <h2 id="studio-paywall-title" className="text-lg font-semibold text-charcoal">
-                Your free trial is complete
+              <h2 id="studio-export-paywall-title" className="text-lg font-semibold text-charcoal">
+                Unlock your full tarot deck export → $49.99
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-charcoal/75">
-                You&apos;ve previewed 2 cards with {currentBorderName}. Purchase it for {borderListPriceDisplay} to
-                design all 78 cards,
-                save your progress, and export print-ready files.
+                For <span className="font-medium text-charcoal">{currentBorderName}</span>. One payment unlocks download
+                for this border style.
               </p>
+              <ul className="mt-4 list-inside list-disc space-y-1.5 text-sm text-charcoal/80">
+                <li>Full deck (78 cards)</li>
+                <li>High-resolution export</li>
+                <li>Print-ready files</li>
+              </ul>
             </div>
             <div className="flex shrink-0 flex-col gap-2 border-t border-charcoal/10 bg-cream px-6 py-4 lg:rounded-b-sm">
-              <Link
-                href={`/borders/${borderSlug}`}
-                className="inline-flex w-full justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-3 text-center text-sm font-medium text-cream hover:bg-charcoal/90"
+              <button
+                type="button"
+                disabled={exportCheckoutLoading}
+                onClick={() => void startFullDeckCheckout()}
+                className="inline-flex w-full justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-3 text-center text-sm font-medium text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Buy {currentBorderName} — {borderListPriceDisplay}
-              </Link>
+                {exportCheckoutLoading ? 'Redirecting…' : 'Pay $49.99 — secure checkout'}
+              </button>
               <Link
-                href="/borders"
+                href={`/borders/${borderSlug}/purchase`}
                 className="inline-flex w-full justify-center rounded-sm border border-charcoal/30 bg-transparent px-4 py-3 text-sm text-charcoal hover:bg-charcoal/5"
               >
-                Browse other borders
+                View border details
               </Link>
               <button
                 type="button"
                 className="mt-1 text-center text-sm text-charcoal/60 underline underline-offset-2 hover:text-charcoal"
-                onClick={() => setShowTrialPaywall(false)}
+                onClick={() => setShowExportPaywall(false)}
               >
                 Close
               </button>
@@ -515,15 +532,9 @@ export function StudioVisualPreview({
           <p className="mt-2 text-sm text-charcoal/70">
             Design your tarot deck card by card. Choose a border, upload your artwork, and export print-ready files.
           </p>
-          {sessionLoggedIn && !borderOwned && trialRendersUsed < 2 ? (
-            <p className="mt-1 text-xs text-charcoal/55">
-              Try any border — your first 2 preview renders are free. Purchase to save progress and export everything.
-            </p>
-          ) : sessionLoggedIn && !borderOwned && trialRendersUsed >= 2 ? (
-            <p className="mt-1 text-xs text-charcoal/55">
-              Free trial complete for previews. Purchase this border to keep rendering and exporting.
-            </p>
-          ) : null}
+          <p className="mt-1 text-xs text-charcoal/55">
+            Preview your deck for free. Pay only when you&apos;re ready to export.
+          </p>
         </div>
         <Link
           href={`${studioBasePath}/projects`}
@@ -537,60 +548,55 @@ export function StudioVisualPreview({
         <p className="text-sm font-medium text-charcoal">
           Card {selectedCardIndex + 1} of 78 — {cardName || getTarotDefault(selectedCardIndex)?.name}
         </p>
-        <p className="mt-1 text-xs text-charcoal/60">Progress: {completedCount} / 78 cards completed</p>
-        {showFreeTrialLine ? (
-          <p className="mt-2 text-xs text-charcoal/50">
-            {trialRemaining === 2
-              ? 'Free trial: 2 renders remaining'
-              : trialRemaining === 1
-                ? 'Free trial: 1 render remaining'
-                : null}
-          </p>
-        ) : null}
-        {showTrialCompleteLine ? (
-          <p className="mt-2 text-xs text-charcoal/55">
-            Free trial complete. Purchase this border ({borderListPriceDisplay}) to continue designing.{' '}
-            <Link href={`/borders/${borderSlug}`} className="font-medium text-charcoal underline underline-offset-2 hover:no-underline">
-              Buy Border →
-            </Link>
-          </p>
-        ) : null}
+        <p className="mt-1 text-xs text-charcoal/60">Progress: {completedCount} / 78 cards with artwork</p>
       </div>
 
-      {borderOwned ? (
-        <div className="mb-4 w-full rounded-sm border border-emerald-800/20 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-900">
-          ✓ {currentBorderName} — Owned. Your work is saved automatically.
-        </div>
-      ) : (
-        <div className="mb-4 w-full rounded-sm border border-amber-700/25 bg-amber-50/95 px-4 py-3 text-sm text-charcoal">
-          <p className="font-medium">
-            {sessionLoggedIn && trialRendersUsed < 2
-              ? `You're using ${currentBorderName} with your free trial. Purchase for ${borderListPriceDisplay} to save your work and export print-ready cards.`
-              : `You're previewing ${currentBorderName}. Purchase it for ${borderListPriceDisplay} to save your work and export print-ready cards.`}
+      <div className="mb-4 w-full rounded-sm border border-charcoal/10 bg-cream/80 px-4 py-4">
+        <h2 className="text-sm font-semibold text-charcoal">Full deck export</h2>
+        <p className="mt-1 text-xs text-charcoal/65">
+          Preview your deck for free. Pay only when you&apos;re ready to export.
+        </p>
+        {exportUnlocked ? (
+          <p className="mt-2 text-sm text-emerald-900">
+            ✓ Export unlocked for {currentBorderName}. Download includes every card you&apos;ve previewed.
           </p>
-          <div className="mt-3 flex flex-wrap gap-3">
-            <Link
-              href={`/borders/${borderSlug}`}
-              className="inline-flex rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-xs font-medium text-cream hover:bg-charcoal/90"
+        ) : (
+          <p className="mt-2 text-xs text-charcoal/60">
+            Unlock your full tarot deck export → <span className="font-medium text-charcoal">$49.99</span> — full deck
+            (78 cards), high-resolution, print-ready.
+          </p>
+        )}
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => void handleExportDeckZip()}
+            disabled={exportZipLoading}
+            className="inline-flex rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-xs font-medium text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {exportZipLoading ? 'Building ZIP…' : 'Download full deck (ZIP)'}
+          </button>
+          {!exportUnlocked ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (!sessionLoggedIn) {
+                  openSignInPrompt();
+                  return;
+                }
+                setShowExportPaywall(true);
+              }}
+              className="inline-flex rounded-sm border border-charcoal/35 bg-cream px-4 py-2 text-xs font-medium text-charcoal hover:bg-charcoal/5"
             >
-              Buy This Border — {borderListPriceDisplay}
-            </Link>
-            {!sessionLoggedIn ? (
-              <Link
-                href={`/auth/login?redirect=${encodeURIComponent(loginRedirect)}`}
-                className="inline-flex rounded-sm border border-charcoal/40 bg-cream px-4 py-2 text-xs font-medium text-charcoal hover:bg-charcoal/5"
-              >
-                Sign in
-              </Link>
-            ) : null}
-          </div>
+              Unlock export — $49.99
+            </button>
+          ) : null}
         </div>
-      )}
+      </div>
 
       <section className="mt-5 hidden max-w-2xl border-b border-charcoal/5 pb-5 lg:block" aria-label="About this builder">
         <h2 className="text-xs font-medium uppercase tracking-wide text-charcoal/50">About this builder</h2>
         <p className="mt-2 text-xs leading-relaxed text-charcoal/60">
-          This tool lets you create your own tarot deck using purchased borders. You are not editing a pre-designed
+          This tool lets you create your own tarot deck with a border frame you choose. You are not editing a pre-designed
           template.
         </p>
         <p className="mt-1.5 text-xs leading-relaxed text-charcoal/60">
@@ -618,23 +624,10 @@ export function StudioVisualPreview({
                     {dropdownSource.map((b) => (
                       <option key={b.slug} value={b.slug}>
                         {b.name}
-                        {sessionLoggedIn && !purchasedBorderSlugs.includes(b.slug) ? ' (Trial)' : ''}
                       </option>
                     ))}
                   </select>
                 </label>
-                {sessionLoggedIn && !borderOwned ? (
-                  <p className="mt-2 text-xs leading-relaxed text-charcoal/60">
-                    Preview mode —{' '}
-                    <Link
-                      href={`/borders/${borderSlug}`}
-                      className="font-medium text-charcoal underline underline-offset-2 hover:no-underline"
-                    >
-                      Purchase this border ({borderListPriceDisplay})
-                    </Link>{' '}
-                    to export cards.
-                  </p>
-                ) : null}
               </>
             )}
           </div>

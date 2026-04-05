@@ -4,44 +4,21 @@ export type StudioPreviewItem = {
   image: string;
   /** Transparent-center border PNG for live upload view; optional. */
   transparentImage?: string | null;
-  /** Unowned border opened via ?border= while trial renders remain. */
-  isTrial?: boolean;
 };
 
 export type ResolvedStudioBorders = {
   dropdownBorders: StudioPreviewItem[];
+  /** @deprecated always false; kept for callers that destructure */
   trialExhaustedNoPurchase: boolean;
-  /** Logged-in, zero purchases, no valid trial ?border=, trial not exhausted — show browse CTA. */
-  noPurchasedBordersEmpty: boolean;
+  /** True when the catalog has no borders (misnamed historically). */
+  noBordersInCatalog: boolean;
 };
 
-/** Which borders appear in the Studio dropdown for this user/session. */
-export function resolveStudioBorderOptions(
-  all: StudioPreviewItem[],
-  purchasedSlugs: string[],
-  trialRendersUsed: number,
-  isLoggedIn: boolean
-): ResolvedStudioBorders {
-  if (!isLoggedIn) {
-    return {
-      dropdownBorders: all,
-      trialExhaustedNoPurchase: false,
-      noPurchasedBordersEmpty: false,
-    };
-  }
-
-  const purchasedSet = new Set(purchasedSlugs);
-  const dropdownBorders = all.map((b) => ({
-    ...b,
-    isTrial: !purchasedSet.has(b.slug),
-  }));
-
-  const trialExhaustedNoPurchase = trialRendersUsed >= 2 && purchasedSlugs.length === 0;
-  const noPurchasedBordersEmpty = all.length === 0;
-
+/** All borders are available in the dropdown; export is gated separately in the UI. */
+export function resolveStudioBorderOptions(all: StudioPreviewItem[]): ResolvedStudioBorders {
   return {
-    dropdownBorders,
-    trialExhaustedNoPurchase,
-    noPurchasedBordersEmpty,
+    dropdownBorders: all,
+    trialExhaustedNoPurchase: false,
+    noBordersInCatalog: all.length === 0,
   };
 }

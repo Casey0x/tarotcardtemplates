@@ -2,8 +2,6 @@ import type { Metadata } from 'next';
 import { StudioSessionRedirect } from '@/components/studio-session-redirect';
 import { StudioVisualPreview } from '@/components/studio-visual-preview';
 import { fetchBorders } from '@/data/borders';
-import { getUserCurrency } from '@/lib/getUserCurrency';
-import { formatBorderListPriceDisplay } from '@/lib/template-pricing';
 import {
   protectedBorderImageUrl,
   publicBorderThumbPath,
@@ -11,7 +9,6 @@ import {
 } from '@/lib/border-asset-urls';
 import { resolveStudioBorderOptions } from '@/lib/studio-border-options';
 import { createClient } from '@/lib/supabase-server';
-import { fetchTrialRendersUsedForUser } from '@/lib/user-trial-renders';
 import { fetchPurchasedBorderSlugsForUser } from '@/lib/user-purchases';
 
 export const dynamic = 'force-dynamic';
@@ -32,10 +29,7 @@ export default async function StudioPage({
   const isLoggedIn = Boolean(user);
 
   const borders = await fetchBorders();
-  const [purchasedBorderSlugs, trialRendersUsed] = await Promise.all([
-    fetchPurchasedBorderSlugsForUser(),
-    fetchTrialRendersUsedForUser(),
-  ]);
+  const purchasedBorderSlugs = await fetchPurchasedBorderSlugsForUser();
 
   const borderOptions = borders.map((b) => ({
     slug: b.slug,
@@ -49,20 +43,16 @@ export default async function StudioPage({
   }));
 
   const q = searchParams?.border?.trim();
-  const { dropdownBorders, trialExhaustedNoPurchase, noPurchasedBordersEmpty } = resolveStudioBorderOptions(
-    borderOptions,
-    purchasedBorderSlugs,
-    trialRendersUsed,
-    isLoggedIn
-  );
+  const { dropdownBorders, noBordersInCatalog } = resolveStudioBorderOptions(borderOptions);
 
   const initialBorderSlug =
     q && borderOptions.some((b) => b.slug === q)
       ? q
       : purchasedBorderSlugs[0] ?? borderOptions[0]?.slug;
 
-  const { currency } = getUserCurrency();
-  const borderListPriceDisplay = formatBorderListPriceDisplay(currency);
+  const borderCheckoutBySlug = Object.fromEntries(
+    borders.map((b) => [b.slug, { name: b.name, templatedTemplateId: b.templatedTemplateId }]),
+  );
 
   return (
     <>
@@ -71,12 +61,10 @@ export default async function StudioPage({
         borders={dropdownBorders}
         borderCatalog={borderOptions}
         initialBorderSlug={initialBorderSlug}
-        purchasedBorderSlugs={purchasedBorderSlugs}
-        trialRendersUsed={trialRendersUsed}
+        exportUnlockedBorderSlugs={purchasedBorderSlugs}
         isLoggedIn={isLoggedIn}
-        trialExhaustedNoPurchase={trialExhaustedNoPurchase}
-        noPurchasedBordersEmpty={noPurchasedBordersEmpty}
-        borderListPriceDisplay={borderListPriceDisplay}
+        noBordersInCatalog={noBordersInCatalog}
+        borderCheckoutBySlug={borderCheckoutBySlug}
       />
     </>
   );
