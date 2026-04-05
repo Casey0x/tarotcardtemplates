@@ -462,7 +462,6 @@ export default async function BorderPage({ params }: BorderPageProps) {
                 isLoggedIn={isLoggedIn}
                 ownsBorder={ownsBorder}
                 listPriceDisplay={borderListPriceDisplay}
-                currency={currency}
               />
               <div>
                 <h2 className="mb-2 text-lg font-semibold text-charcoal">
@@ -510,7 +509,6 @@ export default async function BorderPage({ params }: BorderPageProps) {
                 isLoggedIn={isLoggedIn}
                 ownsBorder={ownsBorder}
                 listPriceDisplay={borderListPriceDisplay}
-                currency={currency}
               />
             </>
           )}

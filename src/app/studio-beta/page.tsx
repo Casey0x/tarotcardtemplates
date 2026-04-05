@@ -1,9 +1,8 @@
 import { StudioSessionRedirect } from '@/components/studio-session-redirect';
 import { StudioVisualPreview } from '@/components/studio-visual-preview';
 import { BORDER_TEMPLATES } from '@/data/border-templates-static';
-import { DEFAULT_BORDER_PRICE_CENTS } from '@/data/borders';
-import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
 import { getUserCurrency } from '@/lib/getUserCurrency';
+import { formatBorderListPriceDisplay } from '@/lib/template-pricing';
 import {
   protectedBorderImageUrl,
   publicBorderThumbPath,
@@ -57,7 +56,7 @@ export default async function StudioBetaPage({
       : purchasedBorderSlugs[0] ?? borderOptions[0]?.slug;
 
   const { currency } = getUserCurrency();
-  const borderListPriceDisplay = formatUsdAsLocalCurrency(DEFAULT_BORDER_PRICE_CENTS / 100, currency);
+  const borderListPriceDisplay = formatBorderListPriceDisplay(currency);
 
   return (
     <>

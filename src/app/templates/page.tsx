@@ -3,15 +3,9 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { getAllTemplates } from "@/lib/templates";
 import TemplateCard from "@/components/template-card";
-import {
-  DEFAULT_BORDER_PRICE_CENTS,
-  fetchBorders,
-  FALLBACK_BORDER_IMAGE,
-  formatBorderPriceLocalized,
-} from "@/data/borders";
+import { fetchBorders, FALLBACK_BORDER_IMAGE, formatBorderPriceLocalized } from "@/data/borders";
 import { getUserCurrency } from "@/lib/getUserCurrency";
-import { formatUsdAsLocalCurrency } from "@/lib/formatPrice";
-import { formatTemplatePriceDisplay } from "@/lib/template-pricing";
+import { formatBorderListPriceDisplay, formatTemplatePriceDisplay } from "@/lib/template-pricing";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +33,7 @@ export default async function TemplatesPage() {
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-charcoal/75">
           Choose a border frame, then use the Studio to add your own artwork to all 78 cards.{' '}
-          {formatUsdAsLocalCurrency(DEFAULT_BORDER_PRICE_CENTS / 100, currency)} each.
+          {formatBorderListPriceDisplay(currency)} each.
         </p>
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

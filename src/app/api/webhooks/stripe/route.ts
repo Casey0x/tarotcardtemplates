@@ -1,7 +1,66 @@
 import { NextResponse } from 'next/server';
+import { Resend } from 'resend';
 import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase-server';
+import { getEmailFrom, getEmailReplyTo } from '@/lib/email-env';
 import { TAROT_CARDS_78, TAROT_CARDS_22, getTarotDefault } from '@/lib/tarot-cards';
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function sendPurchaseEmail(to: string, templateName: string, templateSlug: string, sessionId: string): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY is not configured');
+  }
+
+  const from = getEmailFrom();
+  const replyTo = getEmailReplyTo();
+  const resend = new Resend(apiKey);
+
+  const safeName = escapeHtml(templateName);
+  const safeSessionId = escapeHtml(sessionId);
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8" /></head>
+<body style="margin:0;padding:24px;background:#f4f1eb;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;">
+    <tr>
+      <td style="padding:32px 28px;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.6;color:#3d3d3d;">
+        <p style="margin:0 0 16px;">Thank you for your purchase — we&apos;ve received your order.</p>
+        <p style="margin:0 0 12px;font-size:16px;font-weight:600;color:#1a1814;">
+          <strong>${safeName}</strong>
+        </p>
+        <p style="margin:0 0 12px;font-size:13px;color:#6b6560;">
+          Order reference: <strong>${safeSessionId}</strong>
+        </p>
+        <p style="margin:0 0 20px;">Your template is being prepared for delivery. We&apos;ll send your files manually — you can expect delivery within <strong style="color:#1a1814;">24 hours</strong>.</p>
+        <p style="margin:0 0 12px;">If you have questions or need to share details, reply to this email or contact us at <a href="mailto:casey@choiceprint.co.nz" style="color:#1a1814;font-weight:600;">casey@choiceprint.co.nz</a>.</p>
+        <p style="margin:16px 0 0;font-size:13px;color:#6b6560;">— Tarot Card Templates</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const { error } = await resend.emails.send({
+    from,
+    to,
+    replyTo,
+    subject: 'Your Tarot Template Order ✨',
+    html,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
 
 export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -129,6 +188,28 @@ export async function POST(request: Request) {
     if (templatePurchaseError) {
       console.error('template_purchases insert failed', templatePurchaseError);
       return NextResponse.json({ error: 'Failed to record purchase' }, { status: 500 });
+    }
+
+    if (email && purchaseType === 'template') {
+      try {
+        await sendPurchaseEmail(email, templateName, templateSlug, session.id);
+        console.log('[stripe-webhook] Template purchase confirmation email sent', {
+          to: email,
+          templateSlug,
+          sessionId: session.id,
+        });
+      } catch (err) {
+        console.error(
+          '[stripe-webhook] Template purchase confirmation email failed',
+          err instanceof Error ? err.message : err,
+          err instanceof Error ? err.stack : '',
+        );
+      }
+    } else if (!email && purchaseType === 'template') {
+      console.warn('[stripe-webhook] Skipping template confirmation email: no customer email on session', {
+        sessionId: session.id,
+        templateSlug,
+      });
     }
 
     return NextResponse.json({ received: true });

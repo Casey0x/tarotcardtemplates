@@ -9,7 +9,8 @@
 import { createServiceClient } from '@/lib/supabase-server';
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
 import { BORDER_TEMPLATES, type BorderTemplate } from '@/data/border-templates-static';
-import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
+import type { SupportedCurrency } from '@/lib/getUserCurrency';
+import { formatBorderListPriceDisplay } from '@/lib/template-pricing';
 
 export { FALLBACK_BORDER_IMAGE, BORDER_TEMPLATES, type BorderTemplate };
 
@@ -54,12 +55,12 @@ export function borderPriceUsdFormatted(border: Pick<Border, 'priceMajorArcana' 
   return borderPriceUsdAmount(border).toFixed(2);
 }
 
-/** Border list price (USD from DB) → localized display. Safe for Server Components only if `borders` was fetched server-side. */
+/** Fixed regional border list price (same helpers as checkout / Stripe product copy). */
 export function formatBorderPriceLocalized(
-  border: Pick<Border, 'priceMajorArcana' | 'priceFullDeck'>,
+  _border: Pick<Border, 'priceMajorArcana' | 'priceFullDeck'>,
   currency: string,
 ): string {
-  return formatUsdAsLocalCurrency(borderPriceUsdAmount(border), currency);
+  return formatBorderListPriceDisplay(currency as SupportedCurrency);
 }
 
 function borderFromStatic(t: BorderTemplate): Border {

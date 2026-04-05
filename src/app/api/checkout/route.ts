@@ -3,6 +3,11 @@ import { createServerClient } from '@supabase/ssr';
 import Stripe from 'stripe';
 import { cookies } from 'next/headers';
 import { createServiceClient } from '@/lib/supabase-server';
+import { getUserCurrency } from '@/lib/getUserCurrency';
+import {
+  getPrintedDeckPriceByCurrency,
+  getTemplatePriceByCurrency,
+} from '@/lib/template-pricing';
 
 type PurchaseType = 'template' | 'print';
 
@@ -121,7 +126,7 @@ export async function POST(request: Request) {
   const supabase = createServiceClient();
   const { data: row, error: fetchError } = await supabase
     .from('templates')
-    .select('slug,name,template_price,print_price')
+    .select('slug,name')
     .eq('slug', templateSlug)
     .maybeSingle();
 
@@ -133,18 +138,20 @@ export async function POST(request: Request) {
   }
 
   const templateName = String(row.name);
-  const priceNzd =
+  const { currency } = getUserCurrency();
+  const amount =
     purchaseType === 'template'
-      ? Number(row.template_price)
-      : Number(row.print_price);
-  if (!Number.isFinite(priceNzd) || priceNzd <= 0) {
+      ? getTemplatePriceByCurrency(currency)
+      : getPrintedDeckPriceByCurrency(currency);
+  if (!Number.isFinite(amount) || amount <= 0) {
     return NextResponse.json(
       { error: 'Invalid price for this product' },
       { status: 400 }
     );
   }
 
-  const unitAmount = Math.round(priceNzd * 100);
+  const unitAmount = Math.round(amount * 100);
+  const stripeCurrency = currency.toLowerCase();
   const lineItemName =
     purchaseType === 'print'
       ? `${templateName} — Printed Deck`
@@ -161,7 +168,7 @@ export async function POST(request: Request) {
     line_items: [
       {
         price_data: {
-          currency: 'nzd',
+          currency: stripeCurrency,
           product_data: {
             name: lineItemName,
           },

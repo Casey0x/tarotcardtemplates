@@ -45,7 +45,6 @@ export default async function BorderPurchasePage({ params }: { params: { slug: s
           isLoggedIn={isLoggedIn}
           ownsBorder={ownsBorder}
           listPriceDisplay={listPriceDisplay}
-          currency={currency}
         />
       </div>
     </div>

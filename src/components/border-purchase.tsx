@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import type { SupportedCurrency } from '@/lib/getUserCurrency';
-import { formatUsdAsLocalCurrency } from '@/lib/formatPrice';
+import { formatPrice } from '@/lib/formatPrice';
 
 type SuiteSize = 'single' | 'major' | 'full';
 
@@ -20,9 +19,8 @@ interface BorderPurchaseProps {
   templatedTemplateId: string | null;
   isLoggedIn: boolean;
   ownsBorder: boolean;
-  /** Localized list price for copy when checkout tiers are unavailable (USD base from DB). */
+  /** Localized list price for copy when checkout tiers are unavailable (fixed regional). */
   listPriceDisplay: string;
-  currency: SupportedCurrency;
 }
 
 export function BorderPurchase({
@@ -32,7 +30,6 @@ export function BorderPurchase({
   isLoggedIn,
   ownsBorder,
   listPriceDisplay,
-  currency,
 }: BorderPurchaseProps) {
   const [suiteSize, setSuiteSize] = useState<SuiteSize>('major');
   const [loading, setLoading] = useState(false);
@@ -114,7 +111,7 @@ export function BorderPurchase({
           >
             {loading
               ? 'Redirecting to checkout…'
-              : `Purchase — ${formatUsdAsLocalCurrency(option.amountPence / 100, currency)}`}
+              : `Purchase — ${formatPrice(option.amountPence / 100, 'USD')}`}
           </button>
         ) : (
           <Link href={loginRedirect} className={purchaseOutlineClass}>
@@ -152,7 +149,7 @@ export function BorderPurchase({
                       />
                       <span className="text-charcoal">{p.label}</span>
                       <span className="text-charcoal/70">
-                        {formatUsdAsLocalCurrency(p.amountPence / 100, currency)}
+                        {formatPrice(p.amountPence / 100, 'USD')}
                       </span>
                     </label>
                   </li>
@@ -203,7 +200,7 @@ export function BorderPurchase({
                       />
                       <span className="text-charcoal">{p.label}</span>
                       <span className="text-charcoal/70">
-                        {formatUsdAsLocalCurrency(p.amountPence / 100, currency)}
+                        {formatPrice(p.amountPence / 100, 'USD')}
                       </span>
                     </label>
                   </li>
