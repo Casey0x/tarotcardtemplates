@@ -27,6 +27,16 @@ async function fetchPaidBorderSlugsFromTable(
   return (rows ?? []).map((r) => r.border_slug).filter(Boolean);
 }
 
+/** Paid border slugs for a known user id (server caching / batch use). */
+export async function fetchPurchasedBorderSlugsForUserId(userId: string): Promise<string[]> {
+  const merged = new Set<string>();
+  for (const table of PAID_TABLES) {
+    const slugs = await fetchPaidBorderSlugsFromTable(table, userId);
+    for (const s of slugs) merged.add(s);
+  }
+  return [...merged];
+}
+
 /**
  * Border slugs the current user has paid for (`orders` and/or `purchases` tables).
  * Returns [] if not signed in or on error.
@@ -37,13 +47,7 @@ export async function fetchPurchasedBorderSlugsForUser(): Promise<string[]> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return [];
-
-  const merged = new Set<string>();
-  for (const table of PAID_TABLES) {
-    const slugs = await fetchPaidBorderSlugsFromTable(table, user.id);
-    for (const s of slugs) merged.add(s);
-  }
-  return [...merged];
+  return fetchPurchasedBorderSlugsForUserId(user.id);
 }
 
 /** Whether this user has a paid row for the border (`orders` / `purchases`). */

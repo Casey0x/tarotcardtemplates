@@ -21,17 +21,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid form data' }, { status: 400 });
   }
 
-  const file = formData.get('file') as File | null;
-  const deckId = formData.get('deckId') as string | null;
-  const cardIndex = formData.get('cardIndex') as string | null;
+  const rawUpload = formData.get('file') ?? formData.get('image');
+  const file = rawUpload instanceof File && rawUpload.size > 0 ? rawUpload : null;
+  const deckIdRaw = formData.get('deckId') ?? formData.get('deck_id');
+  const cardIndexRaw = formData.get('cardIndex') ?? formData.get('card_index');
+  const deckId = typeof deckIdRaw === 'string' ? deckIdRaw : deckIdRaw != null ? String(deckIdRaw) : null;
+  const cardIndex = typeof cardIndexRaw === 'string' ? cardIndexRaw : cardIndexRaw != null ? String(cardIndexRaw) : null;
 
-  if (!file || !file.size) {
+  if (!file) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 });
   }
-  if (!deckId || typeof deckId !== 'string' || !deckId.trim()) {
+  if (!deckId || !deckId.trim()) {
     return NextResponse.json({ error: 'Missing deckId' }, { status: 400 });
   }
-  if (!cardIndex || typeof cardIndex !== 'string' || !cardIndex.trim()) {
+  if (!cardIndex || !cardIndex.trim()) {
     return NextResponse.json({ error: 'Missing cardIndex' }, { status: 400 });
   }
 

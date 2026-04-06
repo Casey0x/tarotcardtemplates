@@ -1,15 +1,13 @@
 import { readFile } from 'fs/promises';
 import path from 'path';
 
-import { BORDER_TEMPLATES } from '@/data/border-templates-static';
 import { createClient } from '@/lib/supabase-server';
-import { userOwnsBorderForUserId } from '@/lib/user-purchases';
-
-const ALLOWED = new Set(BORDER_TEMPLATES.map((b) => b.slug));
+import { resolveBorderImageSlug } from '@/lib/border-image-slug';
 
 export async function GET(req: Request, context: { params: Promise<{ slug: string }> }) {
-  const { slug } = await context.params;
-  if (!slug || !ALLOWED.has(slug)) {
+  const { slug: rawSlug } = await context.params;
+  const { canonical: slug, ok } = resolveBorderImageSlug(rawSlug ?? '');
+  if (!ok) {
     return new Response(null, { status: 404 });
   }
 
@@ -18,26 +16,7 @@ export async function GET(req: Request, context: { params: Promise<{ slug: strin
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return new Response(null, { status: 403 });
-  }
-
-  const owns = await userOwnsBorderForUserId(user.id, slug);
-  if (!owns) {
-    const { data: prof, error: profErr } = await supabase
-      .from('profiles')
-      .select('trial_renders_used')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    let trialAllowed = true;
-    if (!profErr) {
-      const used = (prof as { trial_renders_used?: number } | null)?.trial_renders_used ?? 0;
-      trialAllowed = used < 2;
-    }
-
-    if (!trialAllowed) {
-      return new Response(null, { status: 403 });
-    }
+    return new Response(null, { status: 401 });
   }
 
   const url = new URL(req.url);
@@ -55,6 +34,21 @@ export async function GET(req: Request, context: { params: Promise<{ slug: strin
       },
     });
   } catch {
+    if (variant === 'transparent') {
+      const fallbackPath = path.join(process.cwd(), 'private', 'borders', `${slug}.png`);
+      try {
+        const buf = await readFile(fallbackPath);
+        return new Response(buf, {
+          status: 200,
+          headers: {
+            'Content-Type': 'image/png',
+            'Cache-Control': 'private, max-age=3600',
+          },
+        });
+      } catch {
+        return new Response(null, { status: 404 });
+      }
+    }
     return new Response(null, { status: 404 });
   }
 }

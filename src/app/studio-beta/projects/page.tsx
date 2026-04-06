@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { BORDER_TEMPLATES } from '@/data/border-templates-static';
 import { createClient } from '@/lib/supabase-client';
 
 interface DeckRow {
@@ -14,11 +15,22 @@ interface DeckRow {
   created_at: string;
 }
 
+interface StudioDeckRow {
+  id: string;
+  border_slug: string;
+  updated_at: string;
+}
+
+function studioBorderDisplayName(slug: string): string {
+  return BORDER_TEMPLATES.find((b) => b.slug === slug)?.name ?? slug;
+}
+
 function StudioBetaProjectsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [decks, setDecks] = useState<DeckRow[]>([]);
+  const [studioDecks, setStudioDecks] = useState<StudioDeckRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [creatingDevDeck, setCreatingDevDeck] = useState(false);
   const isDev = process.env.NODE_ENV === 'development';
@@ -45,12 +57,22 @@ function StudioBetaProjectsContent() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data } = await supabase
-      .from('decks')
-      .select('id, border_name, total_cards, completed_cards, status, created_at')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    setDecks((data as DeckRow[]) ?? []);
+
+    const [legacyResult, studioResult] = await Promise.all([
+      supabase
+        .from('decks')
+        .select('id, border_name, total_cards, completed_cards, status, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('studio_decks')
+        .select('id, border_slug, updated_at')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false }),
+    ]);
+
+    setDecks((legacyResult.data as DeckRow[]) ?? []);
+    setStudioDecks((studioResult.data as StudioDeckRow[]) ?? []);
   }
 
   async function handleCreateDevDeck() {
@@ -98,7 +120,7 @@ function StudioBetaProjectsContent() {
       <p className="mt-2 text-charcoal/70">
         Your deck projects. Pick one to continue designing.
       </p>
-      {decks.length === 0 ? (
+      {studioDecks.length === 0 && decks.length === 0 ? (
         <div className="mt-10 space-y-6">
           {isDev && (
             <div>
@@ -115,18 +137,31 @@ function StudioBetaProjectsContent() {
           <div className="rounded-sm border border-charcoal/10 bg-cardBg p-8 text-center text-charcoal/70">
             <p>You don’t have any decks yet.</p>
             <p className="mt-2">
-              <Link
-                href="/borders"
-                className="text-charcoal underline underline-offset-2 hover:no-underline"
-              >
-                Choose a border
+              <Link href="/studio-beta" className="text-charcoal underline underline-offset-2 hover:no-underline">
+                Open Studio
               </Link>
-              {' '}and purchase to start designing.
+              {' '}
+              to start a deck, or{' '}
+              <Link href="/borders" className="text-charcoal underline underline-offset-2 hover:no-underline">
+                choose a border
+              </Link>{' '}
+              to purchase a print-ready project.
             </p>
           </div>
         </div>
       ) : (
         <ul className="mt-8 space-y-4">
+          {studioDecks.map((sd) => (
+            <li key={sd.id}>
+              <Link
+                href={`/studio-beta?border=${encodeURIComponent(sd.border_slug)}`}
+                className="block rounded-sm border border-charcoal/10 bg-cardBg p-4 text-charcoal transition hover:border-charcoal/20"
+              >
+                <span className="font-medium">{studioBorderDisplayName(sd.border_slug)}</span>
+                <span className="ml-2 text-charcoal/70">— Studio (beta)</span>
+              </Link>
+            </li>
+          ))}
           {decks.map((deck) => (
             <li key={deck.id}>
               <Link

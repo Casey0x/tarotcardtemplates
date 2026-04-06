@@ -76,6 +76,8 @@ export function StudioVisualPreview({
   const [deckId, setDeckId] = useState<string | null>(null);
   const [saveStatusSaving, setSaveStatusSaving] = useState(false);
   const [saveStatusSaved, setSaveStatusSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const cardFieldsRef = useRef<Record<number, { cardName: string; numeral: string }>>({});
   const artworkByCardRef = useRef(artworkByCard);
   /** Storage path in private bucket `studio-uploads` (not a display URL). */
@@ -163,6 +165,7 @@ export function StudioVisualPreview({
 
       setSaveStatusSaving(true);
       setSaveStatusSaved(false);
+      setSaveError(null);
       try {
         const payload: Record<string, unknown> = {
           deckId: id,
@@ -173,14 +176,31 @@ export function StudioVisualPreview({
         if (path !== undefined) {
           payload.artworkPath = path;
         }
-        await fetch('/api/studio/save-card', {
+        const res = await fetch('/api/studio/save-card', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
+        const raw = await res.text();
+        let errMsg: string | undefined;
+        try {
+          const j = JSON.parse(raw) as { error?: string };
+          errMsg = j.error;
+        } catch {
+          /* non-JSON body */
+        }
+        if (!res.ok) {
+          setSaveStatusSaved(false);
+          setSaveError(errMsg?.trim() || `Save failed (${res.status}). Retrying soon…`);
+          return;
+        }
+        setSaveError(null);
+        setSaveStatusSaved(true);
+      } catch {
+        setSaveStatusSaved(false);
+        setSaveError('Save failed. Check your connection.');
       } finally {
         setSaveStatusSaving(false);
-        setSaveStatusSaved(true);
       }
     },
     [deckId],
@@ -206,6 +226,7 @@ export function StudioVisualPreview({
     const d = getTarotDefault(index);
     if (!d) return;
     if (index === selectedCardIndex) return;
+    setUploadError(null);
     if (deckId) {
       cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
       await persistCardToServer(selectedCardIndex);
@@ -244,6 +265,7 @@ export function StudioVisualPreview({
   const handleUpload = async (file: File) => {
     try {
       setUploading(true);
+      setUploadError(null);
 
       let effectiveDeckId = deckId;
       if (!effectiveDeckId) {
@@ -259,7 +281,7 @@ export function StudioVisualPreview({
         }
       }
       if (!effectiveDeckId) {
-        alert('Could not start a deck session. Try again.');
+        setUploadError('Could not start a deck session. Try again.');
         return;
       }
 
@@ -269,10 +291,16 @@ export function StudioVisualPreview({
       form.append('cardIndex', String(selectedCardIndex));
 
       const uploadRes = await fetch('/api/studio/upload', { method: 'POST', body: form });
-      const uploadData = (await uploadRes.json()) as { url?: string; path?: string; error?: string };
+      const rawUpload = await uploadRes.text();
+      let uploadData: { url?: string; path?: string; error?: string } = {};
+      try {
+        uploadData = JSON.parse(rawUpload) as typeof uploadData;
+      } catch {
+        uploadData = {};
+      }
 
       if (!uploadRes.ok || !uploadData.url || !uploadData.path) {
-        alert(uploadData.error || 'Upload failed');
+        setUploadError(uploadData.error?.trim() || 'Upload failed. Please try again.');
         return;
       }
 
@@ -291,8 +319,9 @@ export function StudioVisualPreview({
       cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
       setSaveStatusSaving(true);
       setSaveStatusSaved(false);
+      setSaveError(null);
       try {
-        await fetch('/api/studio/save-card', {
+        const saveRes = await fetch('/api/studio/save-card', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -303,13 +332,29 @@ export function StudioVisualPreview({
             artworkPath: uploadData.path,
           }),
         });
+        const rawSave = await saveRes.text();
+        let savePayload: { error?: string } = {};
+        try {
+          savePayload = JSON.parse(rawSave) as { error?: string };
+        } catch {
+          savePayload = {};
+        }
+        if (!saveRes.ok) {
+          setSaveStatusSaved(false);
+          setSaveError(savePayload.error?.trim() || `Save failed (${saveRes.status}). Retrying soon…`);
+        } else {
+          setSaveError(null);
+          setSaveStatusSaved(true);
+        }
+      } catch {
+        setSaveStatusSaved(false);
+        setSaveError('Save failed. Check your connection.');
       } finally {
         setSaveStatusSaving(false);
-        setSaveStatusSaved(true);
       }
     } catch (err) {
       console.error('Upload crash:', err);
-      alert('Upload crashed');
+      setUploadError('Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -615,9 +660,12 @@ export function StudioVisualPreview({
           <p className="mt-1 text-xs text-charcoal/55">
             Preview your deck for free. Pay only when you&apos;re ready to export.
           </p>
-          {(saveStatusSaving || saveStatusSaved) && (
-            <p className="mt-1 text-xs text-charcoal/55" aria-live="polite">
-              {saveStatusSaving ? 'Saving...' : 'Saved ✓'}
+          {(saveStatusSaving || saveStatusSaved || saveError) && (
+            <p
+              className={`mt-1 text-xs ${saveError ? 'text-red-800/90' : 'text-charcoal/55'}`}
+              aria-live="polite"
+            >
+              {saveStatusSaving ? 'Saving...' : saveError ? saveError : 'Saved ✓'}
             </p>
           )}
         </div>
@@ -775,7 +823,7 @@ export function StudioVisualPreview({
               </div>
             ) : null}
 
-            {!previewImage ? (
+            {!previewImage && artworkSrc ? (
               <>
                 {borderSlug !== 'day-of-the-dead' ? (
                   <div className="top-banner pointer-events-none absolute inset-x-0 top-[5%] z-[16] px-2 text-center">
@@ -804,6 +852,11 @@ export function StudioVisualPreview({
                     Upload your artwork to begin designing this card
                   </p>
                   <p className="mt-1.5 text-[10px] text-charcoal/50 sm:text-xs">PNG or JPG recommended</p>
+                  {uploadError ? (
+                    <p className="pointer-events-auto mt-3 max-w-[18rem] text-[11px] font-medium leading-snug text-red-800 sm:text-xs" role="alert">
+                      {uploadError}
+                    </p>
+                  ) : null}
                 </div>
                 <input
                   type="file"

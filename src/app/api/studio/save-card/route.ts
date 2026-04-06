@@ -13,7 +13,9 @@ export async function POST(request: Request) {
 
   let body: {
     deckId?: string;
+    deck_id?: string;
     cardKey?: string;
+    card_key?: string;
     cardName?: string;
     numeral?: string;
     /** Storage path in `studio-uploads`, or null to remove artwork */
@@ -25,8 +27,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const deckId = String(body.deckId ?? '').trim();
-  const cardKey = String(body.cardKey ?? '').trim();
+  const deckId = String(body.deckId ?? body.deck_id ?? '').trim();
+  const cardKey = String(body.cardKey ?? body.card_key ?? '').trim();
   if (!deckId || !cardKey) {
     return NextResponse.json({ error: 'deckId and cardKey required' }, { status: 400 });
   }
@@ -49,18 +51,34 @@ export async function POST(request: Request) {
 
   const admin = createServiceClient();
 
-  const { data: existing } = await admin
-    .from('studio_cards')
-    .select('image_url')
-    .eq('deck_id', deckId)
-    .eq('card_index', cardIndex)
-    .maybeSingle();
+  let existingRow: { id: string; image_url: string | null } | null = null;
+  {
+    const byIndex = await admin
+      .from('studio_cards')
+      .select('id, image_url')
+      .eq('deck_id', deckId)
+      .eq('card_index', cardIndex)
+      .maybeSingle();
+    if (byIndex.data?.id) {
+      existingRow = { id: byIndex.data.id, image_url: byIndex.data.image_url ?? null };
+    } else {
+      const byKey = await admin
+        .from('studio_cards')
+        .select('id, image_url')
+        .eq('deck_id', deckId)
+        .eq('card_key', cardKey)
+        .maybeSingle();
+      if (byKey.data?.id) {
+        existingRow = { id: byKey.data.id, image_url: byKey.data.image_url ?? null };
+      }
+    }
+  }
 
-  let nextImageUrl = existing?.image_url ?? null;
+  let nextImageUrl = existingRow?.image_url ?? null;
 
   if (body.artworkPath !== undefined) {
     if (body.artworkPath === null) {
-      const prev = existing?.image_url;
+      const prev = existingRow?.image_url;
       if (prev && isLikelySupabaseStoragePath(prev)) {
         await admin.storage.from('studio-uploads').remove([prev]);
       }
@@ -70,23 +88,29 @@ export async function POST(request: Request) {
     }
   }
 
-  const { error: upsertErr } = await admin.from('studio_cards').upsert(
-    {
-      deck_id: deckId,
-      user_id: user.id,
-      card_key: cardKey,
-      card_index: cardIndex,
-      card_name: body.cardName ?? null,
-      numeral: body.numeral ?? null,
-      image_url: nextImageUrl,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'deck_id,card_index' },
-  );
+  const rowPayload = {
+    deck_id: deckId,
+    user_id: user.id,
+    card_key: cardKey,
+    card_index: cardIndex,
+    card_name: body.cardName ?? null,
+    numeral: body.numeral ?? null,
+    image_url: nextImageUrl,
+    updated_at: new Date().toISOString(),
+  };
 
-  if (upsertErr) {
-    console.error('[studio/save-card]', upsertErr);
-    return NextResponse.json({ error: upsertErr.message }, { status: 500 });
+  if (existingRow?.id) {
+    const { error: updErr } = await admin.from('studio_cards').update(rowPayload).eq('id', existingRow.id);
+    if (updErr) {
+      console.error('[studio/save-card]', updErr);
+      return NextResponse.json({ error: updErr.message }, { status: 500 });
+    }
+  } else {
+    const { error: insErr } = await admin.from('studio_cards').insert(rowPayload);
+    if (insErr) {
+      console.error('[studio/save-card]', insErr);
+      return NextResponse.json({ error: insErr.message }, { status: 500 });
+    }
   }
 
   const { error: touchErr } = await supabase
