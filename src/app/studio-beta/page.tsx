@@ -33,13 +33,11 @@ export default async function StudioBetaPage({
     );
   }
 
+  // Do not wrap fetchPurchasedBorderSlugsForUserId in unstable_cache: it uses createClient()
+  // (cookies), which Next.js forbids inside cache callbacks and will crash the page (500).
   const [borders, purchasedBorderSlugs] = await Promise.all([
     getCachedBordersCatalog(),
-    unstable_cache(
-      () => fetchPurchasedBorderSlugsForUserId(user.id),
-      ['purchased-border-slugs', user.id],
-      { revalidate: 45 },
-    )(),
+    fetchPurchasedBorderSlugsForUserId(user.id),
   ]);
   const borderOptions = borders.map((b) => ({
     slug: b.slug,
