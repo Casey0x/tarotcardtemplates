@@ -5,6 +5,8 @@ import { cookies } from 'next/headers';
 import { getSignedCardUrl, getSignedStudioArtworkUrl } from '@/lib/getSignedCardUrl';
 import { isLikelySupabaseStoragePath } from '@/lib/studio-storage-path';
 
+const FALLBACK_BORDER_SLUG = 'default-border';
+
 async function fetchSessionCardsPayload(
   supabase: Awaited<ReturnType<typeof createAppServerClient>>,
   deckId: string,
@@ -15,6 +17,7 @@ async function fetchSessionCardsPayload(
     .eq('deck_id', deckId);
 
   if (cardsErr) {
+    console.error('[studio-session] cards query:', cardsErr.message, cardsErr.code, cardsErr.details);
     return { error: cardsErr } as const;
   }
 
@@ -50,87 +53,102 @@ async function fetchSessionCardsPayload(
 }
 
 /**
- * POST { borderSlug } — single deck per user; returns deckId + saved cards for Studio client.
+ * POST { borderSlug } — fetch or create the user's single studio deck; returns deckId + saved cards.
  */
 export async function POST(request: Request) {
-  const supabase = await createAppServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  let body: { borderSlug?: string };
   try {
-    body = (await request.json()) as { borderSlug?: string };
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+    const supabase = await createAppServerClient();
 
-  const borderSlug = String(body.borderSlug ?? '').trim();
-  if (!borderSlug) {
-    return NextResponse.json({ error: 'borderSlug required' }, { status: 400 });
-  }
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-  const { data: existingDeck, error: findErr } = await supabase
-    .from('studio_decks')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle();
-
-  if (findErr) {
-    console.error('[studio/session POST] find deck', findErr);
-    return NextResponse.json({ error: 'Failed to load deck' }, { status: 500 });
-  }
-
-  let deckId: string;
-
-  if (existingDeck) {
-    if (borderSlug && borderSlug !== existingDeck.border_slug) {
-      const { error: updErr } = await supabase
-        .from('studio_decks')
-        .update({
-          border_slug: borderSlug,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', existingDeck.id);
-
-      if (updErr) {
-        console.error('[studio/session POST] update border', updErr);
-        return NextResponse.json({ error: 'Failed to update deck' }, { status: 500 });
-      }
+    if (userError || !user) {
+      console.error('[studio-session] auth error:', userError);
+      return new Response('Unauthorized', { status: 401 });
     }
 
-    deckId = existingDeck.id;
-  } else {
-    const inserted = await supabase
+    console.log('[studio-session] user:', user.id);
+
+    let body: { borderSlug?: string };
+    try {
+      body = (await request.json()) as { borderSlug?: string };
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
+
+    const borderSlug = String(body.borderSlug ?? '').trim();
+    const borderSlugForDb = borderSlug || FALLBACK_BORDER_SLUG;
+
+    const { data: decks, error: fetchError } = await supabase
       .from('studio_decks')
-      .insert({
-        user_id: user.id,
-        border_slug: borderSlug,
-      })
-      .select()
-      .single();
+      .select('*')
+      .eq('user_id', user.id)
+      .limit(1);
 
-    if (inserted.error || !inserted.data) {
-      console.error('[studio/session POST] insert deck', inserted.error);
-      return NextResponse.json({ error: 'Failed to create deck' }, { status: 500 });
+    if (fetchError) {
+      console.error('[studio-session] fetch error:', fetchError.message, fetchError.code, fetchError.details);
+      return new Response('Failed to fetch deck', { status: 500 });
     }
 
-    deckId = inserted.data.id;
-  }
+    const existingDeck = decks?.[0];
+    let deckId: string;
 
-  const payload = await fetchSessionCardsPayload(supabase, deckId);
-  if ('error' in payload) {
-    console.error('[studio/session POST] cards', payload.error);
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
-  }
+    if (existingDeck) {
+      console.log('[studio-session] using existing deck:', existingDeck.id);
 
-  return NextResponse.json({
-    deckId,
-    cards: payload.cards,
-  });
+      if (borderSlugForDb !== existingDeck.border_slug) {
+        const { error: updateError } = await supabase
+          .from('studio_decks')
+          .update({
+            border_slug: borderSlugForDb,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existingDeck.id)
+          .eq('user_id', user.id);
+
+        if (updateError) {
+          console.error('[studio-session] border update error:', updateError.message, updateError.code);
+          return new Response('Failed to update deck', { status: 500 });
+        }
+      }
+
+      deckId = existingDeck.id;
+    } else {
+      console.log('[studio-session] incoming borderSlug:', body.borderSlug);
+
+      const { data: newDeck, error: insertError } = await supabase
+        .from('studio_decks')
+        .insert({
+          user_id: user.id,
+          border_slug: borderSlugForDb,
+        })
+        .select()
+        .single();
+
+      if (insertError || !newDeck) {
+        console.error('[studio-session] insert error:', insertError?.message, insertError?.code, insertError?.details);
+        return new Response('Failed to create deck', { status: 500 });
+      }
+
+      console.log('[studio-session] created deck:', newDeck.id);
+      deckId = newDeck.id;
+    }
+
+    const payload = await fetchSessionCardsPayload(supabase, deckId);
+    if ('error' in payload) {
+      return new Response('Failed to load cards', { status: 500 });
+    }
+
+    return NextResponse.json({
+      deckId,
+      cards: payload.cards,
+    });
+  } catch (e) {
+    console.error('[studio-session] unhandled:', e);
+    return new Response('Internal server error', { status: 500 });
+  }
 }
 
 /** GET ?session_id=cs_xxx — returns { deckId } for Stripe checkout success redirect. */
