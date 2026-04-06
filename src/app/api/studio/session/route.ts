@@ -38,13 +38,18 @@ async function loadSessionCardsSafe(
     try {
       const mapped = await Promise.all(
         rawRows.map(async (row: Record<string, unknown>) => {
-          const card_key = String(row.card_key ?? '');
           const card_index =
             typeof row.card_index === 'number'
               ? row.card_index
               : row.card_index != null
                 ? Number(row.card_index)
                 : null;
+          const card_key =
+            row.card_key != null && String(row.card_key).length > 0
+              ? String(row.card_key)
+              : Number.isFinite(card_index as number)
+                ? String(card_index as number)
+                : '';
           const card_name = row.card_name != null ? String(row.card_name) : null;
           const numeral = row.numeral != null ? String(row.numeral) : null;
           const imageUrlRaw = row.image_url != null ? String(row.image_url) : null;

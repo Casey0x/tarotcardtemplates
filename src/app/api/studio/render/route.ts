@@ -156,7 +156,6 @@ export async function POST(request: Request) {
         deck_id: deckId,
         user_id: user.id,
         card_index: cardIndex,
-        card_key: String(cardIndex),
         card_name,
         numeral: numeral || null,
         image_path: filePath,

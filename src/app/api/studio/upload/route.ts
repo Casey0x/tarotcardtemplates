@@ -4,6 +4,9 @@ import { createServerClient, createServiceClient } from '@/lib/supabase-server';
 const LEGACY_BUCKET = 'card-artwork';
 const STUDIO_BUCKET = 'studio-uploads';
 
+/** Avoid Edge quirks with multipart; ensure full Node body parsing for FormData. */
+export const runtime = 'nodejs';
+
 export async function POST(request: Request) {
   const supabaseAuth = await createServerClient();
   const {
@@ -17,8 +20,17 @@ export async function POST(request: Request) {
   let formData: FormData;
   try {
     formData = await request.formData();
-  } catch {
-    return NextResponse.json({ error: 'Invalid form data' }, { status: 400 });
+  } catch (e) {
+    console.error('[studio/upload] formData parse failed', e);
+    return NextResponse.json(
+      {
+        error:
+          e instanceof Error
+            ? e.message
+            : 'Could not read upload body. Use FormData and let the browser set Content-Type (including boundary).',
+      },
+      { status: 400 },
+    );
   }
 
   const rawUpload = formData.get('file') ?? formData.get('image');

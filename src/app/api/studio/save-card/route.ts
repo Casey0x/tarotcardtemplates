@@ -51,28 +51,16 @@ export async function POST(request: Request) {
 
   const admin = createServiceClient();
 
-  let existingRow: { id: string; image_url: string | null } | null = null;
-  {
-    const byIndex = await admin
-      .from('studio_cards')
-      .select('id, image_url')
-      .eq('deck_id', deckId)
-      .eq('card_index', cardIndex)
-      .maybeSingle();
-    if (byIndex.data?.id) {
-      existingRow = { id: byIndex.data.id, image_url: byIndex.data.image_url ?? null };
-    } else {
-      const byKey = await admin
-        .from('studio_cards')
-        .select('id, image_url')
-        .eq('deck_id', deckId)
-        .eq('card_key', cardKey)
-        .maybeSingle();
-      if (byKey.data?.id) {
-        existingRow = { id: byKey.data.id, image_url: byKey.data.image_url ?? null };
-      }
-    }
-  }
+  const { data: indexRow } = await admin
+    .from('studio_cards')
+    .select('id, image_url')
+    .eq('deck_id', deckId)
+    .eq('card_index', cardIndex)
+    .maybeSingle();
+
+  const existingRow: { id: string; image_url: string | null } | null = indexRow?.id
+    ? { id: indexRow.id, image_url: indexRow.image_url ?? null }
+    : null;
 
   let nextImageUrl = existingRow?.image_url ?? null;
 
@@ -91,7 +79,6 @@ export async function POST(request: Request) {
   const rowPayload = {
     deck_id: deckId,
     user_id: user.id,
-    card_key: cardKey,
     card_index: cardIndex,
     card_name: body.cardName ?? null,
     numeral: body.numeral ?? null,
