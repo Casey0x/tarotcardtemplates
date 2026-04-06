@@ -1,28 +1,17 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { createServiceClient } from '@/lib/supabase-server';
-import { cookies } from 'next/headers';
+import { createServerClient, createServiceClient } from '@/lib/supabase-server';
 
-const BUCKET = 'card-artwork';
+const LEGACY_BUCKET = 'card-artwork';
+const STUDIO_BUCKET = 'studio-uploads';
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies();
-  const supabaseAuth = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set() {},
-        remove() {},
-      },
-    }
-  );
-  const { data: { session } } = await supabaseAuth.auth.getSession();
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const supabaseAuth = await createServerClient();
+  const {
+    data: { user },
+  } = await supabaseAuth.auth.getUser();
+
+  if (!user) {
+    return new Response('Unauthorized', { status: 401 });
   }
 
   let formData: FormData;
@@ -47,21 +36,15 @@ export async function POST(request: Request) {
   }
 
   const supabase = createServiceClient();
-  const { data: deck } = await supabase
-    .from('decks')
-    .select('id')
-    .eq('id', deckId.trim())
-    .eq('user_id', session.user.id)
-    .single();
-
-  if (!deck) {
-    return NextResponse.json({ error: 'Deck not found or access denied' }, { status: 403 });
-  }
-
+  const deckIdTrim = deckId.trim();
   const safeCardIndex = cardIndex.trim();
-  const ext = file.name.split('.').pop()?.replace(/[^a-z0-9]/gi, '') || 'png';
-  const fileExt = ext || 'png';
-  const filePath = `${deckId.trim()}/${safeCardIndex}.${fileExt}`;
+
+  const { data: studioDeck } = await supabase
+    .from('studio_decks')
+    .select('id')
+    .eq('id', deckIdTrim)
+    .eq('user_id', user.id)
+    .maybeSingle();
 
   let buffer: Buffer;
   try {
@@ -70,9 +53,50 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to read file' }, { status: 400 });
   }
 
+  const ext = file.name.split('.').pop()?.replace(/[^a-z0-9]/gi, '') || 'png';
+  const fileExt = ext || 'png';
+
+  if (studioDeck) {
+    const filePath = `${user.id}/${deckIdTrim}/artwork-${safeCardIndex}.${fileExt}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from(STUDIO_BUCKET)
+      .upload(filePath, buffer, {
+        contentType: file.type || 'image/png',
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('Upload error', uploadError);
+      return NextResponse.json({ error: uploadError.message }, { status: 400 });
+    }
+
+    const { data: signed, error: signErr } = await supabase.storage
+      .from(STUDIO_BUCKET)
+      .createSignedUrl(uploadData.path, 3600);
+
+    if (signErr || !signed?.signedUrl) {
+      console.error('Sign error', signErr);
+      return NextResponse.json({ error: 'Upload saved but sign failed' }, { status: 500 });
+    }
+
+    return NextResponse.json({ url: signed.signedUrl, path: uploadData.path });
+  }
+
+  const { data: purchaseDeck } = await supabase
+    .from('decks')
+    .select('id')
+    .eq('id', deckIdTrim)
+    .eq('user_id', user.id)
+    .single();
+
+  if (!purchaseDeck) {
+    return NextResponse.json({ error: 'Deck not found or access denied' }, { status: 403 });
+  }
+
+  const legacyPath = `${deckIdTrim}/${safeCardIndex}.${fileExt}`;
   const { data: uploadData, error: uploadError } = await supabase.storage
-    .from(BUCKET)
-    .upload(filePath, buffer, {
+    .from(LEGACY_BUCKET)
+    .upload(legacyPath, buffer, {
       contentType: file.type || 'image/png',
       upsert: true,
     });
@@ -82,6 +106,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: uploadError.message }, { status: 400 });
   }
 
-  const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(uploadData.path);
-  return NextResponse.json({ url: urlData.publicUrl });
+  const { data: urlData } = supabase.storage.from(LEGACY_BUCKET).getPublicUrl(uploadData.path);
+  return NextResponse.json({ url: urlData.publicUrl, path: uploadData.path });
 }

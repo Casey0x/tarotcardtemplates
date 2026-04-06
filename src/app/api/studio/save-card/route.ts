@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { createServerClient, createServiceClient } from '@/lib/supabase-server';
+import { isLikelySupabaseStoragePath } from '@/lib/studio-storage-path';
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -15,7 +16,8 @@ export async function POST(request: Request) {
     cardKey?: string;
     cardName?: string;
     numeral?: string;
-    imageUrl?: string | null;
+    /** Storage path in `studio-uploads`, or null to remove artwork */
+    artworkPath?: string | null;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -29,6 +31,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'deckId and cardKey required' }, { status: 400 });
   }
 
+  const cardIndex = parseInt(cardKey, 10);
+  if (Number.isNaN(cardIndex)) {
+    return NextResponse.json({ error: 'Invalid cardKey' }, { status: 400 });
+  }
+
   const { data: deckRow, error: deckErr } = await supabase
     .from('studio_decks')
     .select('id')
@@ -40,13 +47,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { error: upsertErr } = await supabase.from('studio_cards').upsert(
+  const admin = createServiceClient();
+
+  const { data: existing } = await admin
+    .from('studio_cards')
+    .select('image_url')
+    .eq('deck_id', deckId)
+    .eq('card_key', cardKey)
+    .maybeSingle();
+
+  let nextImageUrl = existing?.image_url ?? null;
+
+  if (body.artworkPath !== undefined) {
+    if (body.artworkPath === null) {
+      const prev = existing?.image_url;
+      if (prev && isLikelySupabaseStoragePath(prev)) {
+        await admin.storage.from('studio-uploads').remove([prev]);
+      }
+      nextImageUrl = null;
+    } else {
+      nextImageUrl = body.artworkPath;
+    }
+  }
+
+  const { error: upsertErr } = await admin.from('studio_cards').upsert(
     {
       deck_id: deckId,
+      user_id: user.id,
       card_key: cardKey,
+      card_index: cardIndex,
       card_name: body.cardName ?? null,
       numeral: body.numeral ?? null,
-      image_url: body.imageUrl ?? null,
+      image_url: nextImageUrl,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'deck_id,card_key' },

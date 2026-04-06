@@ -6,9 +6,6 @@ import { protectedBorderImageUrl } from '@/lib/border-asset-urls';
 import { resolveStudioBorderOptions } from '@/lib/studio-border-options';
 import { createClient } from '@/lib/supabase-server';
 import { fetchPurchasedBorderSlugsForUser } from '@/lib/user-purchases';
-import { getUserCurrency } from '@/lib/getUserCurrency';
-import { formatPrice } from '@/lib/formatPrice';
-import { getDeckDownloadPriceByCurrency } from '@/lib/template-pricing';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,9 +49,6 @@ export default async function StudioBetaPage({
       ? q
       : purchasedBorderSlugs[0] ?? borderOptions[0]?.slug;
 
-  const { currency } = getUserCurrency();
-  const deckDownloadPriceDisplay = formatPrice(getDeckDownloadPriceByCurrency(currency), currency);
-
   return (
     <>
       <StudioSessionRedirect />
@@ -65,7 +59,6 @@ export default async function StudioBetaPage({
         initialBorderSlug={initialBorderSlug}
         exportUnlockedBorderSlugs={purchasedBorderSlugs}
         noBordersInCatalog={noBordersInCatalog}
-        deckDownloadPriceDisplay={deckDownloadPriceDisplay}
       />
     </>
   );

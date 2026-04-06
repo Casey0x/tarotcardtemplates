@@ -1,9 +1,12 @@
-'use client';
-
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase-client';
+import { redirect } from 'next/navigation';
+import { createServerClient } from '@/lib/supabase-server';
+import { getSignedCardUrl } from '@/lib/getSignedCardUrl';
+import { StudioProjectsSessionGate } from '@/components/studio-projects-session-gate';
+import { StudioProjectsDevDeckButton } from '@/components/studio-projects-dev-deck-button';
+
+export const dynamic = 'force-dynamic';
 
 interface StudioDeckRow {
   id: string;
@@ -23,82 +26,56 @@ function formatUpdatedAt(iso: string): string {
   }
 }
 
-function StudioProjectsContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
-  const [decks, setDecks] = useState<StudioDeckRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [creatingDevDeck, setCreatingDevDeck] = useState(false);
-  const isDev = process.env.NODE_ENV === 'development';
-
-  useEffect(() => {
-    if (sessionId) {
-      fetch(`/api/studio/session?session_id=${encodeURIComponent(sessionId)}`)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data: { deckId?: string } | null) => {
-          if (data?.deckId) {
-            router.replace(`/studio/${data.deckId}`);
-            return;
-          }
-          loadDecks();
-        })
-        .catch(() => loadDecks())
-        .finally(() => setLoading(false));
-    } else {
-      loadDecks().finally(() => setLoading(false));
-    }
-  }, [sessionId, router]);
-
-  async function loadDecks() {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    const { data, error } = await supabase
-      .from('studio_decks')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('updated_at', { ascending: false });
-    if (error) {
-      console.error('[studio/projects] load studio_decks', error);
-      setDecks([]);
-      return;
-    }
-    setDecks((data as StudioDeckRow[]) ?? []);
+async function ProjectsList({ sessionId }: { sessionId: string | undefined }) {
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect('/login?redirect=/studio/projects');
   }
 
-  async function handleCreateDevDeck() {
-    setCreatingDevDeck(true);
-    try {
-      const res = await fetch('/api/studio/dev-deck', { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) {
-        console.error('Dev deck failed', res.status, data);
-        alert('Failed to create dev deck');
-        return;
-      }
-      if (data.deckId) {
-        router.push(`/studio/${data.deckId}`);
-        return;
-      }
-      console.error('Dev deck: no deckId in response', data);
-      alert('Failed to create dev deck');
-    } catch (err) {
-      console.error('Dev deck error', err);
-      alert('Failed to create dev deck');
-    } finally {
-      setCreatingDevDeck(false);
-    }
-  }
+  const { data: decks } = await supabase
+    .from('studio_decks')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('updated_at', { ascending: false });
 
-  if (loading) {
+  const deckRows = (decks ?? []) as StudioDeckRow[];
+
+  const decksWithPreview = await Promise.all(
+    deckRows.map(async (deck) => {
+      const { data: cards } = await supabase
+        .from('studio_cards')
+        .select('*')
+        .eq('deck_id', deck.id)
+        .order('card_index', { ascending: true, nullsFirst: true });
+
+      const previewCard = cards?.find((c) => c.image_path) ?? cards?.[0];
+      const previewUrl = previewCard?.image_path
+        ? await getSignedCardUrl(previewCard.image_path as string)
+        : null;
+
+      return { deck, previewUrl };
+    }),
+  );
+
+  if (sessionId) {
     return (
-      <div className="text-charcoal">
-        <p className="text-center">Loading…</p>
-      </div>
+      <StudioProjectsSessionGate sessionId={sessionId}>
+        <ProjectsInner decksWithPreview={decksWithPreview} />
+      </StudioProjectsSessionGate>
     );
   }
 
+  return <ProjectsInner decksWithPreview={decksWithPreview} />;
+}
+
+function ProjectsInner({
+  decksWithPreview,
+}: {
+  decksWithPreview: Array<{ deck: StudioDeckRow; previewUrl: string | null }>;
+}) {
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
       <p className="mb-6 text-sm text-charcoal/70">
@@ -106,60 +83,55 @@ function StudioProjectsContent() {
           ← Back to border preview
         </Link>
       </p>
-      <h1 className="text-3xl font-semibold text-charcoal">
-        Studio
-      </h1>
-      <p className="mt-2 text-charcoal/70">
-        Your deck projects. Pick one to continue designing.
-      </p>
-      {decks.length === 0 ? (
-        <div className="mt-10 space-y-6">
-          {isDev && (
-            <div>
-              <button
-                type="button"
-                onClick={handleCreateDevDeck}
-                disabled={creatingDevDeck}
-                className="rounded-[2px] border border-charcoal bg-charcoal px-6 py-2 text-cream transition hover:bg-charcoal/90 disabled:opacity-50"
-              >
-                {creatingDevDeck ? 'Creating deck…' : 'Create Dev Test Deck'}
-              </button>
+      <h1 className="text-3xl font-semibold text-charcoal">Studio</h1>
+      <p className="mt-2 text-charcoal/70">Your deck projects. Pick one to continue designing.</p>
+      {decksWithPreview.length === 0 ? (
+        <div className="mt-10 rounded-sm border border-charcoal/10 bg-cardBg p-8 text-center text-charcoal/70">
+          {process.env.NODE_ENV === 'development' ? (
+            <div className="not-prose mb-8">
+              <StudioProjectsDevDeckButton />
             </div>
-          )}
-          <div className="rounded-sm border border-charcoal/10 bg-cardBg p-8 text-center text-charcoal/70">
-            <p className="text-lg font-medium text-charcoal">Start your first deck</p>
-            <p className="mt-2">
-              Open{' '}
-              <Link
-                href="/studio"
-                className="text-charcoal underline underline-offset-2 hover:no-underline"
-              >
-                Studio
-              </Link>
-              , choose a border, and your project will show up here.
-            </p>
-            <p className="mt-4">
-              <Link
-                href="/borders"
-                className="text-charcoal underline underline-offset-2 hover:no-underline"
-              >
-                Browse borders
-              </Link>
-            </p>
-          </div>
+          ) : null}
+          <p className="text-lg font-medium text-charcoal">Start your first deck</p>
+          <p className="mt-2">
+            Open{' '}
+            <Link
+              href="/studio"
+              className="text-charcoal underline underline-offset-2 hover:no-underline"
+            >
+              Studio
+            </Link>
+            , choose a border, and your project will show up here.
+          </p>
+          <p className="mt-4">
+            <Link href="/borders" className="text-charcoal underline underline-offset-2 hover:no-underline">
+              Browse borders
+            </Link>
+          </p>
         </div>
       ) : (
         <ul className="mt-8 space-y-4">
-          {decks.map((deck) => (
+          {decksWithPreview.map(({ deck, previewUrl }) => (
             <li key={deck.id}>
               <Link
                 href={`/studio?border=${encodeURIComponent(deck.border_slug)}`}
-                className="block rounded-sm border border-charcoal/10 bg-cardBg p-4 text-charcoal transition hover:border-charcoal/20"
+                className="flex gap-4 rounded-sm border border-charcoal/10 bg-cardBg p-4 text-charcoal transition hover:border-charcoal/20"
               >
-                <span className="font-medium">{deck.border_slug}</span>
-                <span className="ml-2 block text-sm text-charcoal/70 sm:inline sm:ml-3">
-                  Last updated {formatUpdatedAt(deck.updated_at)}
-                </span>
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt=""
+                    className="h-20 w-14 shrink-0 rounded-sm object-cover"
+                  />
+                ) : (
+                  <div className="h-20 w-14 shrink-0 rounded-sm bg-charcoal/5" aria-hidden />
+                )}
+                <div className="min-w-0 flex-1">
+                  <span className="font-medium">{deck.border_slug}</span>
+                  <span className="mt-1 block text-sm text-charcoal/70">
+                    Last updated {formatUpdatedAt(deck.updated_at)}
+                  </span>
+                </div>
               </Link>
             </li>
           ))}
@@ -169,10 +141,17 @@ function StudioProjectsContent() {
   );
 }
 
-export default function StudioProjectsPage() {
+export default function StudioProjectsPage({
+  searchParams,
+}: {
+  searchParams: { session_id?: string };
+}) {
+  const sessionId = searchParams?.session_id?.trim() || undefined;
   return (
-    <Suspense fallback={<div className="text-charcoal"><p className="text-center">Loading…</p></div>}>
-      <StudioProjectsContent />
+    <Suspense
+      fallback={<div className="text-charcoal"><p className="text-center">Loading…</p></div>}
+    >
+      <ProjectsList sessionId={sessionId} />
     </Suspense>
   );
 }

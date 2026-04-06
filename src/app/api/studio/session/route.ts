@@ -1,18 +1,20 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { createClient, createServiceClient } from '@/lib/supabase-server';
+import { createServiceClient, createServerClient as createAppServerClient } from '@/lib/supabase-server';
 import { cookies } from 'next/headers';
+import { getSignedCardUrl, getSignedStudioArtworkUrl } from '@/lib/getSignedCardUrl';
+import { isLikelySupabaseStoragePath } from '@/lib/studio-storage-path';
 
 /**
  * POST { borderSlug } — load or create persistent Studio project; returns deckId + saved cards.
  */
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const supabase = await createAppServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return new Response('Unauthorized', { status: 401 });
   }
 
   let body: { borderSlug?: string };
@@ -42,12 +44,10 @@ export async function POST(request: Request) {
   }
 
   const deck = upserted.data;
-  console.log('[studio-session] user_id:', user.id);
-  console.log('[studio-session] deck found/created:', deck);
 
-  const { data: cards, error: cardsErr } = await supabase
+  const { data: rawCards, error: cardsErr } = await supabase
     .from('studio_cards')
-    .select('card_key, card_name, numeral, image_url')
+    .select('card_key, card_name, numeral, image_url, image_path, card_index')
     .eq('deck_id', deck.id);
 
   if (cardsErr) {
@@ -55,9 +55,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 
+  const cards = await Promise.all(
+    (rawCards ?? []).map(async (row) => {
+      const artwork_path = row.image_url && isLikelySupabaseStoragePath(row.image_url) ? row.image_url : null;
+
+      let image_url: string | null = null;
+      if (artwork_path) {
+        image_url = await getSignedStudioArtworkUrl(artwork_path);
+      } else if (row.image_url) {
+        image_url = row.image_url;
+      }
+
+      let rendered_url: string | null = null;
+      if (row.image_path && isLikelySupabaseStoragePath(row.image_path)) {
+        rendered_url = await getSignedCardUrl(row.image_path);
+      }
+
+      return {
+        card_key: row.card_key,
+        card_index: row.card_index,
+        card_name: row.card_name,
+        numeral: row.numeral,
+        image_url,
+        artwork_path,
+        rendered_url,
+      };
+    }),
+  );
+
   return NextResponse.json({
     deckId: deck.id,
-    cards: cards ?? [],
+    cards,
   });
 }
 
@@ -81,11 +109,13 @@ export async function GET(request: Request) {
         set() {},
         remove() {},
       },
-    }
+    },
   );
-  const { data: { session } } = await supabaseAuth.auth.getSession();
+  const {
+    data: { session },
+  } = await supabaseAuth.auth.getSession();
   if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return new Response('Unauthorized', { status: 401 });
   }
 
   const supabase = createServiceClient();

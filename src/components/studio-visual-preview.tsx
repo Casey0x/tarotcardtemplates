@@ -1,33 +1,15 @@
 'use client';
 
-import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
 import type { StudioPreviewItem } from '@/lib/studio-border-options';
+import { createClient } from '@/lib/supabase-client';
 import { getTarotDefault, TAROT_CARDS_78, TAROT_SECTIONS } from '@/lib/tarot-cards';
 
 export type { StudioPreviewItem } from '@/lib/studio-border-options';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-/** Object path inside bucket `studio-uploads` from a public Supabase URL, or null. */
-function studioObjectPathFromPublicUrl(url: string): string | null {
-  const marker = '/object/public/studio-uploads/';
-  const i = url.indexOf(marker);
-  if (i === -1) return null;
-  try {
-    const rest = url.slice(i + marker.length).split('?')[0];
-    return decodeURIComponent(rest);
-  } catch {
-    return null;
-  }
-}
 
 type Props = {
   borders: StudioPreviewItem[];
@@ -41,8 +23,6 @@ type Props = {
   exportUnlockedBorderSlugs?: string[];
   /** No borders configured in the catalog. */
   noBordersInCatalog?: boolean;
-  /** Regional deck download price for modal CTA (matches checkout). */
-  deckDownloadPriceDisplay: string;
 };
 
 export function StudioVisualPreview({
@@ -52,7 +32,6 @@ export function StudioVisualPreview({
   initialBorderSlug,
   exportUnlockedBorderSlugs = [],
   noBordersInCatalog = false,
-  deckDownloadPriceDisplay,
 }: Props) {
   const router = useRouter();
   const catalog = borderCatalog.length ? borderCatalog : borders;
@@ -81,6 +60,7 @@ export function StudioVisualPreview({
   }, [dropdownSource, borderSlug]);
 
   useEffect(() => {
+    const supabase = createClient();
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
@@ -98,6 +78,8 @@ export function StudioVisualPreview({
   const [saveStatusSaved, setSaveStatusSaved] = useState(false);
   const cardFieldsRef = useRef<Record<number, { cardName: string; numeral: string }>>({});
   const artworkByCardRef = useRef(artworkByCard);
+  /** Storage path in private bucket `studio-uploads` (not a display URL). */
+  const artworkPathByCardRef = useRef<Record<number, string>>({});
   useEffect(() => {
     artworkByCardRef.current = artworkByCard;
   }, [artworkByCard]);
@@ -126,17 +108,23 @@ export function StudioVisualPreview({
           card_name: string | null;
           numeral: string | null;
           image_url: string | null;
+          artwork_path: string | null;
+          rendered_url: string | null;
         }>;
       };
       if (cancelled) return;
       setDeckId(data.deckId);
 
       const nextArtwork: Record<number, string> = {};
+      const nextPreview: Record<number, string> = {};
+      artworkPathByCardRef.current = {};
       cardFieldsRef.current = {};
       for (const row of data.cards) {
         const i = parseInt(row.card_key, 10);
         if (Number.isNaN(i) || i < 0 || i > 77) continue;
         if (row.image_url) nextArtwork[i] = row.image_url;
+        if (row.artwork_path) artworkPathByCardRef.current[i] = row.artwork_path;
+        if (row.rendered_url) nextPreview[i] = row.rendered_url;
         cardFieldsRef.current[i] = {
           cardName: row.card_name ?? '',
           numeral: row.numeral ?? '',
@@ -145,7 +133,7 @@ export function StudioVisualPreview({
 
       if (cancelled) return;
       setArtworkByCard(nextArtwork);
-      setPreviewByCard({});
+      setPreviewByCard(nextPreview);
       setSelectedCardIndex(0);
       const dSel = getTarotDefault(0);
       const sSel = cardFieldsRef.current[0];
@@ -159,7 +147,7 @@ export function StudioVisualPreview({
   }, [borderSlug]);
 
   const persistCardToServer = useCallback(
-    async (cardIndex: number, overrides?: { cardName?: string; numeral?: string; imageUrl?: string | null }) => {
+    async (cardIndex: number, overrides?: { cardName?: string; numeral?: string; artworkPath?: string | null }) => {
       const id = deckId;
       if (!id) return;
       const fields = cardFieldsRef.current[cardIndex] ?? {
@@ -168,23 +156,27 @@ export function StudioVisualPreview({
       };
       const name = overrides?.cardName !== undefined ? overrides.cardName : fields.cardName;
       const num = overrides?.numeral !== undefined ? overrides.numeral : fields.numeral;
-      const img =
-        overrides?.imageUrl !== undefined
-          ? overrides.imageUrl
-          : (artworkByCardRef.current[cardIndex] ?? null);
+      const path =
+        overrides?.artworkPath !== undefined
+          ? overrides.artworkPath
+          : artworkPathByCardRef.current[cardIndex] ?? undefined;
+
       setSaveStatusSaving(true);
       setSaveStatusSaved(false);
       try {
+        const payload: Record<string, unknown> = {
+          deckId: id,
+          cardKey: String(cardIndex),
+          cardName: name,
+          numeral: num,
+        };
+        if (path !== undefined) {
+          payload.artworkPath = path;
+        }
         await fetch('/api/studio/save-card', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            deckId: id,
-            cardKey: String(cardIndex),
-            cardName: name,
-            numeral: num,
-            imageUrl: img,
-          }),
+          body: JSON.stringify(payload),
         });
       } finally {
         setSaveStatusSaving(false);
@@ -234,8 +226,7 @@ export function StudioVisualPreview({
 
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [showExportPaywall, setShowExportPaywall] = useState(false);
-  const [exportCheckoutKind, setExportCheckoutKind] = useState<null | 'print' | 'download'>(null);
-  const [exportZipLoading, setExportZipLoading] = useState(false);
+  const [exportCheckoutKind, setExportCheckoutKind] = useState<null | 'print'>(null);
 
   async function blobUrlToDataUrl(blobUrl: string): Promise<string> {
     const res = await fetch(blobUrl);
@@ -254,33 +245,6 @@ export function StudioVisualPreview({
     try {
       setUploading(true);
 
-      const filePath = `studio-uploads/${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
-
-      const { data, error } = await supabase.storage.from('studio-uploads').upload(filePath, file);
-
-      if (error) {
-        console.error('Upload failed:', error);
-        alert('Upload failed: ' + error.message);
-        return;
-      }
-
-      const { data: publicData } = supabase.storage.from('studio-uploads').getPublicUrl(filePath);
-
-      if (!publicData?.publicUrl) {
-        alert('Failed to generate public URL');
-        return;
-      }
-
-      setArtworkByCard((prev) => ({
-        ...prev,
-        [selectedCardIndex]: publicData.publicUrl,
-      }));
-      setPreviewByCard((prev) => {
-        const next = { ...prev };
-        delete next[selectedCardIndex];
-        return next;
-      });
-
       let effectiveDeckId = deckId;
       if (!effectiveDeckId) {
         const sres = await fetch('/api/studio/session', {
@@ -294,26 +258,54 @@ export function StudioVisualPreview({
           setDeckId(sdata.deckId);
         }
       }
-      if (effectiveDeckId) {
-        cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
-        setSaveStatusSaving(true);
-        setSaveStatusSaved(false);
-        try {
-          await fetch('/api/studio/save-card', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              deckId: effectiveDeckId,
-              cardKey: String(selectedCardIndex),
-              cardName,
-              numeral: cardNumeral,
-              imageUrl: publicData.publicUrl,
-            }),
-          });
-        } finally {
-          setSaveStatusSaving(false);
-          setSaveStatusSaved(true);
-        }
+      if (!effectiveDeckId) {
+        alert('Could not start a deck session. Try again.');
+        return;
+      }
+
+      const form = new FormData();
+      form.append('file', file);
+      form.append('deckId', effectiveDeckId);
+      form.append('cardIndex', String(selectedCardIndex));
+
+      const uploadRes = await fetch('/api/studio/upload', { method: 'POST', body: form });
+      const uploadData = (await uploadRes.json()) as { url?: string; path?: string; error?: string };
+
+      if (!uploadRes.ok || !uploadData.url || !uploadData.path) {
+        alert(uploadData.error || 'Upload failed');
+        return;
+      }
+
+      artworkPathByCardRef.current[selectedCardIndex] = uploadData.path;
+
+      setArtworkByCard((prev) => ({
+        ...prev,
+        [selectedCardIndex]: uploadData.url!,
+      }));
+      setPreviewByCard((prev) => {
+        const next = { ...prev };
+        delete next[selectedCardIndex];
+        return next;
+      });
+
+      cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
+      setSaveStatusSaving(true);
+      setSaveStatusSaved(false);
+      try {
+        await fetch('/api/studio/save-card', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deckId: effectiveDeckId,
+            cardKey: String(selectedCardIndex),
+            cardName,
+            numeral: cardNumeral,
+            artworkPath: uploadData.path,
+          }),
+        });
+      } finally {
+        setSaveStatusSaving(false);
+        setSaveStatusSaved(true);
       }
     } catch (err) {
       console.error('Upload crash:', err);
@@ -326,14 +318,7 @@ export function StudioVisualPreview({
   async function handleRemoveArtwork() {
     const name = cardName.trim() || getTarotDefault(selectedCardIndex)?.name || 'this card';
     if (!confirm(`Remove artwork for ${name}?`)) return;
-    const url = artworkByCard[selectedCardIndex];
-    if (url && !url.startsWith('blob:') && !url.startsWith('data:')) {
-      const path = studioObjectPathFromPublicUrl(url);
-      if (path) {
-        const { error } = await supabase.storage.from('studio-uploads').remove([path]);
-        if (error) console.warn('Storage remove:', error.message);
-      }
-    }
+    delete artworkPathByCardRef.current[selectedCardIndex];
     setArtworkByCard((prev) => {
       const next = { ...prev };
       delete next[selectedCardIndex];
@@ -347,7 +332,7 @@ export function StudioVisualPreview({
     setPreviewError(null);
     if (deckId) {
       cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
-      void persistCardToServer(selectedCardIndex, { imageUrl: null });
+      void persistCardToServer(selectedCardIndex, { artworkPath: null });
     }
   }
 
@@ -389,10 +374,17 @@ export function StudioVisualPreview({
         artworkPayload = await blobUrlToDataUrl(artwork);
       }
 
-      const res = await fetch('/api/render-card', {
+      if (!deckId) {
+        alert('Deck session not ready. Wait a moment and try again.');
+        return;
+      }
+
+      const res = await fetch('/api/studio/render', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          deckId,
+          cardIndex: selectedCardIndex,
           artwork: artworkPayload,
           numeral,
           card_name: cardNameTrimmed,
@@ -400,7 +392,7 @@ export function StudioVisualPreview({
         }),
       });
 
-      let data: { image_url?: string; error?: string };
+      let data: { image_url?: string; renderUrl?: string; error?: string };
       try {
         data = (await res.json()) as typeof data;
       } catch {
@@ -419,7 +411,8 @@ export function StudioVisualPreview({
         return;
       }
 
-      if (!res.ok || !data.image_url) {
+      const previewUrl = data.image_url ?? data.renderUrl;
+      if (!res.ok || !previewUrl) {
         setPreviewByCard((prev) => {
           const next = { ...prev };
           delete next[selectedCardIndex];
@@ -430,7 +423,7 @@ export function StudioVisualPreview({
         return;
       }
 
-      setPreviewByCard((prev) => ({ ...prev, [selectedCardIndex]: data.image_url! }));
+      setPreviewByCard((prev) => ({ ...prev, [selectedCardIndex]: previewUrl }));
       setPreviewError(null);
     } catch {
       setPreviewByCard((prev) => {
@@ -491,76 +484,6 @@ export function StudioVisualPreview({
       if (data.url) window.location.href = data.url;
     } finally {
       setExportCheckoutKind(null);
-    }
-  }
-
-  async function startDeckDownloadCheckout() {
-    setExportCheckoutKind('download');
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          purchaseType: 'deck_download',
-          borderSlug,
-          borderName: currentBorderName,
-        }),
-      });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok) {
-        if (res.status === 401) {
-          window.location.href = `/auth/login?redirect=${encodeURIComponent(loginRedirect)}`;
-          return;
-        }
-        alert(data.error || 'Checkout failed');
-        return;
-      }
-      if (data.url) window.location.href = data.url;
-    } finally {
-      setExportCheckoutKind(null);
-    }
-  }
-
-  async function handleExportDeckZip() {
-    if (!exportUnlocked) {
-      setShowExportPaywall(true);
-      return;
-    }
-    const indices = Object.keys(previewByCard)
-      .map(Number)
-      .sort((a, b) => a - b);
-    if (indices.length === 0) {
-      alert('Preview cards first — use Preview Card on each artwork to include it in your export.');
-      return;
-    }
-    setExportZipLoading(true);
-    try {
-      const JSZip = (await import('jszip')).default;
-      const zip = new JSZip();
-      const folder = zip.folder('tarot-deck-full');
-      if (!folder) return;
-      await Promise.all(
-        indices.map(async (cardIndex) => {
-          const url = previewByCard[cardIndex];
-          if (!url) return;
-          const res = await fetch(url);
-          const blob = await res.blob();
-          const card = TAROT_CARDS_78[cardIndex];
-          const name = (card?.name ?? `card_${cardIndex + 1}`).replace(/[^a-z0-9-_]/gi, '_');
-          folder.file(`${String(cardIndex + 1).padStart(2, '0')}_${name}.png`, blob);
-        }),
-      );
-      const blob = await zip.generateAsync({ type: 'blob' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `tarot-deck-${borderSlug}.zip`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    } catch (e) {
-      console.error(e);
-      alert('Could not build ZIP. Try again.');
-    } finally {
-      setExportZipLoading(false);
     }
   }
 
@@ -662,20 +585,6 @@ export function StudioVisualPreview({
                   </button>
                 </div>
 
-                <div className="rounded-sm border border-charcoal/15 bg-cream p-4">
-                  <p className="text-sm font-medium text-charcoal">💻 Download your deck</p>
-                  <p className="mt-1 text-sm text-charcoal/75">Download all 78 cards in high resolution</p>
-                  <button
-                    type="button"
-                    disabled={exportCheckoutKind !== null}
-                    onClick={() => void startDeckDownloadCheckout()}
-                    className="mt-4 inline-flex w-full justify-center rounded-sm border-2 border-charcoal bg-transparent px-4 py-3 text-center text-sm font-medium text-charcoal hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {exportCheckoutKind === 'download'
-                      ? 'Redirecting…'
-                      : `Download for ${deckDownloadPriceDisplay}`}
-                  </button>
-                </div>
               </div>
             </div>
             <div className="flex shrink-0 flex-col gap-2 border-t border-charcoal/10 bg-cream px-6 py-4 lg:rounded-b-sm">
@@ -734,19 +643,9 @@ export function StudioVisualPreview({
             Preview your deck for free. Pay only when you&apos;re ready to export.
           </p>
           {exportUnlocked ? (
-            <p className="mt-2 text-sm text-emerald-900">
-              ✓ Export unlocked for {currentBorderName}. Download includes every card you&apos;ve previewed.
-            </p>
+            <p className="mt-2 text-sm text-emerald-900">✓ Export unlocked for {currentBorderName}.</p>
           ) : null}
           <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => void handleExportDeckZip()}
-              disabled={exportZipLoading}
-              className="inline-flex rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-xs font-medium text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {exportZipLoading ? 'Building ZIP…' : 'Download full deck (ZIP)'}
-            </button>
             {!exportUnlocked ? (
               <button
                 type="button"

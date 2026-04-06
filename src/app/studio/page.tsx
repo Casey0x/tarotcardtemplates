@@ -1,15 +1,12 @@
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { StudioSessionRedirect } from '@/components/studio-session-redirect';
-import { StudioSignInRequired } from '@/components/studio-sign-in-required';
-import { StudioVisualPreview } from '@/components/studio-visual-preview';
+import { StudioClient } from '@/components/studio-client';
 import { fetchBorders } from '@/data/borders';
 import { protectedBorderImageUrl } from '@/lib/border-asset-urls';
 import { resolveStudioBorderOptions } from '@/lib/studio-border-options';
-import { createClient } from '@/lib/supabase-server';
+import { createServerClient } from '@/lib/supabase-server';
 import { fetchPurchasedBorderSlugsForUser } from '@/lib/user-purchases';
-import { getUserCurrency } from '@/lib/getUserCurrency';
-import { formatPrice } from '@/lib/formatPrice';
-import { getDeckDownloadPriceByCurrency } from '@/lib/template-pricing';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,19 +19,14 @@ export default async function StudioPage({
 }: {
   searchParams: { border?: string };
 }) {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (!user) {
-    const q = searchParams?.border?.trim();
-    const returnPath = q ? `/studio?border=${encodeURIComponent(q)}` : '/studio';
-    return (
-      <>
-        <StudioSessionRedirect />
-        <StudioSignInRequired returnPath={returnPath} />
-      </>
-    );
+    redirect('/login?redirect=/studio');
   }
 
   const borders = await fetchBorders();
@@ -57,19 +49,16 @@ export default async function StudioPage({
       ? q
       : purchasedBorderSlugs[0] ?? borderOptions[0]?.slug;
 
-  const { currency } = getUserCurrency();
-  const deckDownloadPriceDisplay = formatPrice(getDeckDownloadPriceByCurrency(currency), currency);
-
   return (
     <>
       <StudioSessionRedirect />
-      <StudioVisualPreview
+      <StudioClient
+        user={user}
         borders={dropdownBorders}
         borderCatalog={borderOptions}
         initialBorderSlug={initialBorderSlug}
         exportUnlockedBorderSlugs={purchasedBorderSlugs}
         noBordersInCatalog={noBordersInCatalog}
-        deckDownloadPriceDisplay={deckDownloadPriceDisplay}
       />
     </>
   );
