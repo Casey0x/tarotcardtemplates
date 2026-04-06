@@ -1,7 +1,63 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { createServiceClient } from '@/lib/supabase-server';
+import { createClient, createServiceClient } from '@/lib/supabase-server';
 import { cookies } from 'next/headers';
+
+/**
+ * POST { borderSlug } — load or create persistent Studio project; returns deckId + saved cards.
+ */
+export async function POST(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  let body: { borderSlug?: string };
+  try {
+    body = (await request.json()) as { borderSlug?: string };
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  const borderSlug = String(body.borderSlug ?? '').trim();
+  if (!borderSlug) {
+    return NextResponse.json({ error: 'borderSlug required' }, { status: 400 });
+  }
+
+  const upserted = await supabase
+    .from('studio_decks')
+    .upsert(
+      { user_id: user.id, border_slug: borderSlug },
+      { onConflict: 'user_id,border_slug' },
+    )
+    .select('id')
+    .single();
+
+  if (upserted.error || !upserted.data) {
+    console.error('[studio/session POST] upsert deck', upserted.error);
+    return NextResponse.json({ error: 'Failed to load deck' }, { status: 500 });
+  }
+
+  const deck = upserted.data;
+
+  const { data: cards, error: cardsErr } = await supabase
+    .from('studio_cards')
+    .select('card_key, card_name, numeral, image_url')
+    .eq('deck_id', deck.id);
+
+  if (cardsErr) {
+    console.error('[studio/session POST] cards', cardsErr);
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+  }
+
+  return NextResponse.json({
+    deckId: deck.id,
+    cards: cards ?? [],
+  });
+}
 
 /** GET ?session_id=cs_xxx — returns { deckId } for Stripe checkout success redirect. */
 export async function GET(request: Request) {
