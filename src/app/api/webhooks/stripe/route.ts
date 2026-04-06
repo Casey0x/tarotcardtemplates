@@ -91,17 +91,23 @@ export async function POST(request: Request) {
 
   const supabase = createServiceClient();
 
-  if (meta?.purchaseType === 'deck_export' && meta?.user_id && meta?.borderSlug) {
+  if (
+    (meta?.purchaseType === 'deck_download' || meta?.purchaseType === 'deck_export') &&
+    meta?.user_id &&
+    meta?.borderSlug
+  ) {
     const amountPaid = typeof session.amount_total === 'number' ? session.amount_total : 0;
     const customerDetails = session.customer_details;
     const email = customerDetails?.email ?? session.customer_email ?? null;
     const borderName = meta.borderName ?? meta.borderSlug;
+    const purchaseTypeRow =
+      meta.purchaseType === 'deck_download' ? 'deck_download' : 'deck_export';
 
     const { error: purchaseError } = await supabase.from('purchases').insert({
       user_id: meta.user_id,
       border_slug: meta.borderSlug,
       border_name: borderName,
-      purchase_type: 'deck_export',
+      purchase_type: purchaseTypeRow,
       email,
       amount_paid: amountPaid,
       stripe_session_id: session.id,
@@ -112,14 +118,75 @@ export async function POST(request: Request) {
     });
 
     if (purchaseError) {
-      console.error('[stripe-webhook] deck_export purchases insert failed', purchaseError);
+      console.error('[stripe-webhook] deck_download purchases insert failed', purchaseError);
       return NextResponse.json({ error: 'Failed to record purchase' }, { status: 500 });
     }
 
-    console.log('[stripe-webhook] deck_export purchase recorded', {
+    console.log('[stripe-webhook] deck digital purchase recorded', {
       sessionId: session.id,
       borderSlug: meta.borderSlug,
+      purchaseType: purchaseTypeRow,
     });
+    return NextResponse.json({ received: true });
+  }
+
+  if (
+    meta?.purchaseType === 'print' &&
+    meta?.studioPrint === '1' &&
+    meta?.user_id &&
+    meta?.borderSlug
+  ) {
+    const amountPaid = typeof session.amount_total === 'number' ? session.amount_total : 0;
+    const customerDetails = session.customer_details;
+    const email = customerDetails?.email ?? session.customer_email ?? null;
+    const borderName = meta.borderName ?? meta.borderSlug;
+    const templateSlug = meta.templateSlug ?? `studio-print:${meta.borderSlug}`;
+    const templateName =
+      meta.templateName ?? `${borderName} — Printed deck (Studio)`;
+
+    const baseRow = {
+      email,
+      template_slug: templateSlug,
+      template_name: templateName,
+      purchase_type: 'print' as const,
+      amount_paid: amountPaid,
+      stripe_session_id: session.id,
+      status: 'ordered' as const,
+      shipping_name: customerDetails?.name ?? null,
+      shipping_line1: customerDetails?.address?.line1 ?? null,
+      shipping_line2: customerDetails?.address?.line2 ?? null,
+      shipping_city: customerDetails?.address?.city ?? null,
+      shipping_postcode: customerDetails?.address?.postal_code ?? null,
+      shipping_country: customerDetails?.address?.country ?? null,
+    };
+
+    const { error: templatePurchaseError } = await supabase.from('template_purchases').insert(baseRow);
+
+    if (templatePurchaseError) {
+      console.error('[stripe-webhook] studio print template_purchases insert failed', templatePurchaseError);
+      return NextResponse.json({ error: 'Failed to record order' }, { status: 500 });
+    }
+
+    const { error: unlockError } = await supabase.from('purchases').insert({
+      user_id: meta.user_id,
+      border_slug: meta.borderSlug,
+      border_name: borderName,
+      purchase_type: 'print',
+      email,
+      amount_paid: amountPaid,
+      stripe_session_id: session.id,
+      status: 'paid',
+      templated_template_id: null,
+      suite_size: null,
+      card_count: null,
+    });
+
+    if (unlockError) {
+      console.error('[stripe-webhook] studio print purchases insert failed', unlockError);
+      return NextResponse.json({ error: 'Failed to record purchase' }, { status: 500 });
+    }
+
+    console.log('[stripe-webhook] studio print recorded', { sessionId: session.id, borderSlug: meta.borderSlug });
     return NextResponse.json({ received: true });
   }
 

@@ -16,10 +16,10 @@ const PRINTED_DECK_PRICE_USD = 23.95;
 const PRINTED_DECK_PRICE_NZD = 39.95;
 const PRINTED_DECK_PRICE_AUD = 36.95;
 
-/** Full Studio deck export (ZIP) — fixed regional prices. */
-const DECK_EXPORT_PRICE_USD = 49.99;
-const DECK_EXPORT_PRICE_NZD = 79.99;
-const DECK_EXPORT_PRICE_AUD = 74.99;
+/** Studio full-deck digital download (ZIP) — fixed regional prices. */
+const DECK_DOWNLOAD_PRICE_USD = 8.95;
+const DECK_DOWNLOAD_PRICE_NZD = 14.95;
+const DECK_DOWNLOAD_PRICE_AUD = 13.95;
 
 function priceForRegion(
   currency: string,
@@ -51,9 +51,9 @@ export function getPrintedDeckPriceByCurrency(currency: string): number {
   return priceForRegion(currency, PRINTED_DECK_PRICE_USD, PRINTED_DECK_PRICE_NZD, PRINTED_DECK_PRICE_AUD);
 }
 
-/** Studio full-deck export: USD 49.99, NZD 79.99, AUD 74.99. */
-export function getDeckExportPriceByCurrency(currency: string): number {
-  return priceForRegion(currency, DECK_EXPORT_PRICE_USD, DECK_EXPORT_PRICE_NZD, DECK_EXPORT_PRICE_AUD);
+/** Studio full-deck digital download: USD 8.95, NZD 14.95, AUD 13.95. */
+export function getDeckDownloadPriceByCurrency(currency: string): number {
+  return priceForRegion(currency, DECK_DOWNLOAD_PRICE_USD, DECK_DOWNLOAD_PRICE_NZD, DECK_DOWNLOAD_PRICE_AUD);
 }
 
 /** Formatted label for UI + JSON-LD digital template offer. */

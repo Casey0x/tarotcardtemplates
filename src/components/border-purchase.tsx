@@ -8,8 +8,8 @@ interface BorderPurchaseProps {
   borderName: string;
   isLoggedIn: boolean;
   ownsExport: boolean;
-  /** Regional full-deck export price label (matches checkout). */
-  deckExportPriceDisplay: string;
+  /** Regional deck download price label (matches checkout). */
+  deckDownloadPriceDisplay: string;
 }
 
 export function BorderPurchase({
@@ -17,7 +17,7 @@ export function BorderPurchase({
   borderName,
   isLoggedIn,
   ownsExport,
-  deckExportPriceDisplay,
+  deckDownloadPriceDisplay,
 }: BorderPurchaseProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +33,7 @@ export function BorderPurchase({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          purchaseType: 'deck_export',
+          purchaseType: 'deck_download',
           borderSlug,
           borderName,
         }),
@@ -88,7 +88,7 @@ export function BorderPurchase({
               disabled={loading}
               className={`${purchaseOutlineClass} disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              {loading ? 'Redirecting to checkout…' : `Continue to checkout — ${deckExportPriceDisplay}`}
+              {loading ? 'Redirecting to checkout…' : `Continue to checkout — ${deckDownloadPriceDisplay}`}
             </button>
           ) : (
             <Link href={loginRedirect} className={purchaseOutlineClass}>

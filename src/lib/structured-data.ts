@@ -6,8 +6,8 @@ import { SITE_URL, absoluteUrl } from '@/lib/site';
 import { getTemplatePreviewImages } from '@/lib/templates';
 import { getPrintedDeckPriceByCurrency, getTemplatePriceByCurrency } from '@/lib/template-pricing';
 
-/** Full-deck Studio export (USD) — aligns with border checkout full-deck tier. */
-const BORDER_FULL_DECK_EXPORT_USD = 49.99;
+/** Studio full-deck digital download (USD) — aligns with deck_download checkout. */
+const BORDER_FULL_DECK_EXPORT_USD = 8.95;
 
 export function borderProductJsonLd(border: Border, slug: string, _currency: SupportedCurrency = 'USD') {
   const pageUrl = `${SITE_URL}/borders/${slug}`;

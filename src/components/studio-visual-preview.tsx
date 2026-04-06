@@ -42,6 +42,8 @@ type Props = {
   isLoggedIn?: boolean;
   /** No borders configured in the catalog. */
   noBordersInCatalog?: boolean;
+  /** Regional deck download price for modal CTA (matches checkout). */
+  deckDownloadPriceDisplay: string;
 };
 
 export function StudioVisualPreview({
@@ -52,6 +54,7 @@ export function StudioVisualPreview({
   exportUnlockedBorderSlugs = [],
   isLoggedIn = false,
   noBordersInCatalog = false,
+  deckDownloadPriceDisplay,
 }: Props) {
   const router = useRouter();
   const catalog = borderCatalog.length ? borderCatalog : borders;
@@ -116,7 +119,7 @@ export function StudioVisualPreview({
 
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [showExportPaywall, setShowExportPaywall] = useState(false);
-  const [exportCheckoutLoading, setExportCheckoutLoading] = useState(false);
+  const [exportCheckoutKind, setExportCheckoutKind] = useState<null | 'print' | 'download'>(null);
   const [exportZipLoading, setExportZipLoading] = useState(false);
 
   async function blobUrlToDataUrl(blobUrl: string): Promise<string> {
@@ -322,14 +325,14 @@ export function StudioVisualPreview({
   const mobileCardSelectValue = String(selectedCardIndex);
   const loginRedirect = `${studioBasePath}${borderSlug ? `?border=${encodeURIComponent(borderSlug)}` : ''}`;
 
-  async function startFullDeckCheckout() {
-    setExportCheckoutLoading(true);
+  async function startStudioPrintCheckout() {
+    setExportCheckoutKind('print');
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          purchaseType: 'deck_export',
+          purchaseType: 'print',
           borderSlug,
           borderName: currentBorderName,
         }),
@@ -345,7 +348,34 @@ export function StudioVisualPreview({
       }
       if (data.url) window.location.href = data.url;
     } finally {
-      setExportCheckoutLoading(false);
+      setExportCheckoutKind(null);
+    }
+  }
+
+  async function startDeckDownloadCheckout() {
+    setExportCheckoutKind('download');
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          purchaseType: 'deck_download',
+          borderSlug,
+          borderName: currentBorderName,
+        }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = `/auth/login?redirect=${encodeURIComponent(loginRedirect)}`;
+          return;
+        }
+        alert(data.error || 'Checkout failed');
+        return;
+      }
+      if (data.url) window.location.href = data.url;
+    } finally {
+      setExportCheckoutKind(null);
     }
   }
 
@@ -469,32 +499,48 @@ export function StudioVisualPreview({
           className="fixed inset-0 z-[60] flex flex-col bg-charcoal/40 lg:items-center lg:justify-center lg:p-6"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="studio-export-paywall-title"
+          aria-labelledby="studio-export-choice-title"
         >
-          <div className="flex min-h-0 flex-1 flex-col bg-cream lg:min-h-0 lg:max-h-[90vh] lg:max-w-md lg:flex-none lg:rounded-sm lg:border lg:border-charcoal/15 lg:shadow-lg">
+          <div className="flex min-h-0 flex-1 flex-col bg-cream lg:min-h-0 lg:max-h-[90vh] lg:max-w-lg lg:flex-none lg:rounded-sm lg:border lg:border-charcoal/15 lg:shadow-lg">
             <div className="flex-1 overflow-y-auto p-6 lg:flex-none">
-              <h2 id="studio-export-paywall-title" className="text-lg font-semibold text-charcoal">
-                Unlock your full tarot deck export → $49.99
+              <h2 id="studio-export-choice-title" className="text-lg font-semibold text-charcoal">
+                What would you like to do next?
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-charcoal/75">
-                For <span className="font-medium text-charcoal">{currentBorderName}</span>. One payment unlocks download
-                for this border style.
+              <p className="mt-2 text-sm text-charcoal/70">
+                <span className="font-medium text-charcoal">{currentBorderName}</span>
               </p>
-              <ul className="mt-4 list-inside list-disc space-y-1.5 text-sm text-charcoal/80">
-                <li>Full deck (78 cards)</li>
-                <li>High-resolution export</li>
-                <li>Print-ready files</li>
-              </ul>
+
+              <div className="mt-6 space-y-6">
+                <div className="rounded-sm border border-charcoal/10 bg-cream/90 p-4">
+                  <p className="text-sm font-medium text-charcoal">🖨️ Print your deck</p>
+                  <p className="mt-1 text-sm text-charcoal/75">Get a physical tarot deck shipped to you</p>
+                  <button
+                    type="button"
+                    disabled={exportCheckoutKind !== null}
+                    onClick={() => void startStudioPrintCheckout()}
+                    className="mt-4 inline-flex w-full justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-3.5 text-center text-sm font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {exportCheckoutKind === 'print' ? 'Redirecting…' : 'Print my deck'}
+                  </button>
+                </div>
+
+                <div className="rounded-sm border border-charcoal/15 bg-cream p-4">
+                  <p className="text-sm font-medium text-charcoal">💻 Download your deck</p>
+                  <p className="mt-1 text-sm text-charcoal/75">Download all 78 cards in high resolution</p>
+                  <button
+                    type="button"
+                    disabled={exportCheckoutKind !== null}
+                    onClick={() => void startDeckDownloadCheckout()}
+                    className="mt-4 inline-flex w-full justify-center rounded-sm border-2 border-charcoal bg-transparent px-4 py-3 text-center text-sm font-medium text-charcoal hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {exportCheckoutKind === 'download'
+                      ? 'Redirecting…'
+                      : `Download for ${deckDownloadPriceDisplay}`}
+                  </button>
+                </div>
+              </div>
             </div>
             <div className="flex shrink-0 flex-col gap-2 border-t border-charcoal/10 bg-cream px-6 py-4 lg:rounded-b-sm">
-              <button
-                type="button"
-                disabled={exportCheckoutLoading}
-                onClick={() => void startFullDeckCheckout()}
-                className="inline-flex w-full justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-3 text-center text-sm font-medium text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {exportCheckoutLoading ? 'Redirecting…' : 'Pay $49.99 — secure checkout'}
-              </button>
               <Link
                 href={`/borders/${borderSlug}`}
                 className="inline-flex w-full justify-center rounded-sm border border-charcoal/30 bg-transparent px-4 py-3 text-sm text-charcoal hover:bg-charcoal/5"
