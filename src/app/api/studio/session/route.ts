@@ -7,49 +7,84 @@ import { isLikelySupabaseStoragePath } from '@/lib/studio-storage-path';
 
 const FALLBACK_BORDER_SLUG = 'default-border';
 
-async function fetchSessionCardsPayload(
+type SessionCardPayload = {
+  card_key: string;
+  card_index: number | null;
+  card_name: string | null;
+  numeral: string | null;
+  image_url: string | null;
+  artwork_path: string | null;
+  rendered_url: string | null;
+};
+
+/** Never throws; returns [] if query, RLS, or signing fails. */
+async function loadSessionCardsSafe(
   supabase: Awaited<ReturnType<typeof createAppServerClient>>,
   deckId: string,
-) {
-  const { data: rawCards, error: cardsErr } = await supabase
-    .from('studio_cards')
-    .select('card_key, card_name, numeral, image_url, image_path, card_index')
-    .eq('deck_id', deckId);
+): Promise<SessionCardPayload[]> {
+  try {
+    const { data, error } = await supabase
+      .from('studio_cards')
+      .select('*')
+      .eq('deck_id', deckId);
 
-  if (cardsErr) {
-    console.error('[studio-session] cards query:', cardsErr.message, cardsErr.code, cardsErr.details);
-    return { error: cardsErr } as const;
+    if (error) {
+      console.error('[studio-session] cards error:', error.message, error.code, error.details);
+      return [];
+    }
+
+    const rawRows = data ?? [];
+
+    try {
+      const mapped = await Promise.all(
+        rawRows.map(async (row: Record<string, unknown>) => {
+          const card_key = String(row.card_key ?? '');
+          const card_index =
+            typeof row.card_index === 'number'
+              ? row.card_index
+              : row.card_index != null
+                ? Number(row.card_index)
+                : null;
+          const card_name = row.card_name != null ? String(row.card_name) : null;
+          const numeral = row.numeral != null ? String(row.numeral) : null;
+          const imageUrlRaw = row.image_url != null ? String(row.image_url) : null;
+          const imagePathRaw = row.image_path != null ? String(row.image_path) : null;
+
+          const artwork_path =
+            imageUrlRaw && isLikelySupabaseStoragePath(imageUrlRaw) ? imageUrlRaw : null;
+
+          let image_url: string | null = null;
+          if (artwork_path) {
+            image_url = await getSignedStudioArtworkUrl(artwork_path);
+          } else if (imageUrlRaw) {
+            image_url = imageUrlRaw;
+          }
+
+          let rendered_url: string | null = null;
+          if (imagePathRaw && isLikelySupabaseStoragePath(imagePathRaw)) {
+            rendered_url = await getSignedCardUrl(imagePathRaw);
+          }
+
+          return {
+            card_key,
+            card_index: Number.isFinite(card_index as number) ? (card_index as number) : null,
+            card_name,
+            numeral,
+            image_url,
+            artwork_path,
+            rendered_url,
+          };
+        }),
+      );
+      return mapped;
+    } catch (mapErr) {
+      console.error('[studio-session] cards sign/map crash:', mapErr);
+      return [];
+    }
+  } catch (err) {
+    console.error('[studio-session] cards crash:', err);
+    return [];
   }
-
-  const cards = await Promise.all(
-    (rawCards ?? []).map(async (row) => {
-      const artwork_path = row.image_url && isLikelySupabaseStoragePath(row.image_url) ? row.image_url : null;
-
-      let image_url: string | null = null;
-      if (artwork_path) {
-        image_url = await getSignedStudioArtworkUrl(artwork_path);
-      } else if (row.image_url) {
-        image_url = row.image_url;
-      }
-
-      let rendered_url: string | null = null;
-      if (row.image_path && isLikelySupabaseStoragePath(row.image_path)) {
-        rendered_url = await getSignedCardUrl(row.image_path);
-      }
-
-      return {
-        card_key: row.card_key,
-        card_index: row.card_index,
-        card_name: row.card_name,
-        numeral: row.numeral,
-        image_url,
-        artwork_path,
-        rendered_url,
-      };
-    }),
-  );
-
-  return { cards } as const;
 }
 
 /**
@@ -136,14 +171,11 @@ export async function POST(request: Request) {
       deckId = newDeck.id;
     }
 
-    const payload = await fetchSessionCardsPayload(supabase, deckId);
-    if ('error' in payload) {
-      return new Response('Failed to load cards', { status: 500 });
-    }
+    const cards = await loadSessionCardsSafe(supabase, deckId);
 
     return NextResponse.json({
       deckId,
-      cards: payload.cards,
+      cards,
     });
   } catch (e) {
     console.error('[studio-session] unhandled:', e);
