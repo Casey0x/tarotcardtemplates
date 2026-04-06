@@ -162,7 +162,7 @@ export async function POST(request: Request) {
         image_path: filePath,
         updated_at: new Date().toISOString(),
       },
-      { onConflict: 'deck_id,card_key' },
+      { onConflict: 'deck_id,card_index' },
     );
 
     if (upsertErr) {
@@ -178,7 +178,7 @@ export async function POST(request: Request) {
 
     const { data: signed, error: signErr } = await supabase.storage
       .from('studio-renders')
-      .createSignedUrl(filePath, 3600);
+      .createSignedUrl(filePath, 300);
 
     if (signErr || !signed?.signedUrl) {
       console.error('[studio/render] sign', signErr);

@@ -4,7 +4,7 @@ import { createServerClient } from '@/lib/supabase-server';
 export async function getSignedCardUrl(path: string) {
   const supabase = await createServerClient();
 
-  const { data, error } = await supabase.storage.from('studio-renders').createSignedUrl(path, 60);
+  const { data, error } = await supabase.storage.from('studio-renders').createSignedUrl(path, 300);
 
   if (error) {
     console.error(error);

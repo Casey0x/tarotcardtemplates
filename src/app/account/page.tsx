@@ -301,7 +301,7 @@ export default function AccountPage() {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-charcoal">My deck projects</h2>
+        <h2 className="text-xl font-semibold text-charcoal">Your Deck</h2>
         {decks.length === 0 ? (
           <p className="mt-3 text-sm text-charcoal/75">
             Start your first deck in the{' '}

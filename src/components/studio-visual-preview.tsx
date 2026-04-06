@@ -501,7 +501,7 @@ export function StudioVisualPreview({
             href={`${studioBasePath}/projects`}
             className="text-sm text-charcoal underline underline-offset-2 hover:no-underline"
           >
-            My deck projects →
+            Your Deck →
           </Link>
         </div>
         <div className="rounded-sm border border-charcoal/15 bg-cream/80 px-5 py-10 text-center">
@@ -534,7 +534,7 @@ export function StudioVisualPreview({
               Sign in to continue
             </h2>
             <p className="mt-2 text-sm text-charcoal/75">
-              Sign in to upload artwork, preview cards, and sync your deck projects.
+              Sign in to upload artwork, preview cards, and sync your deck.
             </p>
             <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Link
@@ -625,7 +625,7 @@ export function StudioVisualPreview({
           href={`${studioBasePath}/projects`}
           className="text-sm text-charcoal underline underline-offset-2 hover:no-underline"
         >
-          My deck projects →
+          Your Deck →
         </Link>
       </div>
 

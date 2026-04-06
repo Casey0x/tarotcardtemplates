@@ -5,54 +5,17 @@ import { cookies } from 'next/headers';
 import { getSignedCardUrl, getSignedStudioArtworkUrl } from '@/lib/getSignedCardUrl';
 import { isLikelySupabaseStoragePath } from '@/lib/studio-storage-path';
 
-/**
- * POST { borderSlug } — load or create persistent Studio project; returns deckId + saved cards.
- */
-export async function POST(request: Request) {
-  const supabase = await createAppServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  let body: { borderSlug?: string };
-  try {
-    body = (await request.json()) as { borderSlug?: string };
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
-
-  const borderSlug = String(body.borderSlug ?? '').trim();
-  if (!borderSlug) {
-    return NextResponse.json({ error: 'borderSlug required' }, { status: 400 });
-  }
-
-  const upserted = await supabase
-    .from('studio_decks')
-    .upsert(
-      { user_id: user.id, border_slug: borderSlug },
-      { onConflict: 'user_id,border_slug' },
-    )
-    .select('*')
-    .single();
-
-  if (upserted.error || !upserted.data) {
-    console.error('[studio/session POST] upsert deck', upserted.error);
-    return NextResponse.json({ error: 'Failed to load deck' }, { status: 500 });
-  }
-
-  const deck = upserted.data;
-
+async function fetchSessionCardsPayload(
+  supabase: Awaited<ReturnType<typeof createAppServerClient>>,
+  deckId: string,
+) {
   const { data: rawCards, error: cardsErr } = await supabase
     .from('studio_cards')
     .select('card_key, card_name, numeral, image_url, image_path, card_index')
-    .eq('deck_id', deck.id);
+    .eq('deck_id', deckId);
 
   if (cardsErr) {
-    console.error('[studio/session POST] cards', cardsErr);
-    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    return { error: cardsErr } as const;
   }
 
   const cards = await Promise.all(
@@ -83,9 +46,90 @@ export async function POST(request: Request) {
     }),
   );
 
+  return { cards } as const;
+}
+
+/**
+ * POST { borderSlug } — single deck per user; returns deckId + saved cards for Studio client.
+ */
+export async function POST(request: Request) {
+  const supabase = await createAppServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  let body: { borderSlug?: string };
+  try {
+    body = (await request.json()) as { borderSlug?: string };
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+
+  const borderSlug = String(body.borderSlug ?? '').trim();
+  if (!borderSlug) {
+    return NextResponse.json({ error: 'borderSlug required' }, { status: 400 });
+  }
+
+  const { data: existingDeck, error: findErr } = await supabase
+    .from('studio_decks')
+    .select('*')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (findErr) {
+    console.error('[studio/session POST] find deck', findErr);
+    return NextResponse.json({ error: 'Failed to load deck' }, { status: 500 });
+  }
+
+  let deckId: string;
+
+  if (existingDeck) {
+    if (borderSlug && borderSlug !== existingDeck.border_slug) {
+      const { error: updErr } = await supabase
+        .from('studio_decks')
+        .update({
+          border_slug: borderSlug,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existingDeck.id);
+
+      if (updErr) {
+        console.error('[studio/session POST] update border', updErr);
+        return NextResponse.json({ error: 'Failed to update deck' }, { status: 500 });
+      }
+    }
+
+    deckId = existingDeck.id;
+  } else {
+    const inserted = await supabase
+      .from('studio_decks')
+      .insert({
+        user_id: user.id,
+        border_slug: borderSlug,
+      })
+      .select()
+      .single();
+
+    if (inserted.error || !inserted.data) {
+      console.error('[studio/session POST] insert deck', inserted.error);
+      return NextResponse.json({ error: 'Failed to create deck' }, { status: 500 });
+    }
+
+    deckId = inserted.data.id;
+  }
+
+  const payload = await fetchSessionCardsPayload(supabase, deckId);
+  if ('error' in payload) {
+    console.error('[studio/session POST] cards', payload.error);
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
+  }
+
   return NextResponse.json({
-    deckId: deck.id,
-    cards,
+    deckId,
+    cards: payload.cards,
   });
 }
 

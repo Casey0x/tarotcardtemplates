@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase-server';
 import { getSignedCardUrl } from '@/lib/getSignedCardUrl';
 import { StudioProjectsSessionGate } from '@/components/studio-projects-session-gate';
-import { StudioProjectsDevDeckButton } from '@/components/studio-projects-dev-deck-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,107 +34,105 @@ async function ProjectsList({ sessionId }: { sessionId: string | undefined }) {
     redirect('/login?redirect=/studio/projects');
   }
 
-  const { data: decks } = await supabase
+  const { data: deck, error: deckErr } = await supabase
     .from('studio_decks')
     .select('*')
     .eq('user_id', user.id)
-    .order('updated_at', { ascending: false });
+    .maybeSingle();
 
-  const deckRows = (decks ?? []) as StudioDeckRow[];
+  if (deckErr) {
+    console.error('[studio/projects] deck', deckErr);
+  }
 
-  const decksWithPreview = await Promise.all(
-    deckRows.map(async (deck) => {
-      const { data: cards } = await supabase
-        .from('studio_cards')
-        .select('*')
-        .eq('deck_id', deck.id)
-        .order('card_index', { ascending: true, nullsFirst: true });
+  const deckRow = deck as StudioDeckRow | null;
 
-      const previewCard = cards?.find((c) => c.image_path) ?? cards?.[0];
-      const previewUrl = previewCard?.image_path
-        ? await getSignedCardUrl(previewCard.image_path as string)
-        : null;
+  let previewUrl: string | null = null;
+  if (deckRow) {
+    const { data: cards } = await supabase
+      .from('studio_cards')
+      .select('*')
+      .eq('deck_id', deckRow.id)
+      .order('card_index', { ascending: true, nullsFirst: true });
 
-      return { deck, previewUrl };
-    }),
+    const previewCard = cards?.find((c) => c.image_path) ?? cards?.[0];
+    if (previewCard?.image_path) {
+      previewUrl = await getSignedCardUrl(previewCard.image_path as string);
+    }
+  }
+
+  const inner = (
+    <ProjectsInner deck={deckRow} previewUrl={previewUrl} />
   );
 
   if (sessionId) {
-    return (
-      <StudioProjectsSessionGate sessionId={sessionId}>
-        <ProjectsInner decksWithPreview={decksWithPreview} />
-      </StudioProjectsSessionGate>
-    );
+    return <StudioProjectsSessionGate sessionId={sessionId}>{inner}</StudioProjectsSessionGate>;
   }
 
-  return <ProjectsInner decksWithPreview={decksWithPreview} />;
+  return inner;
 }
 
 function ProjectsInner({
-  decksWithPreview,
+  deck,
+  previewUrl,
 }: {
-  decksWithPreview: Array<{ deck: StudioDeckRow; previewUrl: string | null }>;
+  deck: StudioDeckRow | null;
+  previewUrl: string | null;
 }) {
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
       <p className="mb-6 text-sm text-charcoal/70">
         <Link href="/studio" className="underline underline-offset-2 hover:no-underline">
-          ← Back to border preview
+          ← Back to Studio
         </Link>
       </p>
-      <h1 className="text-3xl font-semibold text-charcoal">Studio</h1>
-      <p className="mt-2 text-charcoal/70">Your deck projects. Pick one to continue designing.</p>
-      {decksWithPreview.length === 0 ? (
+      <h1 className="text-3xl font-semibold text-charcoal">Your Deck</h1>
+      {!deck ? (
         <div className="mt-10 rounded-sm border border-charcoal/10 bg-cardBg p-8 text-center text-charcoal/70">
-          {process.env.NODE_ENV === 'development' ? (
-            <div className="not-prose mb-8">
-              <StudioProjectsDevDeckButton />
-            </div>
-          ) : null}
-          <p className="text-lg font-medium text-charcoal">Start your first deck</p>
-          <p className="mt-2">
-            Open{' '}
+          <p className="text-lg text-charcoal">You haven&apos;t started a deck yet.</p>
+          <p className="mt-6">
             <Link
               href="/studio"
-              className="text-charcoal underline underline-offset-2 hover:no-underline"
+              className="inline-flex rounded-sm border border-charcoal bg-charcoal px-6 py-2 text-sm font-medium text-cream hover:bg-charcoal/90"
             >
-              Studio
-            </Link>
-            , choose a border, and your project will show up here.
-          </p>
-          <p className="mt-4">
-            <Link href="/borders" className="text-charcoal underline underline-offset-2 hover:no-underline">
-              Browse borders
+              Start Designing
             </Link>
           </p>
         </div>
       ) : (
-        <ul className="mt-8 space-y-4">
-          {decksWithPreview.map(({ deck, previewUrl }) => (
-            <li key={deck.id}>
-              <Link
-                href={`/studio?border=${encodeURIComponent(deck.border_slug)}`}
-                className="flex gap-4 rounded-sm border border-charcoal/10 bg-cardBg p-4 text-charcoal transition hover:border-charcoal/20"
-              >
-                {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt=""
-                    className="h-20 w-14 shrink-0 rounded-sm object-cover"
-                  />
-                ) : (
-                  <div className="h-20 w-14 shrink-0 rounded-sm bg-charcoal/5" aria-hidden />
-                )}
-                <div className="min-w-0 flex-1">
-                  <span className="font-medium">{deck.border_slug}</span>
-                  <span className="mt-1 block text-sm text-charcoal/70">
-                    Last updated {formatUpdatedAt(deck.updated_at)}
-                  </span>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="mt-8 rounded-sm border border-charcoal/10 bg-cardBg p-6 text-charcoal">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            {previewUrl ? (
+              <img
+                src={previewUrl}
+                alt=""
+                className="mx-auto h-40 w-[5.5rem] shrink-0 rounded-sm object-cover sm:mx-0"
+              />
+            ) : (
+              <div
+                className="mx-auto h-40 w-[5.5rem] shrink-0 rounded-sm bg-charcoal/5 sm:mx-0"
+                aria-hidden
+              />
+            )}
+            <div className="min-w-0 flex-1 text-center sm:text-left">
+              <p className="font-medium capitalize text-charcoal">{deck.border_slug.replace(/-/g, ' ')}</p>
+              <p className="mt-1 text-sm text-charcoal/70">Last updated {formatUpdatedAt(deck.updated_at)}</p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link
+                  href={`/studio?border=${encodeURIComponent(deck.border_slug)}`}
+                  className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-5 py-2 text-sm font-medium text-cream hover:bg-charcoal/90"
+                >
+                  Continue Editing
+                </Link>
+                <Link
+                  href={`/borders/${encodeURIComponent(deck.border_slug)}`}
+                  className="inline-flex justify-center rounded-sm border border-charcoal/35 bg-cream px-5 py-2 text-sm font-medium text-charcoal hover:bg-charcoal/5"
+                >
+                  Print Deck
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

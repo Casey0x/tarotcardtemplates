@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     .from('studio_cards')
     .select('image_url')
     .eq('deck_id', deckId)
-    .eq('card_key', cardKey)
+    .eq('card_index', cardIndex)
     .maybeSingle();
 
   let nextImageUrl = existing?.image_url ?? null;
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       image_url: nextImageUrl,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: 'deck_id,card_key' },
+    { onConflict: 'deck_id,card_index' },
   );
 
   if (upsertErr) {
