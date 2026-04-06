@@ -81,91 +81,91 @@ interface BorderPageProps {
 const MARBLE_TEMPLE_META = {
   title: 'Marble Temple Border – Tarot Card Border Template',
   description:
-    'Marble Temple tarot border — classical marble columns and arched window. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Marble Temple tarot border — classical marble columns and arched window. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/marble-temple',
 };
 
 const VINTAGE_VELVET_META = {
   title: 'Vintage Velvet Border – Tarot Card Border Template',
   description:
-    'Vintage Velvet tarot border — ornate gold flourishes on rich velvet, inspired by Victorian tarot design. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Vintage Velvet tarot border — ornate gold flourishes on rich velvet, inspired by Victorian tarot design. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/vintage-velvet',
 };
 
 const CELESTIAL_GILDED_META = {
   title: 'Celestial Gilded Border – Tarot Card Border Template',
   description:
-    'Celestial Gilded tarot border — gold celestial linework with stars and cosmic ornament. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Celestial Gilded tarot border — gold celestial linework with stars and cosmic ornament. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/celestial-gilded',
 };
 
 const STEAMPUNK_BRASS_META = {
   title: 'Steampunk Brass Border – Tarot Card Border Template',
   description:
-    'Steampunk Brass tarot border — ornate brass gears, gauges and mechanical detailing. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Steampunk Brass tarot border — ornate brass gears, gauges and mechanical detailing. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/steampunk-brass',
 };
 
 const JAPANESE_ZEN_META = {
   title: 'Japanese Zen Border – Tarot Card Border Template',
   description:
-    'Japanese Zen tarot border — hand-painted cherry blossoms, bamboo, clouds and seigaiha waves on warm cream. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Japanese Zen tarot border — hand-painted cherry blossoms, bamboo, clouds and seigaiha waves on warm cream. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/japanese-zen',
 };
 
 const ENCHANTED_FOREST_META = {
   title: 'Enchanted Forest Border – Tarot Card Border Template',
   description:
-    'Enchanted Forest tarot border — twisted woodland vines, oak leaves, acorns, moss and glowing fireflies. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Enchanted Forest tarot border — twisted woodland vines, oak leaves, acorns, moss and glowing fireflies. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/enchanted-forest',
 };
 
 const DAY_OF_THE_DEAD_META = {
   title: 'Day of the Dead Border – Tarot Card Border Template',
   description:
-    'Day of the Dead tarot border — decorated sugar skulls, marigolds and papel picado. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Day of the Dead tarot border — decorated sugar skulls, marigolds and papel picado. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/day-of-the-dead',
 };
 
 const OCEAN_MERMAID_META = {
   title: 'Ocean Depths Border – Tarot Card Border Template',
   description:
-    'Ocean Depths tarot border — turquoise seaweed ribbons, coral pink branches, pearls, shells, starfish and shimmering bubbles. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Ocean Depths tarot border — turquoise seaweed ribbons, coral pink branches, pearls, shells, starfish and shimmering bubbles. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/ocean-mermaid',
 };
 
 const DRAGON_SCALE_META = {
   title: 'Dragon Scale Border – Tarot Card Border Template',
   description:
-    'Dragon Scale tarot border — layered dragon scales, bronze plaques and fantasy spikes. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Dragon Scale tarot border — layered dragon scales, bronze plaques and fantasy spikes. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/dragon-scale',
 };
 
 const GOTHIC_ROMANCE_META = {
   title: 'Gothic Romance Border – Tarot Card Border Template',
   description:
-    'Gothic Romance tarot border — Victorian engraving, bats, thorny roses and Gothic spires on aged parchment. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Gothic Romance tarot border — Victorian engraving, bats, thorny roses and Gothic spires on aged parchment. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/gothic-romance',
 };
 
 const ART_NOUVEAU_LILY_META = {
   title: 'Art Nouveau Lily Border – Tarot Card Border Template',
   description:
-    'Art Nouveau Lily tarot border — cream and peach lilies, golden whiplash curves and blush pink Belle Époque florals. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Art Nouveau Lily tarot border — cream and peach lilies, golden whiplash curves and blush pink Belle Époque florals. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/art-nouveau-lily',
 };
 
 const MYSTIC_CANDLELIGHT_META = {
   title: 'Mystic Candlelight Border – Tarot Card Border Template',
   description:
-    'Mystic Candlelight tarot border — melting honey-amber wax, corner candles and warm ritual glow. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Mystic Candlelight tarot border — melting honey-amber wax, corner candles and warm ritual glow. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/mystic-candlelight',
 };
 
 const GOLDEN_HONEYCOMB_META = {
   title: 'Golden Honeycomb Border – Tarot Card Border Template',
   description:
-    'Golden Honeycomb tarot border — honeycomb, bees, dripping honey, daisies and beehive centerpiece on cream. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
+    'Golden Honeycomb tarot border — honeycomb, bees, dripping honey, daisies and beehive centerpiece on cream. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.',
   canonical: 'https://www.tarotcardtemplates.com/borders/golden-honeycomb',
 };
 
@@ -300,7 +300,7 @@ export async function generateMetadata({
     title,
     description:
       params.slug === 'minimal-line'
-        ? 'Minimal Line tarot border — clean geometric frame for modern and AI-generated tarot decks. Use this design in Studio to create your deck. Full deck export from $49.99. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.'
+        ? 'Minimal Line tarot border — clean geometric frame for modern and AI-generated tarot decks. Use this design in Studio to create your deck. PNG, PSD and Canva included with export. 70×120mm, 3mm bleed.'
         : border.description,
     alternates: {
       canonical: `https://www.tarotcardtemplates.com/borders/${params.slug}`,
@@ -421,10 +421,11 @@ export default async function BorderPage({ params }: BorderPageProps) {
               Try in Studio →
             </Link>
             <p className="text-sm text-charcoal/90">Create your tarot deck using this design</p>
-            <p className="text-sm text-charcoal/70">
-              Free to preview. Pay only when you export your full deck.
-            </p>
-            <p className="text-sm font-medium text-charcoal">Full deck export from $49.99</p>
+            <p className="text-sm text-charcoal/70">Free to preview. Pay only when you&apos;re ready.</p>
+            <ul className="list-inside list-disc space-y-1 text-sm text-charcoal/70">
+              <li>Print your deck (shipped to you)</li>
+              <li>Or download your finished cards</li>
+            </ul>
           </div>
 
           <div className="space-y-4">
