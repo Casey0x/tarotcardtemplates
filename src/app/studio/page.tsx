@@ -1,12 +1,9 @@
 import type { Metadata } from 'next';
 import { StudioSessionRedirect } from '@/components/studio-session-redirect';
+import { StudioSignInRequired } from '@/components/studio-sign-in-required';
 import { StudioVisualPreview } from '@/components/studio-visual-preview';
 import { fetchBorders } from '@/data/borders';
-import {
-  protectedBorderImageUrl,
-  publicBorderThumbPath,
-  publicBorderThumbTransparentPath,
-} from '@/lib/border-asset-urls';
+import { protectedBorderImageUrl } from '@/lib/border-asset-urls';
 import { resolveStudioBorderOptions } from '@/lib/studio-border-options';
 import { createClient } from '@/lib/supabase-server';
 import { fetchPurchasedBorderSlugsForUser } from '@/lib/user-purchases';
@@ -29,7 +26,16 @@ export default async function StudioPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const isLoggedIn = Boolean(user);
+  if (!user) {
+    const q = searchParams?.border?.trim();
+    const returnPath = q ? `/studio?border=${encodeURIComponent(q)}` : '/studio';
+    return (
+      <>
+        <StudioSessionRedirect />
+        <StudioSignInRequired returnPath={returnPath} />
+      </>
+    );
+  }
 
   const borders = await fetchBorders();
   const purchasedBorderSlugs = await fetchPurchasedBorderSlugsForUser();
@@ -37,11 +43,9 @@ export default async function StudioPage({
   const borderOptions = borders.map((b) => ({
     slug: b.slug,
     name: b.name,
-    image: isLoggedIn ? protectedBorderImageUrl(b.slug) : publicBorderThumbPath(b.slug),
+    image: protectedBorderImageUrl(b.slug),
     transparentImage: b.transparentImage?.trim()
-      ? isLoggedIn
-        ? `${protectedBorderImageUrl(b.slug)}?variant=transparent`
-        : publicBorderThumbTransparentPath(b.slug)
+      ? `${protectedBorderImageUrl(b.slug)}?variant=transparent`
       : undefined,
   }));
 
@@ -64,7 +68,6 @@ export default async function StudioPage({
         borderCatalog={borderOptions}
         initialBorderSlug={initialBorderSlug}
         exportUnlockedBorderSlugs={purchasedBorderSlugs}
-        isLoggedIn={isLoggedIn}
         noBordersInCatalog={noBordersInCatalog}
         deckDownloadPriceDisplay={deckDownloadPriceDisplay}
       />

@@ -5,20 +5,29 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase-client';
 
-interface DeckRow {
+interface StudioDeckRow {
   id: string;
-  border_name: string;
-  total_cards: number;
-  completed_cards: number;
-  status: string;
-  created_at: string;
+  border_slug: string;
+  updated_at: string;
+  created_at?: string;
+}
+
+function formatUpdatedAt(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+  } catch {
+    return iso;
+  }
 }
 
 function StudioProjectsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
-  const [decks, setDecks] = useState<DeckRow[]>([]);
+  const [decks, setDecks] = useState<StudioDeckRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [creatingDevDeck, setCreatingDevDeck] = useState(false);
   const isDev = process.env.NODE_ENV === 'development';
@@ -45,12 +54,17 @@ function StudioProjectsContent() {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    const { data } = await supabase
-      .from('decks')
-      .select('id, border_name, total_cards, completed_cards, status, created_at')
+    const { data, error } = await supabase
+      .from('studio_decks')
+      .select('*')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    setDecks((data as DeckRow[]) ?? []);
+      .order('updated_at', { ascending: false });
+    if (error) {
+      console.error('[studio/projects] load studio_decks', error);
+      setDecks([]);
+      return;
+    }
+    setDecks((data as StudioDeckRow[]) ?? []);
   }
 
   async function handleCreateDevDeck() {
@@ -113,15 +127,24 @@ function StudioProjectsContent() {
             </div>
           )}
           <div className="rounded-sm border border-charcoal/10 bg-cardBg p-8 text-center text-charcoal/70">
-            <p>You don’t have any decks yet.</p>
+            <p className="text-lg font-medium text-charcoal">Start your first deck</p>
             <p className="mt-2">
+              Open{' '}
+              <Link
+                href="/studio"
+                className="text-charcoal underline underline-offset-2 hover:no-underline"
+              >
+                Studio
+              </Link>
+              , choose a border, and your project will show up here.
+            </p>
+            <p className="mt-4">
               <Link
                 href="/borders"
                 className="text-charcoal underline underline-offset-2 hover:no-underline"
               >
-                Choose a border
+                Browse borders
               </Link>
-              {' '}and purchase to start designing.
             </p>
           </div>
         </div>
@@ -130,12 +153,12 @@ function StudioProjectsContent() {
           {decks.map((deck) => (
             <li key={deck.id}>
               <Link
-                href={`/studio/${deck.id}`}
+                href={`/studio?border=${encodeURIComponent(deck.border_slug)}`}
                 className="block rounded-sm border border-charcoal/10 bg-cardBg p-4 text-charcoal transition hover:border-charcoal/20"
               >
-                <span>{deck.border_name}</span>
-                <span className="ml-2 text-charcoal/70">
-                  — {deck.completed_cards}/{deck.total_cards} cards
+                <span className="font-medium">{deck.border_slug}</span>
+                <span className="ml-2 block text-sm text-charcoal/70 sm:inline sm:ml-3">
+                  Last updated {formatUpdatedAt(deck.updated_at)}
                 </span>
               </Link>
             </li>

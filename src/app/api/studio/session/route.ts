@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       { user_id: user.id, border_slug: borderSlug },
       { onConflict: 'user_id,border_slug' },
     )
-    .select('id')
+    .select('*')
     .single();
 
   if (upserted.error || !upserted.data) {
@@ -42,6 +42,8 @@ export async function POST(request: Request) {
   }
 
   const deck = upserted.data;
+  console.log('[studio-session] user_id:', user.id);
+  console.log('[studio-session] deck found/created:', deck);
 
   const { data: cards, error: cardsErr } = await supabase
     .from('studio_cards')

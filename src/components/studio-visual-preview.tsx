@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
 import type { StudioPreviewItem } from '@/lib/studio-border-options';
 import { getTarotDefault, TAROT_CARDS_78, TAROT_SECTIONS } from '@/lib/tarot-cards';
@@ -29,16 +29,6 @@ function studioObjectPathFromPublicUrl(url: string): string | null {
   }
 }
 
-type LocalStudioProgress = {
-  artworkByCard: Record<string, string>;
-  cardFields: Record<string, { cardName: string; numeral: string }>;
-  selectedCardIndex: number;
-};
-
-function localStorageKeyForBorder(borderSlug: string): string {
-  return `studio_progress_${borderSlug}`;
-}
-
 type Props = {
   borders: StudioPreviewItem[];
   /** Full border list (names / slugs) when `borders` is filtered for the dropdown. */
@@ -49,7 +39,6 @@ type Props = {
   initialBorderSlug?: string;
   /** Border slugs with a paid export unlock (Stripe `purchases` / `orders`). */
   exportUnlockedBorderSlugs?: string[];
-  isLoggedIn?: boolean;
   /** No borders configured in the catalog. */
   noBordersInCatalog?: boolean;
   /** Regional deck download price for modal CTA (matches checkout). */
@@ -62,7 +51,6 @@ export function StudioVisualPreview({
   studioBasePath = '/studio',
   initialBorderSlug,
   exportUnlockedBorderSlugs = [],
-  isLoggedIn = false,
   noBordersInCatalog = false,
   deckDownloadPriceDisplay,
 }: Props) {
@@ -92,11 +80,6 @@ export function StudioVisualPreview({
     }
   }, [dropdownSource, borderSlug]);
 
-  const [sessionLoggedIn, setSessionLoggedIn] = useState(isLoggedIn);
-  useEffect(() => {
-    setSessionLoggedIn(isLoggedIn);
-  }, [isLoggedIn]);
-
   useEffect(() => {
     const {
       data: { subscription },
@@ -111,6 +94,8 @@ export function StudioVisualPreview({
   const [artworkByCard, setArtworkByCard] = useState<Record<number, string>>({});
   const [uploading, setUploading] = useState(false);
   const [deckId, setDeckId] = useState<string | null>(null);
+  const [saveStatusSaving, setSaveStatusSaving] = useState(false);
+  const [saveStatusSaved, setSaveStatusSaved] = useState(false);
   const cardFieldsRef = useRef<Record<number, { cardName: string; numeral: string }>>({});
   const artworkByCardRef = useRef(artworkByCard);
   useEffect(() => {
@@ -121,73 +106,8 @@ export function StudioVisualPreview({
     cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
   }, [selectedCardIndex, cardName, cardNumeral]);
 
-  useLayoutEffect(() => {
-    if (sessionLoggedIn || !borderSlug || typeof window === 'undefined') return;
-    const raw = localStorage.getItem(localStorageKeyForBorder(borderSlug));
-    if (!raw) return;
-    try {
-      const p = JSON.parse(raw) as LocalStudioProgress;
-      const art: Record<number, string> = {};
-      Object.entries(p.artworkByCard ?? {}).forEach(([k, v]) => {
-        const i = parseInt(k, 10);
-        if (!Number.isNaN(i) && i >= 0 && i <= 77) art[i] = v;
-      });
-      cardFieldsRef.current = {};
-      Object.entries(p.cardFields ?? {}).forEach(([k, v]) => {
-        const i = parseInt(k, 10);
-        if (!Number.isNaN(i) && i >= 0 && i <= 77) {
-          cardFieldsRef.current[i] = v;
-        }
-      });
-      setArtworkByCard(art);
-      const si = Math.min(77, Math.max(0, p.selectedCardIndex ?? 0));
-      setSelectedCardIndex(si);
-      const d = getTarotDefault(si);
-      const s = cardFieldsRef.current[si];
-      setCardName(s?.cardName?.trim() ? s.cardName : (d?.name ?? ''));
-      setCardNumeral(s?.numeral ?? d?.numeral ?? '');
-      setPreviewByCard({});
-      setPreviewError(null);
-    } catch {
-      /* ignore corrupt local data */
-    }
-  }, [sessionLoggedIn, borderSlug]);
-
   useEffect(() => {
-    if (sessionLoggedIn || !borderSlug || typeof window === 'undefined') return;
-    const t = setTimeout(() => {
-      try {
-        cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
-        const payload: LocalStudioProgress = {
-          artworkByCard: Object.fromEntries(
-            Object.entries(artworkByCard).map(([k, v]) => [String(k), v]),
-          ),
-          cardFields: Object.fromEntries(
-            Object.entries(cardFieldsRef.current).map(([k, v]) => [String(k), v]),
-          ),
-          selectedCardIndex,
-        };
-        setSaveStatusSaving(true);
-        setSaveStatusSaved(false);
-        localStorage.setItem(localStorageKeyForBorder(borderSlug), JSON.stringify(payload));
-        setSaveStatusSaving(false);
-        setSaveStatusSaved(true);
-      } catch {
-        setSaveStatusSaving(false);
-      }
-    }, 400);
-    return () => clearTimeout(t);
-  }, [
-    sessionLoggedIn,
-    borderSlug,
-    artworkByCard,
-    cardName,
-    cardNumeral,
-    selectedCardIndex,
-  ]);
-
-  useEffect(() => {
-    if (!sessionLoggedIn || !borderSlug) {
+    if (!borderSlug) {
       setDeckId(null);
       return;
     }
@@ -211,19 +131,6 @@ export function StudioVisualPreview({
       if (cancelled) return;
       setDeckId(data.deckId);
 
-      const localKey = localStorageKeyForBorder(borderSlug);
-      let parsedLocal: LocalStudioProgress | null = null;
-      if (typeof window !== 'undefined') {
-        const raw = localStorage.getItem(localKey);
-        if (raw) {
-          try {
-            parsedLocal = JSON.parse(raw) as LocalStudioProgress;
-          } catch {
-            parsedLocal = null;
-          }
-        }
-      }
-
       const nextArtwork: Record<number, string> = {};
       cardFieldsRef.current = {};
       for (const row of data.cards) {
@@ -236,63 +143,12 @@ export function StudioVisualPreview({
         };
       }
 
-      if (parsedLocal) {
-        for (const [k, v] of Object.entries(parsedLocal.artworkByCard ?? {})) {
-          const i = parseInt(k, 10);
-          if (!Number.isNaN(i) && i >= 0 && i <= 77) nextArtwork[i] = v;
-        }
-        for (const [k, v] of Object.entries(parsedLocal.cardFields ?? {})) {
-          const i = parseInt(k, 10);
-          if (!Number.isNaN(i) && i >= 0 && i <= 77) {
-            cardFieldsRef.current[i] = v;
-          }
-        }
-      }
-
-      if (parsedLocal && typeof window !== 'undefined') {
-        localStorage.removeItem(localKey);
-        const indicesToSave = new Set<number>();
-        Object.keys(parsedLocal.artworkByCard ?? {}).forEach((k) => {
-          const i = parseInt(k, 10);
-          if (!Number.isNaN(i) && i >= 0 && i <= 77) indicesToSave.add(i);
-        });
-        Object.keys(parsedLocal.cardFields ?? {}).forEach((k) => {
-          const i = parseInt(k, 10);
-          if (!Number.isNaN(i) && i >= 0 && i <= 77) indicesToSave.add(i);
-        });
-        setSaveStatusSaving(true);
-        setSaveStatusSaved(false);
-        for (const i of indicesToSave) {
-          if (cancelled) break;
-          const fields = cardFieldsRef.current[i] ?? {
-            cardName: getTarotDefault(i)?.name ?? '',
-            numeral: getTarotDefault(i)?.numeral ?? '',
-          };
-          await fetch('/api/studio/save-card', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              deckId: data.deckId,
-              cardKey: String(i),
-              cardName: fields.cardName,
-              numeral: fields.numeral,
-              imageUrl: nextArtwork[i] ?? null,
-            }),
-          });
-        }
-        setSaveStatusSaving(false);
-        setSaveStatusSaved(true);
-      }
-
       if (cancelled) return;
       setArtworkByCard(nextArtwork);
       setPreviewByCard({});
-      const si = parsedLocal
-        ? Math.min(77, Math.max(0, parsedLocal.selectedCardIndex ?? 0))
-        : 0;
-      setSelectedCardIndex(si);
-      const dSel = getTarotDefault(si);
-      const sSel = cardFieldsRef.current[si];
+      setSelectedCardIndex(0);
+      const dSel = getTarotDefault(0);
+      const sSel = cardFieldsRef.current[0];
       setCardName(sSel?.cardName?.trim() ? sSel.cardName : (dSel?.name ?? ''));
       setCardNumeral(sSel?.numeral ?? dSel?.numeral ?? '');
       setPreviewError(null);
@@ -300,12 +156,12 @@ export function StudioVisualPreview({
     return () => {
       cancelled = true;
     };
-  }, [sessionLoggedIn, borderSlug]);
+  }, [borderSlug]);
 
   const persistCardToServer = useCallback(
     async (cardIndex: number, overrides?: { cardName?: string; numeral?: string; imageUrl?: string | null }) => {
       const id = deckId;
-      if (!id || !sessionLoggedIn) return;
+      if (!id) return;
       const fields = cardFieldsRef.current[cardIndex] ?? {
         cardName: getTarotDefault(cardIndex)?.name ?? '',
         numeral: getTarotDefault(cardIndex)?.numeral ?? '',
@@ -335,19 +191,18 @@ export function StudioVisualPreview({
         setSaveStatusSaved(true);
       }
     },
-    [deckId, sessionLoggedIn],
+    [deckId],
   );
 
   const artworkUrlForSelected = artworkByCard[selectedCardIndex];
   useEffect(() => {
-    if (!deckId || !sessionLoggedIn) return;
+    if (!deckId) return;
     const t = setTimeout(() => {
       void persistCardToServer(selectedCardIndex);
     }, 500);
     return () => clearTimeout(t);
   }, [
     deckId,
-    sessionLoggedIn,
     selectedCardIndex,
     cardName,
     cardNumeral,
@@ -359,7 +214,7 @@ export function StudioVisualPreview({
     const d = getTarotDefault(index);
     if (!d) return;
     if (index === selectedCardIndex) return;
-    if (deckId && sessionLoggedIn) {
+    if (deckId) {
       cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
       await persistCardToServer(selectedCardIndex);
     }
@@ -381,8 +236,6 @@ export function StudioVisualPreview({
   const [showExportPaywall, setShowExportPaywall] = useState(false);
   const [exportCheckoutKind, setExportCheckoutKind] = useState<null | 'print' | 'download'>(null);
   const [exportZipLoading, setExportZipLoading] = useState(false);
-  const [saveStatusSaving, setSaveStatusSaving] = useState(false);
-  const [saveStatusSaved, setSaveStatusSaved] = useState(false);
 
   async function blobUrlToDataUrl(blobUrl: string): Promise<string> {
     const res = await fetch(blobUrl);
@@ -398,32 +251,6 @@ export function StudioVisualPreview({
   const openSignInPrompt = () => setShowSignInPrompt(true);
 
   const handleUpload = async (file: File) => {
-    if (!sessionLoggedIn) {
-      try {
-        setUploading(true);
-        const dataUrl = await new Promise<string>((resolve, reject) => {
-          const r = new FileReader();
-          r.onload = () => resolve(r.result as string);
-          r.onerror = () => reject(new Error('read failed'));
-          r.readAsDataURL(file);
-        });
-        setArtworkByCard((prev) => ({
-          ...prev,
-          [selectedCardIndex]: dataUrl,
-        }));
-        setPreviewByCard((prev) => {
-          const next = { ...prev };
-          delete next[selectedCardIndex];
-          return next;
-        });
-      } catch (err) {
-        console.error('Local upload:', err);
-        alert('Could not read image');
-      } finally {
-        setUploading(false);
-      }
-      return;
-    }
     try {
       setUploading(true);
 
@@ -499,20 +326,6 @@ export function StudioVisualPreview({
   async function handleRemoveArtwork() {
     const name = cardName.trim() || getTarotDefault(selectedCardIndex)?.name || 'this card';
     if (!confirm(`Remove artwork for ${name}?`)) return;
-    if (!sessionLoggedIn) {
-      setArtworkByCard((prev) => {
-        const next = { ...prev };
-        delete next[selectedCardIndex];
-        return next;
-      });
-      setPreviewByCard((prev) => {
-        const next = { ...prev };
-        delete next[selectedCardIndex];
-        return next;
-      });
-      setPreviewError(null);
-      return;
-    }
     const url = artworkByCard[selectedCardIndex];
     if (url && !url.startsWith('blob:') && !url.startsWith('data:')) {
       const path = studioObjectPathFromPublicUrl(url);
@@ -532,7 +345,7 @@ export function StudioVisualPreview({
       return next;
     });
     setPreviewError(null);
-    if (deckId && sessionLoggedIn) {
+    if (deckId) {
       cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
       void persistCardToServer(selectedCardIndex, { imageUrl: null });
     }
@@ -551,10 +364,6 @@ export function StudioVisualPreview({
   }
 
   async function handlePreviewCard() {
-    if (!sessionLoggedIn) {
-      openSignInPrompt();
-      return;
-    }
     if (uploading) {
       alert('Please wait for upload to finish');
       return;
@@ -713,10 +522,6 @@ export function StudioVisualPreview({
   }
 
   async function handleExportDeckZip() {
-    if (!sessionLoggedIn) {
-      openSignInPrompt();
-      return;
-    }
     if (!exportUnlocked) {
       setShowExportPaywall(true);
       return;
@@ -945,13 +750,7 @@ export function StudioVisualPreview({
             {!exportUnlocked ? (
               <button
                 type="button"
-                onClick={() => {
-                  if (!sessionLoggedIn) {
-                    openSignInPrompt();
-                    return;
-                  }
-                  setShowExportPaywall(true);
-                }}
+                onClick={() => setShowExportPaywall(true)}
                 className="inline-flex rounded-sm border border-charcoal/35 bg-cream px-4 py-2 text-xs font-medium text-charcoal hover:bg-charcoal/5"
               >
                 Unlock export
@@ -1113,11 +912,6 @@ export function StudioVisualPreview({
                   disabled={uploading}
                   className="absolute inset-0 z-[25] cursor-pointer opacity-0 disabled:cursor-not-allowed"
                   onChange={(e) => {
-                    if (!sessionLoggedIn) {
-                      openSignInPrompt();
-                      e.target.value = '';
-                      return;
-                    }
                     const file = e.target.files?.[0];
                     if (file) {
                       void handleUpload(file);
@@ -1166,11 +960,6 @@ export function StudioVisualPreview({
                   disabled={uploading}
                   className="mt-1 w-full text-xs text-charcoal file:mr-2 file:rounded-sm file:border file:border-charcoal/20 file:bg-cream file:px-2 file:py-1 disabled:opacity-50"
                   onChange={(e) => {
-                    if (!sessionLoggedIn) {
-                      openSignInPrompt();
-                      e.target.value = '';
-                      return;
-                    }
                     const file = e.target.files?.[0];
                     if (file) {
                       void handleUpload(file);
