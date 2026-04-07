@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { createServerClient } from '@supabase/ssr';
 import { createServiceClient, createServerClient as createAppServerClient } from '@/lib/supabase-server';
 import { cookies } from 'next/headers';
 import { getSignedCardUrl, getSignedStudioArtworkUrl } from '@/lib/getSignedCardUrl';
 import { isLikelySupabaseStoragePath } from '@/lib/studio-storage-path';
-
-const FALLBACK_BORDER_SLUG = 'default-border';
 
 type SessionCardPayload = {
   card_key: string;
@@ -92,156 +92,322 @@ async function loadSessionCardsSafe(
   }
 }
 
+function normalizeBorderSlug(raw: unknown): string {
+  return typeof raw === 'string' ? raw.trim() : '';
+}
+
+async function getAuthedUser() {
+  const supabase = await createAppServerClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  return { supabase, user, userError };
+}
+
 /**
- * POST { borderSlug } — fetch or create the user's single studio deck; returns deckId + saved cards.
+ * GET — load the user's studio deck and cards; does not create a deck or change `border_slug`.
+ * When `?session_id=` is present, returns legacy purchase `deckId` for Stripe redirect (unchanged).
  */
-export async function POST(request: Request) {
-  try {
-    const supabase = await createAppServerClient();
-
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const sessionId = searchParams.get('session_id');
+  if (sessionId) {
+    const cookieStore = await cookies();
+    const supabaseAuth = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          },
+          set() {},
+          remove() {},
+        },
+      },
+    );
     const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      console.error('[studio-session] auth error:', userError);
+      data: { session },
+    } = await supabaseAuth.auth.getSession();
+    if (!session?.user) {
       return new Response('Unauthorized', { status: 401 });
     }
 
-    console.log('[studio-session] user:', user.id);
+    const supabase = createServiceClient();
+    const { data: purchase } = await supabase
+      .from('purchases')
+      .select('id')
+      .eq('stripe_session_id', sessionId)
+      .eq('user_id', session.user.id)
+      .single();
 
-    let body: { borderSlug?: string };
-    try {
-      body = (await request.json()) as { borderSlug?: string };
-    } catch {
-      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    if (!purchase) {
+      return NextResponse.json({ error: 'Purchase not found' }, { status: 404 });
     }
 
-    const borderSlug = String(body.borderSlug ?? '').trim();
-    const borderSlugForDb = borderSlug || FALLBACK_BORDER_SLUG;
+    const { data: deck } = await supabase
+      .from('decks')
+      .select('id')
+      .eq('purchase_id', purchase.id)
+      .eq('user_id', session.user.id)
+      .maybeSingle();
 
-    /** Service role: user JWT is verified above; RLS often blocks anon/user on `studio_decks`. */
+    if (!deck?.id) {
+      return NextResponse.json({ deckId: null as string | null });
+    }
+
+    return NextResponse.json({ deckId: deck.id });
+  }
+
+  try {
+    const { user, userError } = await getAuthedUser();
+    if (userError || !user) {
+      console.error('[studio-session] GET auth error:', userError);
+      return new Response('Unauthorized', { status: 401 });
+    }
+
     const admin = createServiceClient();
-
     const { data: decks, error: fetchError } = await admin
       .from('studio_decks')
-      .select('*')
+      .select('id, border_slug')
       .eq('user_id', user.id)
       .limit(1);
 
     if (fetchError) {
-      console.error('[studio-session] fetch error:', fetchError.message, fetchError.code, fetchError.details);
+      console.error('[studio-session] GET fetch error:', fetchError.message, fetchError.code);
       return new Response('Failed to fetch deck', { status: 500 });
     }
 
     const existingDeck = decks?.[0];
-    let deckId: string;
-
-    if (existingDeck) {
-      console.log('[studio-session] using existing deck:', existingDeck.id);
-
-      if (borderSlugForDb !== existingDeck.border_slug) {
-        const { error: updateError } = await admin
-          .from('studio_decks')
-          .update({
-            border_slug: borderSlugForDb,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingDeck.id)
-          .eq('user_id', user.id);
-
-        if (updateError) {
-          console.error('[studio-session] border update error:', updateError.message, updateError.code);
-          return new Response('Failed to update deck', { status: 500 });
-        }
-      }
-
-      deckId = existingDeck.id;
-    } else {
-      console.log('[studio-session] incoming borderSlug:', body.borderSlug);
-
-      const { data: newDeck, error: insertError } = await admin
-        .from('studio_decks')
-        .insert({
-          user_id: user.id,
-          border_slug: borderSlugForDb,
-        })
-        .select()
-        .single();
-
-      if (insertError || !newDeck) {
-        console.error('[studio-session] insert error:', insertError?.message, insertError?.code, insertError?.details);
-        return new Response('Failed to create deck', { status: 500 });
-      }
-
-      console.log('[studio-session] created deck:', newDeck.id);
-      deckId = newDeck.id;
+    if (!existingDeck?.id) {
+      return NextResponse.json({
+        deck: null as { id: string; borderSlug: string | null } | null,
+        cards: [] as SessionCardPayload[],
+      });
     }
 
-    const cards = await loadSessionCardsSafe(admin, deckId);
+    const borderSlug =
+      existingDeck.border_slug != null && String(existingDeck.border_slug).trim().length > 0
+        ? String(existingDeck.border_slug).trim()
+        : null;
+
+    const cards = await loadSessionCardsSafe(admin, existingDeck.id);
 
     return NextResponse.json({
-      deckId,
+      deck: { id: existingDeck.id, borderSlug },
       cards,
     });
   } catch (e) {
-    console.error('[studio-session] unhandled:', e);
+    console.error('[studio-session] GET unhandled:', e);
     return new Response('Internal server error', { status: 500 });
   }
 }
 
-/** GET ?session_id=cs_xxx — returns { deckId } for Stripe checkout success redirect. */
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const sessionId = searchParams.get('session_id');
-  if (!sessionId) {
-    return NextResponse.json({ error: 'Missing session_id' }, { status: 400 });
+type SessionBody = {
+  intent?: string;
+  borderSlug?: string;
+  confirmClearRenders?: boolean;
+};
+
+/**
+ * POST
+ * - { intent: 'start', borderSlug } — create deck or set border when none set yet (first-time setup).
+ * - { intent: 'changeBorder', borderSlug, confirmClearRenders?: boolean } — change deck border;
+ *   if any card has a stored render (`image_path`), require `confirmClearRenders: true` or get 409.
+ */
+export async function POST(request: Request) {
+  try {
+    const { user, userError } = await getAuthedUser();
+    if (userError || !user) {
+      console.error('[studio-session] POST auth error:', userError);
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    let body: SessionBody;
+    try {
+      body = (await request.json()) as SessionBody;
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
+
+    const intentRaw = typeof body.intent === 'string' ? body.intent.trim() : '';
+    const borderSlug = normalizeBorderSlug(body.borderSlug);
+    const admin = createServiceClient();
+
+    const { data: decks, error: fetchError } = await admin
+      .from('studio_decks')
+      .select('id, border_slug')
+      .eq('user_id', user.id)
+      .limit(1);
+
+    if (fetchError) {
+      console.error('[studio-session] POST fetch error:', fetchError.message, fetchError.code);
+      return new Response('Failed to fetch deck', { status: 500 });
+    }
+
+    const existingDeck = decks?.[0];
+
+    let effectiveIntent = intentRaw;
+    if (!effectiveIntent) {
+      if (!borderSlug) {
+        return NextResponse.json({ error: 'Missing intent or borderSlug' }, { status: 400 });
+      }
+      effectiveIntent = 'start';
+    }
+
+    if (effectiveIntent === 'start') {
+      if (!borderSlug) {
+        return NextResponse.json({ error: 'Missing borderSlug' }, { status: 400 });
+      }
+
+      let deckId: string;
+
+      if (existingDeck) {
+        const current =
+          existingDeck.border_slug != null && String(existingDeck.border_slug).trim().length > 0
+            ? String(existingDeck.border_slug).trim()
+            : null;
+
+        if (current && current !== borderSlug) {
+          return NextResponse.json(
+            { error: 'Deck already has a border. Use changeBorder to switch.' },
+            { status: 409 },
+          );
+        }
+
+        if (!current) {
+          const { error: updateError } = await admin
+            .from('studio_decks')
+            .update({
+              border_slug: borderSlug,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingDeck.id)
+            .eq('user_id', user.id);
+
+          if (updateError) {
+            console.error('[studio-session] start update error:', updateError.message);
+            return new Response('Failed to update deck', { status: 500 });
+          }
+        }
+
+        deckId = existingDeck.id;
+      } else {
+        const { data: newDeck, error: insertError } = await admin
+          .from('studio_decks')
+          .insert({
+            user_id: user.id,
+            border_slug: borderSlug,
+          })
+          .select('id')
+          .single();
+
+        if (insertError || !newDeck?.id) {
+          console.error('[studio-session] insert error:', insertError?.message, insertError?.code);
+          return new Response('Failed to create deck', { status: 500 });
+        }
+
+        deckId = newDeck.id;
+      }
+
+      const cards = await loadSessionCardsSafe(admin, deckId);
+      return NextResponse.json({
+        deckId,
+        borderSlug,
+        cards,
+      });
+    }
+
+    if (effectiveIntent === 'changeBorder') {
+      if (!borderSlug) {
+        return NextResponse.json({ error: 'Missing borderSlug' }, { status: 400 });
+      }
+      if (!existingDeck?.id) {
+        return NextResponse.json({ error: 'No deck to update' }, { status: 400 });
+      }
+
+      const deckId = existingDeck.id;
+      const currentSlug =
+        existingDeck.border_slug != null && String(existingDeck.border_slug).trim().length > 0
+          ? String(existingDeck.border_slug).trim()
+          : null;
+
+      if (currentSlug === borderSlug) {
+        const cards = await loadSessionCardsSafe(admin, deckId);
+        return NextResponse.json({
+          deckId,
+          borderSlug,
+          cards,
+          clearedRenders: false,
+        });
+      }
+
+      const { count, error: countError } = await admin
+        .from('studio_cards')
+        .select('*', { count: 'exact', head: true })
+        .eq('deck_id', deckId)
+        .not('image_path', 'is', null);
+
+      if (countError) {
+        console.error('[studio-session] changeBorder count error:', countError.message);
+        return new Response('Failed to count rendered cards', { status: 500 });
+      }
+
+      const completedRenders = count ?? 0;
+      if (completedRenders > 0 && !body.confirmClearRenders) {
+        return NextResponse.json(
+          {
+            error: 'CONFIRM_CLEAR_RENDERS',
+            completedRenders,
+            message:
+              'Changing your border will require all completed cards to be re-rendered. Confirm to clear stored renders.',
+          },
+          { status: 409 },
+        );
+      }
+
+      const { error: updateDeckErr } = await admin
+        .from('studio_decks')
+        .update({
+          border_slug: borderSlug,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', deckId)
+        .eq('user_id', user.id);
+
+      if (updateDeckErr) {
+        console.error('[studio-session] changeBorder deck update:', updateDeckErr.message);
+        return new Response('Failed to update deck border', { status: 500 });
+      }
+
+      if (completedRenders > 0) {
+        const { error: clearErr } = await admin
+          .from('studio_cards')
+          .update({
+            image_path: null,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('deck_id', deckId);
+
+        if (clearErr) {
+          console.error('[studio-session] changeBorder clear renders:', clearErr.message);
+          return new Response('Failed to clear rendered images', { status: 500 });
+        }
+      }
+
+      const cards = await loadSessionCardsSafe(admin, deckId);
+      return NextResponse.json({
+        deckId,
+        borderSlug,
+        cards,
+        clearedRenders: completedRenders > 0,
+      });
+    }
+
+    return NextResponse.json({ error: 'Unknown intent' }, { status: 400 });
+  } catch (e) {
+    console.error('[studio-session] POST unhandled:', e);
+    return new Response('Internal server error', { status: 500 });
   }
-
-  const cookieStore = await cookies();
-  const supabaseAuth = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set() {},
-        remove() {},
-      },
-    },
-  );
-  const {
-    data: { session },
-  } = await supabaseAuth.auth.getSession();
-  if (!session?.user) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  const supabase = createServiceClient();
-  const { data: purchase } = await supabase
-    .from('purchases')
-    .select('id')
-    .eq('stripe_session_id', sessionId)
-    .eq('user_id', session.user.id)
-    .single();
-
-  if (!purchase) {
-    return NextResponse.json({ error: 'Purchase not found' }, { status: 404 });
-  }
-
-  const { data: deck } = await supabase
-    .from('decks')
-    .select('id')
-    .eq('purchase_id', purchase.id)
-    .eq('user_id', session.user.id)
-    .maybeSingle();
-
-  if (!deck?.id) {
-    return NextResponse.json({ deckId: null as string | null });
-  }
-
-  return NextResponse.json({ deckId: deck.id });
 }

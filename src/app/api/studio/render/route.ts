@@ -125,7 +125,7 @@ export async function POST(request: Request) {
 
   const { data: deckRow, error: deckLookupErr } = await supabase
     .from('studio_decks')
-    .select('id')
+    .select('id, border_slug')
     .eq('id', deckId)
     .eq('user_id', user.id)
     .maybeSingle();
@@ -146,17 +146,26 @@ export async function POST(request: Request) {
     const artwork = typeof body.artwork === 'string' ? body.artwork : '';
     const card_name = typeof body.card_name === 'string' ? body.card_name : '';
     const numeral = typeof body.numeral === 'string' ? body.numeral : '';
-    const border_id = typeof body.border_id === 'string' ? body.border_id.trim() : '';
+
+    const borderSlugFromDeck = String(
+      (deckRow as { border_slug?: string | null } | null)?.border_slug ?? '',
+    ).trim();
 
     if (!Number.isFinite(cardIndex) || cardIndex < 0 || cardIndex > 77) {
       return NextResponse.json({ error: 'Invalid cardIndex' }, { status: 400 });
     }
-    if (!artwork || !card_name.trim() || !border_id) {
-      return NextResponse.json({ error: 'Missing artwork, card_name, or border_id' }, { status: 400 });
+    if (!artwork || !card_name.trim()) {
+      return NextResponse.json({ error: 'Missing artwork or card_name' }, { status: 400 });
+    }
+    if (!borderSlugFromDeck) {
+      return NextResponse.json(
+        { error: 'Deck has no border selected. Choose a deck border in Studio first.' },
+        { status: 400 },
+      );
     }
 
     const rendered = await renderWithTemplated({
-      borderId: border_id,
+      borderId: borderSlugFromDeck,
       artwork,
       card_name,
       numeral,

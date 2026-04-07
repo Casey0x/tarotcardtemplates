@@ -16,7 +16,7 @@ type Props = {
   borderCatalog: StudioPreviewItem[];
   /** Base path for Studio nav (e.g. "/studio" or "/studio-beta"). */
   studioBasePath?: string;
-  /** Pre-select in dropdown when valid. */
+  /** Pre-select on the first-time border picker when valid (`?border=`). */
   initialBorderSlug?: string;
   /** Border slugs with a paid export unlock (Stripe `purchases` / `orders`). */
   exportUnlockedBorderSlugs?: string[];
@@ -34,29 +34,39 @@ export function StudioVisualPreview({
 }: Props) {
   const router = useRouter();
   const catalog = borderCatalog.length ? borderCatalog : borders;
-  /** Full list for the border dropdown (same as server `borderCatalog` when provided). */
-  const dropdownSource = catalog.length ? catalog : borders;
 
-  const firstSlug = dropdownSource[0]?.slug ?? '';
-  const resolvedInitial =
-    initialBorderSlug && dropdownSource.some((b) => b.slug === initialBorderSlug)
-      ? initialBorderSlug
-      : firstSlug;
-  const [borderSlug, setBorderSlug] = useState(resolvedInitial);
+  const firstSlug = catalog[0]?.slug ?? '';
+  const resolvedInitialSetupSlug =
+    initialBorderSlug && catalog.some((b) => b.slug === initialBorderSlug) ? initialBorderSlug : firstSlug;
+
+  type FlowPhase = 'loading' | 'setup' | 'builder';
+  const [flowPhase, setFlowPhase] = useState<FlowPhase>('loading');
+  const [deckBorderSlug, setDeckBorderSlug] = useState<string>('');
+  const [setupSelectedSlug, setSetupSelectedSlug] = useState(resolvedInitialSetupSlug);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  const [startingDeck, setStartingDeck] = useState(false);
+
+  const [changeBorderOpen, setChangeBorderOpen] = useState(false);
+  const [changeBorderStep, setChangeBorderStep] = useState<'warn' | 'pick'>('pick');
+  const [changePickSlug, setChangePickSlug] = useState<string>('');
+  const [changeBorderBusy, setChangeBorderBusy] = useState(false);
+  /** Server said stored renders exist even if local `renderedCount` is stale. */
+  const [forceConfirmClearRenders, setForceConfirmClearRenders] = useState(false);
+
   const [selectedCardIndex, setSelectedCardIndex] = useState(0);
 
   useEffect(() => {
-    if (initialBorderSlug && dropdownSource.some((b) => b.slug === initialBorderSlug)) {
-      setBorderSlug(initialBorderSlug);
+    if (initialBorderSlug && catalog.some((b) => b.slug === initialBorderSlug)) {
+      setSetupSelectedSlug(initialBorderSlug);
     }
-  }, [initialBorderSlug, dropdownSource]);
+  }, [initialBorderSlug, catalog]);
 
   useEffect(() => {
-    if (!dropdownSource.length) return;
-    if (!dropdownSource.some((b) => b.slug === borderSlug)) {
-      setBorderSlug(dropdownSource[0].slug);
+    if (!catalog.length) return;
+    if (!catalog.some((b) => b.slug === setupSelectedSlug)) {
+      setSetupSelectedSlug(catalog[0].slug);
     }
-  }, [dropdownSource, borderSlug]);
+  }, [catalog, setupSelectedSlug]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -81,71 +91,129 @@ export function StudioVisualPreview({
   const artworkByCardRef = useRef(artworkByCard);
   /** Storage path in private bucket `studio-uploads` (not a display URL). */
   const artworkPathByCardRef = useRef<Record<number, string>>({});
+  const selectedCardIndexRef = useRef(0);
   useEffect(() => {
     artworkByCardRef.current = artworkByCard;
   }, [artworkByCard]);
+  useEffect(() => {
+    selectedCardIndexRef.current = selectedCardIndex;
+  }, [selectedCardIndex]);
 
   useEffect(() => {
     cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
   }, [selectedCardIndex, cardName, cardNumeral]);
 
-  useEffect(() => {
-    if (!borderSlug) {
+  type SessionCardRow = {
+    card_key: string;
+    card_name: string | null;
+    numeral: string | null;
+    image_url: string | null;
+    artwork_path: string | null;
+    rendered_url: string | null;
+  };
+
+  const [previewByCard, setPreviewByCard] = useState<Record<number, string>>({});
+
+  const hydrateFromSessionCards = useCallback((rows: SessionCardRow[], opts?: { resetSelection?: boolean }) => {
+    const nextArtwork: Record<number, string> = {};
+    const nextPreview: Record<number, string> = {};
+    artworkPathByCardRef.current = {};
+    cardFieldsRef.current = {};
+    for (const row of rows) {
+      const i = parseInt(row.card_key, 10);
+      if (Number.isNaN(i) || i < 0 || i > 77) continue;
+      if (row.image_url) nextArtwork[i] = row.image_url;
+      if (row.artwork_path) artworkPathByCardRef.current[i] = row.artwork_path;
+      if (row.rendered_url) nextPreview[i] = row.rendered_url;
+      cardFieldsRef.current[i] = {
+        cardName: row.card_name ?? '',
+        numeral: row.numeral ?? '',
+      };
+    }
+    setArtworkByCard(nextArtwork);
+    setPreviewByCard(nextPreview);
+
+    const reset = opts?.resetSelection !== false;
+    const idx = reset ? 0 : selectedCardIndexRef.current;
+    if (reset) setSelectedCardIndex(0);
+    const dSel = getTarotDefault(idx);
+    const sSel = cardFieldsRef.current[idx];
+    setCardName(sSel?.cardName?.trim() ? sSel.cardName : (dSel?.name ?? ''));
+    setCardNumeral(sSel?.numeral ?? dSel?.numeral ?? '');
+    setPreviewError(null);
+  }, []);
+
+  const loadStudio = useCallback(async () => {
+    setSessionError(null);
+    const res = await fetch('/api/studio/session', { method: 'GET' });
+    if (res.status === 401) {
+      setSessionError('Sign in to load your deck.');
+      setFlowPhase('setup');
       setDeckId(null);
       return;
     }
-    let cancelled = false;
-    (async () => {
+    if (!res.ok) {
+      setSessionError('Could not load your studio deck.');
+      setFlowPhase('setup');
+      return;
+    }
+    const data = (await res.json()) as {
+      deck: { id: string; borderSlug: string | null } | null;
+      cards: SessionCardRow[];
+    };
+    const slug = data.deck?.borderSlug?.trim() ?? '';
+    if (data.deck?.id && slug) {
+      setDeckId(data.deck.id);
+      setDeckBorderSlug(slug);
+      hydrateFromSessionCards(data.cards, { resetSelection: true });
+      setFlowPhase('builder');
+    } else {
+      setDeckId(data.deck?.id ?? null);
+      if (data.deck?.id && data.cards?.length) {
+        hydrateFromSessionCards(data.cards, { resetSelection: true });
+      }
+      setFlowPhase('setup');
+    }
+  }, [hydrateFromSessionCards]);
+
+  useEffect(() => {
+    void loadStudio();
+  }, [loadStudio]);
+
+  async function handleStartBuilding() {
+    const slug = setupSelectedSlug.trim();
+    if (!slug || startingDeck) return;
+    setStartingDeck(true);
+    setSessionError(null);
+    try {
       const res = await fetch('/api/studio/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ borderSlug }),
+        body: JSON.stringify({ intent: 'start', borderSlug: slug }),
       });
-      if (!res.ok || cancelled) return;
-      const data = (await res.json()) as {
-        deckId: string;
-        cards: Array<{
-          card_key: string;
-          card_name: string | null;
-          numeral: string | null;
-          image_url: string | null;
-          artwork_path: string | null;
-          rendered_url: string | null;
-        }>;
-      };
-      if (cancelled) return;
-      setDeckId(data.deckId);
-
-      const nextArtwork: Record<number, string> = {};
-      const nextPreview: Record<number, string> = {};
-      artworkPathByCardRef.current = {};
-      cardFieldsRef.current = {};
-      for (const row of data.cards) {
-        const i = parseInt(row.card_key, 10);
-        if (Number.isNaN(i) || i < 0 || i > 77) continue;
-        if (row.image_url) nextArtwork[i] = row.image_url;
-        if (row.artwork_path) artworkPathByCardRef.current[i] = row.artwork_path;
-        if (row.rendered_url) nextPreview[i] = row.rendered_url;
-        cardFieldsRef.current[i] = {
-          cardName: row.card_name ?? '',
-          numeral: row.numeral ?? '',
-        };
+      const raw = await res.text();
+      let data: { deckId?: string; borderSlug?: string; cards?: SessionCardRow[]; error?: string } = {};
+      try {
+        data = JSON.parse(raw) as typeof data;
+      } catch {
+        data = {};
       }
-
-      if (cancelled) return;
-      setArtworkByCard(nextArtwork);
-      setPreviewByCard(nextPreview);
-      setSelectedCardIndex(0);
-      const dSel = getTarotDefault(0);
-      const sSel = cardFieldsRef.current[0];
-      setCardName(sSel?.cardName?.trim() ? sSel.cardName : (dSel?.name ?? ''));
-      setCardNumeral(sSel?.numeral ?? dSel?.numeral ?? '');
-      setPreviewError(null);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [borderSlug]);
+      if (!res.ok) {
+        setSessionError(data.error?.trim() || `Could not start deck (${res.status}).`);
+        return;
+      }
+      if (!data.deckId || !data.cards) {
+        setSessionError('Invalid response from server.');
+        return;
+      }
+      setDeckId(data.deckId);
+      setDeckBorderSlug(data.borderSlug ?? slug);
+      hydrateFromSessionCards(data.cards, { resetSelection: true });
+      setFlowPhase('builder');
+    } finally {
+      setStartingDeck(false);
+    }
+  }
 
   const persistCardToServer = useCallback(
     async (cardIndex: number, overrides?: { cardName?: string; numeral?: string; artworkPath?: string | null }) => {
@@ -239,7 +307,6 @@ export function StudioVisualPreview({
 
   const artworkSrc = artworkByCard[selectedCardIndex] ?? null;
 
-  const [previewByCard, setPreviewByCard] = useState<Record<number, string>>({});
   const previewImage = previewByCard[selectedCardIndex] ?? null;
   const [renderLoading, setRenderLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -266,21 +333,9 @@ export function StudioVisualPreview({
       setUploading(true);
       setUploadError(null);
 
-      let effectiveDeckId = deckId;
+      const effectiveDeckId = deckId;
       if (!effectiveDeckId) {
-        const sres = await fetch('/api/studio/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ borderSlug }),
-        });
-        if (sres.ok) {
-          const sdata = (await sres.json()) as { deckId: string };
-          effectiveDeckId = sdata.deckId;
-          setDeckId(sdata.deckId);
-        }
-      }
-      if (!effectiveDeckId) {
-        setUploadError('Could not start a deck session. Try again.');
+        setUploadError('Choose a deck border and start building before uploading.');
         return;
       }
 
@@ -432,7 +487,6 @@ export function StudioVisualPreview({
           artwork: artworkPayload,
           numeral,
           card_name: cardNameTrimmed,
-          border_id: borderSlug,
         }),
       });
 
@@ -482,28 +536,97 @@ export function StudioVisualPreview({
     }
   }
 
-  const completedCount = useMemo(
+  const renderedCount = useMemo(
+    () => Object.values(previewByCard).filter((u) => typeof u === 'string' && u.length > 0).length,
+    [previewByCard],
+  );
+
+  const artworkCount = useMemo(
     () => Object.values(artworkByCard).filter((u) => typeof u === 'string' && u.length > 0).length,
-    [artworkByCard]
+    [artworkByCard],
   );
 
   const exportUnlocked = useMemo(
-    () => exportUnlockedBorderSlugs.includes(borderSlug),
-    [exportUnlockedBorderSlugs, borderSlug]
+    () => exportUnlockedBorderSlugs.includes(deckBorderSlug),
+    [exportUnlockedBorderSlugs, deckBorderSlug],
   );
 
   const currentBorderName = useMemo(
-    () => catalog.find((b) => b.slug === borderSlug)?.name ?? 'This border',
-    [catalog, borderSlug]
+    () => catalog.find((b) => b.slug === deckBorderSlug)?.name ?? 'This border',
+    [catalog, deckBorderSlug],
   );
 
   const borderOverlaySrc = useMemo(() => {
-    const b = catalog.find((x) => x.slug === borderSlug) ?? catalog[0];
+    const b = catalog.find((x) => x.slug === deckBorderSlug) ?? catalog[0];
     return b?.image?.trim() && b.image.trim().length > 0 ? b.image.trim() : FALLBACK_BORDER_IMAGE;
-  }, [catalog, borderSlug]);
+  }, [catalog, deckBorderSlug]);
 
   const mobileCardSelectValue = String(selectedCardIndex);
-  const loginRedirect = `${studioBasePath}${borderSlug ? `?border=${encodeURIComponent(borderSlug)}` : ''}`;
+  const loginRedirect = `${studioBasePath}${deckBorderSlug ? `?border=${encodeURIComponent(deckBorderSlug)}` : ''}`;
+
+  async function submitChangeBorder(confirmClearRenders: boolean) {
+    const slug = changePickSlug.trim();
+    if (!slug || changeBorderBusy) return;
+    setChangeBorderBusy(true);
+    setSessionError(null);
+    try {
+      const res = await fetch('/api/studio/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          intent: 'changeBorder',
+          borderSlug: slug,
+          confirmClearRenders,
+        }),
+      });
+      const raw = await res.text();
+      let data: {
+        deckId?: string;
+        borderSlug?: string;
+        cards?: SessionCardRow[];
+        error?: string;
+        message?: string;
+        completedRenders?: number;
+      } = {};
+      try {
+        data = JSON.parse(raw) as typeof data;
+      } catch {
+        data = {};
+      }
+      if (res.status === 409 && data.error === 'CONFIRM_CLEAR_RENDERS') {
+        setForceConfirmClearRenders(true);
+        setChangeBorderStep('warn');
+        return;
+      }
+      if (!res.ok) {
+        setSessionError(data.error?.trim() || data.message?.trim() || `Could not update border (${res.status}).`);
+        return;
+      }
+      if (!data.deckId || !data.cards) {
+        setSessionError('Invalid response from server.');
+        return;
+      }
+      setDeckId(data.deckId);
+      setDeckBorderSlug(data.borderSlug ?? slug);
+      hydrateFromSessionCards(data.cards, { resetSelection: false });
+      setChangeBorderOpen(false);
+      setChangeBorderStep('pick');
+      setForceConfirmClearRenders(false);
+    } finally {
+      setChangeBorderBusy(false);
+    }
+  }
+
+  function openChangeBorder() {
+    setChangePickSlug(deckBorderSlug || catalog[0]?.slug || '');
+    setForceConfirmClearRenders(false);
+    if (renderedCount > 0) {
+      setChangeBorderStep('warn');
+    } else {
+      setChangeBorderStep('pick');
+    }
+    setChangeBorderOpen(true);
+  }
 
   async function startStudioPrintCheckout() {
     setExportCheckoutKind('print');
@@ -513,7 +636,7 @@ export function StudioVisualPreview({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           purchaseType: 'print',
-          borderSlug,
+          borderSlug: deckBorderSlug,
           borderName: currentBorderName,
         }),
       });
@@ -565,8 +688,189 @@ export function StudioVisualPreview({
     );
   }
 
+  const setupBorderName =
+    catalog.find((b) => b.slug === setupSelectedSlug)?.name ?? setupSelectedSlug ?? 'this border';
+
+  if (flowPhase === 'loading') {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-6 py-16">
+        <h1 className="text-2xl font-semibold text-charcoal">Studio</h1>
+        <p className="mt-4 text-sm text-charcoal/65">Loading your deck…</p>
+      </div>
+    );
+  }
+
+  if (flowPhase === 'setup') {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-6 py-8">
+        <div className="mb-6 flex flex-wrap items-baseline justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold text-charcoal">Choose your deck border</h1>
+            <p className="mt-2 max-w-2xl text-sm text-charcoal/70">
+              All 78 cards share one border for a consistent deck. Pick the frame you want before you start uploading
+              artwork.
+            </p>
+          </div>
+          <Link
+            href={`${studioBasePath}/projects`}
+            className="text-sm text-charcoal underline underline-offset-2 hover:no-underline"
+          >
+            Your Deck →
+          </Link>
+        </div>
+        {sessionError ? (
+          <p className="mb-4 text-sm text-red-800/90" role="alert">
+            {sessionError}
+          </p>
+        ) : null}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {catalog.map((b) => {
+            const selected = b.slug === setupSelectedSlug;
+            return (
+              <button
+                key={b.slug}
+                type="button"
+                onClick={() => setSetupSelectedSlug(b.slug)}
+                className={`group flex flex-col overflow-hidden rounded-sm border bg-cream text-left transition ${
+                  selected ? 'border-charcoal ring-2 ring-charcoal/25' : 'border-charcoal/15 hover:border-charcoal/35'
+                }`}
+              >
+                <div className="relative aspect-[2/3] w-full bg-charcoal/5">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- dynamic catalog URLs */}
+                  <img
+                    src={b.image?.trim() ? b.image.trim() : FALLBACK_BORDER_IMAGE}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="border-t border-charcoal/10 px-2 py-2">
+                  <p className="text-xs font-medium text-charcoal">{b.name}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            disabled={!setupSelectedSlug || startingDeck}
+            onClick={() => void handleStartBuilding()}
+            className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-5 py-3 text-sm font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {startingDeck ? 'Starting…' : 'Start Building Your Deck'}
+          </button>
+          <p className="text-xs text-charcoal/55">
+            Selected: <span className="font-medium text-charcoal">{setupBorderName}</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-8">
+      {changeBorderOpen ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-charcoal/40 p-4 sm:items-center lg:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="studio-change-border-title"
+        >
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-sm border border-charcoal/15 bg-cream shadow-lg sm:rounded-sm">
+            <div className="border-b border-charcoal/10 px-5 py-4">
+              <h2 id="studio-change-border-title" className="text-lg font-semibold text-charcoal">
+                Change deck border
+              </h2>
+            </div>
+            <div className="px-5 py-4">
+              {changeBorderStep === 'warn' ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-charcoal/80">
+                    Changing your border will require all completed cards to be re-rendered with the new border. Your
+                    artwork will be kept but renders will be cleared. Are you sure?
+                  </p>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      className="rounded-sm border border-charcoal/30 px-4 py-2 text-sm text-charcoal hover:bg-charcoal/5"
+                      onClick={() => {
+                        setForceConfirmClearRenders(false);
+                        setChangeBorderOpen(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-sm font-medium text-cream hover:bg-charcoal/90"
+                      onClick={() => setChangeBorderStep('pick')}
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-charcoal/70">Pick a new border for every card in this deck.</p>
+                  <div className="grid max-h-[40vh] grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3">
+                    {catalog.map((b) => {
+                      const selected = b.slug === changePickSlug;
+                      return (
+                        <button
+                          key={b.slug}
+                          type="button"
+                          onClick={() => setChangePickSlug(b.slug)}
+                          className={`flex flex-col overflow-hidden rounded-sm border text-left ${
+                            selected ? 'border-charcoal ring-2 ring-charcoal/20' : 'border-charcoal/15'
+                          }`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={b.image?.trim() ? b.image.trim() : FALLBACK_BORDER_IMAGE}
+                            alt=""
+                            className="aspect-[2/3] w-full object-cover"
+                          />
+                          <span className="border-t border-charcoal/10 px-1.5 py-1 text-[10px] font-medium text-charcoal">
+                            {b.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {sessionError ? (
+                    <p className="text-sm text-red-800/90" role="alert">
+                      {sessionError}
+                    </p>
+                  ) : null}
+                  <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      className="rounded-sm border border-charcoal/30 px-4 py-2 text-sm text-charcoal hover:bg-charcoal/5"
+                      onClick={() => {
+                        setForceConfirmClearRenders(false);
+                        setChangeBorderOpen(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      disabled={changeBorderBusy || !changePickSlug}
+                      onClick={() =>
+                        void submitChangeBorder(renderedCount > 0 || forceConfirmClearRenders)
+                      }
+                      className="rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-sm font-medium text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {changeBorderBusy ? 'Updating…' : 'Apply border'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {showSignInPrompt ? (
         <div
           className="fixed inset-0 z-[60] flex items-end justify-center bg-charcoal/40 p-4 sm:items-center lg:p-6"
@@ -634,7 +938,7 @@ export function StudioVisualPreview({
             </div>
             <div className="flex shrink-0 flex-col gap-2 border-t border-charcoal/10 bg-cream px-6 py-4 lg:rounded-b-sm">
               <Link
-                href={`/borders/${borderSlug}`}
+                href={`/borders/${deckBorderSlug}`}
                 className="inline-flex w-full justify-center rounded-sm border border-charcoal/30 bg-transparent px-4 py-3 text-sm text-charcoal hover:bg-charcoal/5"
               >
                 View border details
@@ -668,6 +972,17 @@ export function StudioVisualPreview({
               {saveStatusSaving ? 'Saving...' : saveError ? saveError : 'Saved ✓'}
             </p>
           )}
+          <p className="mt-2 text-sm text-charcoal">
+            Your border:{' '}
+            <span className="font-medium">{currentBorderName}</span>{' '}
+            <button
+              type="button"
+              onClick={() => openChangeBorder()}
+              className="text-xs font-normal text-charcoal/70 underline underline-offset-2 hover:text-charcoal"
+            >
+              Change border
+            </button>
+          </p>
         </div>
         <Link
           href={`${studioBasePath}/projects`}
@@ -681,10 +996,12 @@ export function StudioVisualPreview({
         <p className="text-sm font-medium text-charcoal">
           Card {selectedCardIndex + 1} of 78 — {cardName || getTarotDefault(selectedCardIndex)?.name}
         </p>
-        <p className="mt-1 text-xs text-charcoal/60">Progress: {completedCount} / 78 cards with artwork</p>
+        <p className="mt-1 text-xs text-charcoal/60">
+          Progress: {renderedCount} / 78 cards with a saved preview render
+        </p>
       </div>
 
-      {completedCount > 0 ? (
+      {artworkCount > 0 ? (
         <div className="mb-4 w-full rounded-sm border border-charcoal/10 bg-cream/80 px-4 py-4">
           <h2 className="text-sm font-semibold text-charcoal">Full deck export</h2>
           <p className="mt-1 text-xs text-charcoal/65">
@@ -723,30 +1040,6 @@ export function StudioVisualPreview({
         {/* mobile order 1 / desktop col 3 row 1: border + card text */}
         <div className="space-y-4 rounded-sm border border-charcoal/10 bg-cream/80 p-4 lg:col-start-3 lg:row-start-1">
           <div>
-            <h2 className="text-sm font-semibold text-charcoal">Border</h2>
-            {dropdownSource.length === 0 ? (
-              <p className="mt-1 text-xs text-charcoal/70">No borders loaded.</p>
-            ) : (
-              <>
-                <label className="mt-2 block text-xs text-charcoal/70">
-                  <span className="sr-only">Choose border</span>
-                  <select
-                    className="mt-1 w-full rounded-sm border border-charcoal/20 bg-cream px-2 py-2 text-sm text-charcoal"
-                    value={borderSlug}
-                    onChange={(e) => setBorderSlug(e.target.value)}
-                  >
-                    {dropdownSource.map((b) => (
-                      <option key={b.slug} value={b.slug}>
-                        {b.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </>
-            )}
-          </div>
-
-          <div className="border-t border-charcoal/10 pt-4">
             <h2 className="text-sm font-semibold text-charcoal">Card text</h2>
             <p className="mt-1 text-[10px] text-charcoal/55">
               Defaults for {getTarotDefault(selectedCardIndex)?.name ?? 'this card'}. Edit as needed.
@@ -997,7 +1290,7 @@ export function StudioVisualPreview({
                 </h2>
                 <ul className="mt-1 space-y-0.5">
                   {TAROT_CARDS_78.slice(section.startIndex, section.endIndex).map((card) => {
-                    const done = Boolean(artworkByCard[card.index]);
+                    const done = Boolean(previewByCard[card.index]);
                     const active = selectedCardIndex === card.index;
                     return (
                       <li key={card.index}>
@@ -1006,7 +1299,7 @@ export function StudioVisualPreview({
                           data-studio-card-index={card.index}
                           onClick={() => selectCard(card.index)}
                           aria-current={active ? 'true' : undefined}
-                          aria-label={`${card.name}${done ? ', artwork added' : ', no artwork yet'}`}
+                          aria-label={`${card.name}${done ? ', preview render saved' : ', no preview render yet'}`}
                           className={`flex w-full items-center gap-1.5 rounded-sm px-2 py-1.5 text-left text-xs transition-colors ${
                             active ? 'bg-charcoal text-cream' : 'text-charcoal hover:bg-charcoal/5'
                           }`}
@@ -1045,7 +1338,7 @@ export function StudioVisualPreview({
                     label={section.title === 'Major Arcana' ? 'Major Arcana' : `Minor · ${section.title}`}
                   >
                     {TAROT_CARDS_78.slice(section.startIndex, section.endIndex).map((card) => {
-                      const done = Boolean(artworkByCard[card.index]);
+                      const done = Boolean(previewByCard[card.index]);
                       return (
                         <option key={card.index} value={card.index}>
                           {done ? '✓ ' : ''}
