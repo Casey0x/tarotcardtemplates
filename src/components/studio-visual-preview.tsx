@@ -780,27 +780,28 @@ export function StudioVisualPreview({
         <div className="flex flex-col items-center justify-center lg:col-start-2 lg:row-span-2 lg:row-start-1">
           <div
             className={`relative w-full max-w-[280px] rounded-sm border border-charcoal/10 sm:max-w-sm lg:max-w-sm ${
-              artworkSrc ? 'overflow-visible bg-transparent' : 'overflow-hidden bg-cream/90'
+              artworkSrc && !previewImage ? 'overflow-hidden bg-transparent' : 'overflow-hidden bg-cream/90'
             }`}
             style={{ aspectRatio: '2 / 3' }}
           >
+            {/* Layer 1: artwork full-bleed behind the frame; layer 2: border PNG on top (transparent centre). */}
+            {artworkSrc && !previewImage ? (
+              <img
+                src={artworkSrc}
+                alt="Uploaded tarot artwork preview in the card frame"
+                className="absolute left-0 top-0 z-[1] h-full w-full object-cover"
+              />
+            ) : null}
+
             {!previewImage ? (
               <Image
                 src={borderOverlaySrc}
                 alt="Border overlay"
                 fill
-                className="pointer-events-none z-[8] object-contain"
+                className="pointer-events-none left-0 top-0 z-[2] object-contain"
                 sizes="(max-width: 1024px) 280px, 384px"
                 priority
                 unoptimized={borderOverlaySrc.startsWith('/api/')}
-              />
-            ) : null}
-
-            {artworkSrc && !previewImage ? (
-              <img
-                src={artworkSrc}
-                alt="Uploaded tarot artwork preview in the card frame"
-                className="absolute left-[5%] top-[5%] z-[14] h-[90%] w-[90%] rounded-[4px] object-cover shadow-[0_4px_12px_rgba(0,0,0,0.25),0_2px_4px_rgba(0,0,0,0.15)]"
               />
             ) : null}
 
@@ -827,7 +828,7 @@ export function StudioVisualPreview({
             {!previewImage && artworkSrc ? (
               <>
                 {borderSlug !== 'day-of-the-dead' ? (
-                  <div className="top-banner pointer-events-none absolute inset-x-0 top-[5%] z-[16] px-2 text-center">
+                  <div className="top-banner pointer-events-none absolute inset-x-0 top-[5%] z-[10] px-2 text-center">
                     {cardNumeral.trim() ? (
                       <span className="text-[10px] font-medium uppercase tracking-wide text-charcoal drop-shadow-sm sm:text-xs">
                         {cardNumeral || ''}
@@ -835,7 +836,7 @@ export function StudioVisualPreview({
                     ) : null}
                   </div>
                 ) : null}
-                <div className="bottom-banner pointer-events-none absolute inset-x-0 bottom-[6%] z-[16] px-2 text-center">
+                <div className="bottom-banner pointer-events-none absolute inset-x-0 bottom-[6%] z-[10] px-2 text-center">
                   <span className="text-[10px] font-semibold leading-tight text-charcoal drop-shadow-sm sm:text-xs">
                     {borderSlug === 'day-of-the-dead'
                       ? cardNumeral.trim()
