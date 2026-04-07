@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -784,29 +783,46 @@ export function StudioVisualPreview({
             }`}
             style={{ aspectRatio: '2 / 3' }}
           >
-            {/* Layer 1: artwork full-bleed behind the frame; layer 2: border PNG on top (transparent centre). */}
+            {/* Layering: artwork (z-1) + border PNG (z-2). Native <img> for both so z-index stacks correctly
+                (next/image wraps a span; the wrapper stayed z-auto and hid artwork behind an opaque hole). */}
             {artworkSrc && !previewImage ? (
+              // eslint-disable-next-line @next/next/no-img-element -- must stack with border <img>; next/image wrapper breaks z-index
               <img
                 src={artworkSrc}
                 alt="Uploaded tarot artwork preview in the card frame"
                 className="absolute left-0 top-0 z-[1] h-full w-full object-cover"
+                referrerPolicy="no-referrer"
               />
             ) : null}
 
             {!previewImage ? (
-              <Image
+              // eslint-disable-next-line @next/next/no-img-element -- must stack with artwork <img>; next/image wrapper breaks z-index
+              <img
                 src={borderOverlaySrc}
                 alt="Border overlay"
-                fill
-                className="pointer-events-none left-0 top-0 z-[2] object-contain"
-                sizes="(max-width: 1024px) 280px, 384px"
-                priority
-                unoptimized={borderOverlaySrc.startsWith('/api/')}
+                className="pointer-events-none absolute left-0 top-0 z-[2] h-full w-full object-contain"
               />
+            ) : null}
+
+            {/* Layer 3: brief “lifted” duplicate so upload success is obvious before Preview Card */}
+            {artworkSrc && !previewImage ? (
+              <div
+                className="pointer-events-none absolute left-0 top-0 z-[3] flex h-full w-full items-center justify-center p-1"
+                aria-hidden
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- duplicate layer for upload confirmation */}
+                <img
+                  src={artworkSrc}
+                  alt=""
+                  className="h-full w-full max-h-full max-w-full origin-center object-cover shadow-lg ring-1 ring-charcoal/20 scale-[0.97]"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
             ) : null}
 
             {previewImage ? (
               <div className="absolute inset-0 z-[20] h-full w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element -- signed / templated URL; must fill container */}
                 <img
                   src={previewImage}
                   alt="Templated card render preview"
@@ -828,7 +844,7 @@ export function StudioVisualPreview({
             {!previewImage && artworkSrc ? (
               <>
                 {borderSlug !== 'day-of-the-dead' ? (
-                  <div className="top-banner pointer-events-none absolute inset-x-0 top-[5%] z-[10] px-2 text-center">
+                  <div className="top-banner pointer-events-none absolute inset-x-0 top-[5%] z-[11] px-2 text-center">
                     {cardNumeral.trim() ? (
                       <span className="text-[10px] font-medium uppercase tracking-wide text-charcoal drop-shadow-sm sm:text-xs">
                         {cardNumeral || ''}
@@ -836,7 +852,7 @@ export function StudioVisualPreview({
                     ) : null}
                   </div>
                 ) : null}
-                <div className="bottom-banner pointer-events-none absolute inset-x-0 bottom-[6%] z-[10] px-2 text-center">
+                <div className="bottom-banner pointer-events-none absolute inset-x-0 bottom-[6%] z-[11] px-2 text-center">
                   <span className="text-[10px] font-semibold leading-tight text-charcoal drop-shadow-sm sm:text-xs">
                     {borderSlug === 'day-of-the-dead'
                       ? cardNumeral.trim()
@@ -877,6 +893,14 @@ export function StudioVisualPreview({
               </>
             ) : null}
           </div>
+          {artworkSrc && !previewImage ? (
+            <p
+              className="mx-auto mt-2 max-w-sm px-2 text-center text-[10px] font-medium leading-snug text-emerald-900/90 sm:text-[11px]"
+              role="status"
+            >
+              ✓ Artwork ready — click Preview Card
+            </p>
+          ) : null}
           <p className="mx-auto mt-3 hidden max-w-sm px-2 text-center text-[10px] leading-relaxed text-charcoal/55 sm:block">
             After upload, your image appears in the preview above inside the border you pick. Preview Card swaps that for
             the full Templated render (art, template frame, and text in one image).
