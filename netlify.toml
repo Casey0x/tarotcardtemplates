@@ -17,8 +17,9 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Default Netlify Functions timeout is 10s; ZIP export needs longer (parallel downloads + archiver).
-[functions]
+# Default Netlify Functions timeout is often 10s on older accounts; ZIP export needs longer.
+# Use a glob so `timeout` is a per-function setting (root `[functions].timeout` is invalid TOML shape).
+[functions."*"]
   timeout = 30
 
 [[headers]]
