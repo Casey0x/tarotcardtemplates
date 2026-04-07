@@ -331,6 +331,8 @@ function StudioVisualPreviewInner({
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [showExportPaywall, setShowExportPaywall] = useState(false);
   const [exportCheckoutKind, setExportCheckoutKind] = useState<null | 'print'>(null);
+  const [exportZipCheckoutBusy, setExportZipCheckoutBusy] = useState<null | 'major_arcana' | 'full_deck'>(null);
+  const [exportPaid, setExportPaid] = useState({ majorArcana: false, fullDeck: false });
 
   async function blobUrlToDataUrl(blobUrl: string): Promise<string> {
     const res = await fetch(blobUrl);
@@ -558,6 +560,29 @@ function StudioVisualPreviewInner({
     [previewByCard],
   );
 
+  const majorArcanaComplete = useMemo(() => {
+    for (let i = 0; i <= 21; i++) {
+      if (!previewByCard[i]) return false;
+    }
+    return true;
+  }, [previewByCard]);
+
+  const fullDeckComplete = useMemo(() => renderedCount === 78, [renderedCount]);
+
+  useEffect(() => {
+    if (!deckId || flowPhase !== 'builder') return;
+    let cancelled = false;
+    void fetch(`/api/studio/export-status?deckId=${encodeURIComponent(deckId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { paidMajorArcana?: boolean; paidFullDeck?: boolean } | null) => {
+        if (cancelled || !j) return;
+        setExportPaid({ majorArcana: !!j.paidMajorArcana, fullDeck: !!j.paidFullDeck });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [deckId, flowPhase]);
+
   useEffect(() => {
     const q = searchParams.get('border')?.trim() ?? '';
     if (flowPhase !== 'builder' || !deckId || !deckBorderSlug) return;
@@ -667,6 +692,55 @@ function StudioVisualPreviewInner({
 
   const mobileCardSelectValue = String(selectedCardIndex);
   const loginRedirect = `${studioBasePath}${deckBorderSlug ? `?border=${encodeURIComponent(deckBorderSlug)}` : ''}`;
+
+  async function startStudioZipExportCheckout(exportType: 'major_arcana' | 'full_deck') {
+    const id = deckId;
+    if (!id) return;
+    setExportZipCheckoutBusy(exportType);
+    try {
+      const res = await fetch('/api/studio/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deckId: id, exportType }),
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok) {
+        if (res.status === 401) {
+          window.location.href = `/auth/login?redirect=${encodeURIComponent(loginRedirect)}`;
+          return;
+        }
+        alert(data.error || 'Checkout failed');
+        return;
+      }
+      if (data.url) window.location.href = data.url;
+    } finally {
+      setExportZipCheckoutBusy(null);
+    }
+  }
+
+  function triggerFreeStudioExportDownload(exportType: 'major_arcana' | 'full_deck') {
+    const id = deckId;
+    if (!id) return;
+    window.location.href = `/api/studio/export-download?deck_id=${encodeURIComponent(id)}&export_type=${encodeURIComponent(exportType)}`;
+  }
+
+  function handleFullDeckExportPrimaryAction() {
+    if (exportPaid.fullDeck) {
+      triggerFreeStudioExportDownload('full_deck');
+      return;
+    }
+    void startStudioZipExportCheckout('full_deck');
+  }
+
+  function continueToMinorArcanaNav() {
+    void selectCard(22);
+    requestAnimationFrame(() => {
+      document.querySelector(`[data-studio-card-index="22"]`)?.scrollIntoView({
+        block: 'nearest',
+        behavior: 'smooth',
+      });
+    });
+  }
 
   function dismissChangeBorderModal() {
     setForceConfirmClearRenders(false);
@@ -1112,6 +1186,75 @@ function StudioVisualPreviewInner({
         </p>
       </div>
 
+      {flowPhase === 'builder' && fullDeckComplete ? (
+        <div className="mb-4 w-full rounded-sm border border-emerald-800/20 bg-emerald-50/90 px-4 py-4">
+          <p className="text-sm font-semibold text-charcoal">🎉 Your full deck is complete!</p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <button
+              type="button"
+              disabled={exportZipCheckoutBusy !== null}
+              onClick={() => handleFullDeckExportPrimaryAction()}
+              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exportZipCheckoutBusy === 'full_deck'
+                ? 'Redirecting…'
+                : exportPaid.fullDeck
+                  ? 'Download again — Full deck (ZIP)'
+                  : 'Download Full Deck — NZ$14.95'}
+            </button>
+            <button
+              type="button"
+              disabled={exportZipCheckoutBusy !== null}
+              onClick={() =>
+                exportPaid.majorArcana
+                  ? triggerFreeStudioExportDownload('major_arcana')
+                  : void startStudioZipExportCheckout('major_arcana')
+              }
+              className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exportZipCheckoutBusy === 'major_arcana'
+                ? 'Redirecting…'
+                : exportPaid.majorArcana
+                  ? 'Download again — Major Arcana (ZIP)'
+                  : 'Download Major Arcana only — NZ$7.95'}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {flowPhase === 'builder' && majorArcanaComplete && !fullDeckComplete ? (
+        <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
+          <p className="text-sm font-semibold text-charcoal">
+            🎉 Major Arcana complete! Download your 22 cards for NZ$7.95 or continue to build your full deck.
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <button
+              type="button"
+              disabled={exportZipCheckoutBusy !== null}
+              onClick={() =>
+                exportPaid.majorArcana
+                  ? triggerFreeStudioExportDownload('major_arcana')
+                  : void startStudioZipExportCheckout('major_arcana')
+              }
+              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exportZipCheckoutBusy === 'major_arcana'
+                ? 'Redirecting…'
+                : exportPaid.majorArcana
+                  ? 'Download again — Major Arcana (ZIP)'
+                  : 'Download Major Arcana — NZ$7.95'}
+            </button>
+            <button
+              type="button"
+              onClick={() => continueToMinorArcanaNav()}
+              className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5"
+            >
+              Continue to Minor Arcana →
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {artworkCount > 0 ? (
         <div className="mb-4 w-full rounded-sm border border-charcoal/10 bg-cream/80 px-4 py-4">
           <h2 className="text-sm font-semibold text-charcoal">Full deck export</h2>
@@ -1369,11 +1512,23 @@ function StudioVisualPreviewInner({
               {artworkSrc || previewImage ? (
                 <button
                   type="button"
-                  disabled={selectedCardIndex >= 77}
-                  onClick={() => void saveAndNextCard()}
+                  disabled={exportZipCheckoutBusy !== null || (selectedCardIndex >= 77 && !fullDeckComplete)}
+                  onClick={() => {
+                    if (selectedCardIndex >= 77 && fullDeckComplete) {
+                      handleFullDeckExportPrimaryAction();
+                      return;
+                    }
+                    void saveAndNextCard();
+                  }}
                   className="mt-2 w-full rounded-sm border border-charcoal/30 bg-transparent px-3 py-2 text-xs font-medium text-charcoal transition hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {selectedCardIndex >= 77 ? 'All cards done!' : 'Save & Next Card →'}
+                  {selectedCardIndex >= 77 && fullDeckComplete
+                    ? exportPaid.fullDeck
+                      ? 'Download again — Full deck'
+                      : 'Download Full Deck — NZ$14.95'
+                    : selectedCardIndex >= 77
+                      ? 'All cards done!'
+                      : 'Save & Next Card →'}
                 </button>
               ) : null}
               <p className="mt-2 hidden text-[10px] leading-snug text-charcoal/55 lg:block">
