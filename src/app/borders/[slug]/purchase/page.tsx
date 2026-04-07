@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { fetchBorderBySlug } from '@/data/borders';
 import { getUserCurrency } from '@/lib/getUserCurrency';
-import { formatPrice } from '@/lib/formatPrice';
-import { getDeckDownloadPriceByCurrency } from '@/lib/template-pricing';
+import { formatDeckDownloadPriceDisplay } from '@/lib/template-pricing';
 import { BorderPurchase } from '@/components/border-purchase';
 import { createClient } from '@/lib/supabase-server';
 import { fetchPurchasedBorderSlugsForUser } from '@/lib/user-purchases';
@@ -25,7 +24,7 @@ export default async function BorderPurchasePage({ params }: { params: { slug: s
   const purchasedSlugs = await fetchPurchasedBorderSlugsForUser();
   const ownsExport = purchasedSlugs.includes(slug);
   const { currency } = getUserCurrency();
-  const deckDownloadPriceDisplay = formatPrice(getDeckDownloadPriceByCurrency(currency), currency);
+  const deckDownloadPriceDisplay = formatDeckDownloadPriceDisplay(currency);
 
   return (
     <div className="mx-auto max-w-lg px-6 py-12">

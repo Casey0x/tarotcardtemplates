@@ -1,36 +1,11 @@
 import type { SupportedCurrency } from '@/lib/getUserCurrency';
-import { formatPrice } from '@/lib/formatPrice';
+import { formatPrice, formatPriceWithCurrencyCode } from '@/lib/formatPrice';
+import { regionalAmountForKind } from '@/lib/tct-price-region';
 
-/** Fixed digital template list prices per region (not FX conversion). */
-const TEMPLATE_PRICE_USD = 14.95;
-const TEMPLATE_PRICE_NZD = 24.95;
-const TEMPLATE_PRICE_AUD = 22.95;
-
-/** Border template list price (PNG/PSD/Canva pack) per region. */
-const BORDER_LIST_PRICE_USD = 8.95;
-const BORDER_LIST_PRICE_NZD = 14.95;
-const BORDER_LIST_PRICE_AUD = 13.95;
-
-/** Printed deck from template — fixed regional prices. */
-const PRINTED_DECK_PRICE_USD = 23.95;
-const PRINTED_DECK_PRICE_NZD = 39.95;
-const PRINTED_DECK_PRICE_AUD = 36.95;
-
-/** Studio full-deck digital download (ZIP) — fixed regional prices. */
-const DECK_DOWNLOAD_PRICE_USD = 8.95;
-const DECK_DOWNLOAD_PRICE_NZD = 14.95;
-const DECK_DOWNLOAD_PRICE_AUD = 13.95;
-
-function priceForRegion(
-  currency: string,
-  usd: number,
-  nzd: number,
-  aud: number,
-): number {
+function supportedCheckoutCurrency(currency: string): SupportedCurrency {
   const c = currency.toUpperCase();
-  if (c === 'NZD') return nzd;
-  if (c === 'AUD') return aud;
-  return usd;
+  if (c === 'NZD' || c === 'AUD') return c;
+  return 'USD';
 }
 
 /**
@@ -38,33 +13,46 @@ function priceForRegion(
  * US → 14.95 USD, NZ → 24.95 NZD, AU → 22.95 AUD.
  */
 export function getTemplatePriceByCurrency(currency: string): number {
-  return priceForRegion(currency, TEMPLATE_PRICE_USD, TEMPLATE_PRICE_NZD, TEMPLATE_PRICE_AUD);
+  return regionalAmountForKind('template', supportedCheckoutCurrency(currency));
 }
 
 /** Border list price: USD 8.95, NZD 14.95, AUD 13.95. */
 export function getBorderListPriceByCurrency(currency: string): number {
-  return priceForRegion(currency, BORDER_LIST_PRICE_USD, BORDER_LIST_PRICE_NZD, BORDER_LIST_PRICE_AUD);
+  return regionalAmountForKind('border_list', supportedCheckoutCurrency(currency));
 }
 
 /** Printed deck from template: USD 23.95, NZD 39.95, AUD 36.95. */
 export function getPrintedDeckPriceByCurrency(currency: string): number {
-  return priceForRegion(currency, PRINTED_DECK_PRICE_USD, PRINTED_DECK_PRICE_NZD, PRINTED_DECK_PRICE_AUD);
+  return regionalAmountForKind('printed_deck', supportedCheckoutCurrency(currency));
 }
 
 /** Studio full-deck digital download: USD 8.95, NZD 14.95, AUD 13.95. */
 export function getDeckDownloadPriceByCurrency(currency: string): number {
-  return priceForRegion(currency, DECK_DOWNLOAD_PRICE_USD, DECK_DOWNLOAD_PRICE_NZD, DECK_DOWNLOAD_PRICE_AUD);
+  return regionalAmountForKind('deck_download', supportedCheckoutCurrency(currency));
 }
 
-/** Formatted label for UI + JSON-LD digital template offer. */
+/** Formatted label for UI (includes ISO currency code). */
 export function formatTemplatePriceDisplay(currency: SupportedCurrency): string {
-  return formatPrice(getTemplatePriceByCurrency(currency), currency);
+  return formatPriceWithCurrencyCode(getTemplatePriceByCurrency(currency), currency);
 }
 
 export function formatBorderListPriceDisplay(currency: SupportedCurrency): string {
-  return formatPrice(getBorderListPriceByCurrency(currency), currency);
+  return formatPriceWithCurrencyCode(getBorderListPriceByCurrency(currency), currency);
 }
 
 export function formatPrintedDeckPriceDisplay(currency: SupportedCurrency): string {
+  return formatPriceWithCurrencyCode(getPrintedDeckPriceByCurrency(currency), currency);
+}
+
+export function formatDeckDownloadPriceDisplay(currency: SupportedCurrency): string {
+  return formatPriceWithCurrencyCode(getDeckDownloadPriceByCurrency(currency), currency);
+}
+
+/** Symbol-only labels (e.g. compact buttons) — still use regional amounts. */
+export function formatTemplatePriceSymbolOnly(currency: SupportedCurrency): string {
+  return formatPrice(getTemplatePriceByCurrency(currency), currency);
+}
+
+export function formatPrintedDeckPriceSymbolOnly(currency: SupportedCurrency): string {
   return formatPrice(getPrintedDeckPriceByCurrency(currency), currency);
 }

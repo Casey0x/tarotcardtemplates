@@ -10,7 +10,7 @@ export type CheckoutButtonProps = {
   label?: React.ReactNode;
   sublabel?: React.ReactNode;
   /** Button text (default: “Continue to checkout”). Use for compact bars, e.g. price-only. */
-  buttonText?: string;
+  buttonText?: React.ReactNode;
   className?: string;
   buttonClassName?: string;
 };

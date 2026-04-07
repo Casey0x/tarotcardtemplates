@@ -31,8 +31,7 @@ export default async function ReadyMadeTemplatesPage() {
             <TemplateCard
               key={template.slug}
               template={template}
-                templatePriceDisplay={formatTemplatePriceDisplay(currency)}
-              currencyCode={currency}
+              templatePriceDisplay={formatTemplatePriceDisplay(currency)}
             />
           ))}
         </div>

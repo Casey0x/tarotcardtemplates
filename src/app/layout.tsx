@@ -3,6 +3,8 @@ import Script from "next/script";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { TctCurrencyProvider } from "@/components/tct-currency-provider";
+import { getUserCurrency } from "@/lib/getUserCurrency";
 import { SITE_URL } from "@/lib/site";
 
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -24,11 +26,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { currency } = getUserCurrency();
+
   return (
     <html lang="en">
       <head>
@@ -50,12 +54,14 @@ gtag('config', '${GA_MEASUREMENT_ID}');
         ) : null}
       </head>
       <body>
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-6xl px-6 py-12">
-          {children}
-        </main>
+        <TctCurrencyProvider serverPricingCurrency={currency}>
+          <SiteHeader />
+          <main className="mx-auto w-full max-w-6xl px-6 py-12">
+            {children}
+          </main>
 
-        <SiteFooter />
+          <SiteFooter />
+        </TctCurrencyProvider>
       </body>
     </html>
   );

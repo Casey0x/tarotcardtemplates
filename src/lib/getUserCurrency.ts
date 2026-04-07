@@ -47,18 +47,12 @@ export function getUserCurrency(): UserCurrency {
 
   if (cookieRaw != null && cookieRaw.trim() !== '') {
     const normalized = normalizeCountryCode(cookieRaw);
-    const result = countryCodeToCurrency(normalized);
-    console.log('[getUserCurrency] tct_country cookie:', cookieRaw.trim());
-    console.log('[getUserCurrency] final currency:', result.currency);
-    return result;
+    return countryCodeToCurrency(normalized);
   }
 
   const headersList = headers();
   const country = countryCodeFromIncomingHeaders(headersList, null);
-  const result = countryCodeToCurrency(country);
-  console.log('[getUserCurrency] tct_country cookie:', '(none)');
-  console.log('[getUserCurrency] final currency:', result.currency);
-  return result;
+  return countryCodeToCurrency(country);
 }
 
 /**

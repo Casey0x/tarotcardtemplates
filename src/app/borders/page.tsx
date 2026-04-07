@@ -50,7 +50,9 @@ export default async function BordersPage() {
               <h2 className="mb-1 text-sm font-semibold text-charcoal">{border.name}</h2>
               <p className="text-xs text-charcoal/80">{border.description}</p>
               <p className="mt-3 text-sm font-medium text-charcoal">
-                {formatBorderPriceLocalized(border, currency)}
+                <span data-tct-price="border_list" suppressHydrationWarning>
+                  {formatBorderPriceLocalized(border, currency)}
+                </span>
               </p>
             </Link>
             <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -64,7 +66,9 @@ export default async function BordersPage() {
                 href={`/borders/${border.slug}`}
                 className="text-xs text-charcoal/65 hover:text-charcoal/90"
               >
-                {formatBorderPriceLocalized(border, currency)}
+                <span data-tct-price="border_list" suppressHydrationWarning>
+                  {formatBorderPriceLocalized(border, currency)}
+                </span>
               </Link>
             </div>
           </div>

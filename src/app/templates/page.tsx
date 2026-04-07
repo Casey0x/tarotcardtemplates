@@ -33,7 +33,10 @@ export default async function TemplatesPage() {
         </h2>
         <p className="mt-2 max-w-3xl text-sm text-charcoal/75">
           Choose a border frame, then use the Studio to add your own artwork to all 78 cards.{' '}
-          {formatBorderListPriceDisplay(currency)} each.
+          <span data-tct-price="border_list" suppressHydrationWarning>
+            {formatBorderListPriceDisplay(currency)}
+          </span>{' '}
+          each.
         </p>
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -61,7 +64,9 @@ export default async function TemplatesPage() {
                 <h3 className="text-xl font-semibold">{border.name}</h3>
                 <p className="mt-3 flex-grow text-sm text-charcoal/80">{border.description}</p>
                 <p className="mt-4 text-sm font-medium">
-                  {formatBorderPriceLocalized(border, currency)}
+                  <span data-tct-price="border_list" suppressHydrationWarning>
+                    {formatBorderPriceLocalized(border, currency)}
+                  </span>
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
@@ -104,7 +109,6 @@ export default async function TemplatesPage() {
               key={template.slug}
               template={template}
               templatePriceDisplay={formatTemplatePriceDisplay(currency)}
-              currencyCode={currency}
             />
           ))}
         </div>

@@ -225,7 +225,6 @@ export default async function Page() {
               key={template.slug}
               template={template}
               templatePriceDisplay={formatTemplatePriceDisplay(currency)}
-              currencyCode={currency}
             />
           ))}
         </div>

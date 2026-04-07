@@ -40,7 +40,13 @@ export default async function HowItWorksPage() {
             </p>
           </li>
           <li>
-            <h3 className="text-xl font-medium">3. Purchase your border ({borderPriceDisplay})</h3>
+            <h3 className="text-xl font-medium">
+              3. Purchase your border (
+              <span data-tct-price="border_list" suppressHydrationWarning>
+                {borderPriceDisplay}
+              </span>
+              )
+            </h3>
             <p className="mt-2 text-charcoal/80">
               Unlock saving, exporting, and print-ready file generation through the full Studio deck flow after checkout.
             </p>
@@ -76,7 +82,11 @@ export default async function HowItWorksPage() {
             <li>
               <h3 className="text-xl font-medium">2. Purchase</h3>
               <p className="mt-2 text-charcoal/80">
-                Buy a digital template ({templateDownloadPriceDisplay}), or add the optional single printed deck at
+                Buy a digital template (
+                <span data-tct-price="template" suppressHydrationWarning>
+                  {templateDownloadPriceDisplay}
+                </span>
+                ), or add the optional single printed deck at
                 checkout
                 where available.
               </p>

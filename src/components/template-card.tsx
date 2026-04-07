@@ -1,20 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getTemplateCardImageSrc, TarotTemplate } from "@/lib/templates";
-import type { SupportedCurrency } from "@/lib/getUserCurrency";
 
 interface TemplateCardProps {
   template: TarotTemplate;
-  /** Fixed regional template download price, e.g. `$14.95` or `NZ$24.95` */
+  /** Regional template download price with ISO code (see `formatTemplatePriceDisplay`). */
   templatePriceDisplay: string;
-  /** ISO currency code for an optional label (hide or USD for cleaner USD rows). */
-  currencyCode: SupportedCurrency;
 }
 
 export default function TemplateCard({
   template,
   templatePriceDisplay,
-  currencyCode,
 }: TemplateCardProps) {
   const imageSrc = getTemplateCardImageSrc(template);
 
@@ -43,10 +39,10 @@ export default function TemplateCard({
         </p>
 
         <p className="mt-4 text-sm font-medium">
-          Template download: {templatePriceDisplay}
-          {currencyCode !== "USD" && (
-            <span className="ml-1.5 text-xs font-normal text-charcoal/50">{currencyCode}</span>
-          )}
+          Template download:{' '}
+          <span data-tct-price="template" suppressHydrationWarning>
+            {templatePriceDisplay}
+          </span>
         </p>
 
         <Link

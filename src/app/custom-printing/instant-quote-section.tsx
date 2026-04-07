@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { useTctCurrency } from '@/components/tct-currency-provider';
 
 const ACCENT = '#C7A96B';
 const HEADING = '#f0ece4';
@@ -38,15 +39,6 @@ function baseRatePerDeck(qty: number): number {
   return 15.95;
 }
 
-function formatUsd(n: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(n);
-}
-
 function turnaroundLabel(qty: number): string {
   if (qty === 1) return '5–7 business days';
   if (qty >= 2 && qty < 50) return '10–14 business days';
@@ -57,6 +49,7 @@ const focusRing =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1814] focus-visible:ring-[#C7A96B]';
 
 export function InstantQuoteSection() {
+  const { formatUsdEstimate } = useTctCurrency();
   const [quantity, setQuantity] = useState(1);
   const [stock, setStock] = useState<'300' | '350'>('300');
   const [finish, setFinish] = useState<'gloss' | 'linen'>('gloss');
@@ -312,7 +305,8 @@ export function InstantQuoteSection() {
                     </label>
                   </div>
                   <p className="mt-2 text-xs" style={{ color: CARD_BODY }}>
-                    Linen adds {formatUsd(0.5)} per card × {CARDS_PER_DECK} cards = {formatUsd(LINEN_PER_DECK)} per deck.
+                    Linen adds {formatUsdEstimate(0.5)} per card × {CARDS_PER_DECK} cards ={' '}
+                    {formatUsdEstimate(LINEN_PER_DECK)} per deck.
                   </p>
                 </div>
 
@@ -350,37 +344,38 @@ export function InstantQuoteSection() {
                   Your estimate
                 </p>
                 <p className="font-serif mt-4 text-4xl font-semibold tabular-nums md:text-5xl" style={{ color: HEADING }}>
-                  {formatUsd(estimate.total)}
+                  {formatUsdEstimate(estimate.total)}
                 </p>
                 <p className="mt-2 text-sm" style={{ color: CARD_BODY }}>
                   {estimate.isPrototype
-                    ? `${formatUsd(PROTOTYPE_FLAT)} flat · 1 deck`
-                    : `${formatUsd(estimate.perDeck)} per deck · ${estimate.qty} decks`}
+                    ? `${formatUsdEstimate(PROTOTYPE_FLAT)} flat · 1 deck`
+                    : `${formatUsdEstimate(estimate.perDeck)} per deck · ${estimate.qty} decks`}
                 </p>
 
                 <div className="mt-6 space-y-2 border-t border-white/10 pt-6 text-sm" style={{ color: CARD_BODY }}>
                   {estimate.isPrototype ? (
                     <>
-                      <p>Prototype rate: {formatUsd(PROTOTYPE_FLAT)} (fixed)</p>
+                      <p>Prototype rate: {formatUsdEstimate(PROTOTYPE_FLAT)} (fixed)</p>
                       <p className="text-xs italic" style={{ color: CARD_BODY }}>
                         Prototype price is fixed and includes tuck box and gloss finish.
                       </p>
                     </>
                   ) : (
                     <>
-                      <p>Base rate: {formatUsd(estimate.basePerDeck)}/deck</p>
+                      <p>Base rate: {formatUsdEstimate(estimate.basePerDeck)}/deck</p>
                       {stock === '350' && (
-                        <p>350gsm Black Core: +{formatUsd(STOCK_350_EXTRA)}/deck</p>
+                        <p>350gsm Black Core: +{formatUsdEstimate(STOCK_350_EXTRA)}/deck</p>
                       )}
                       {finish === 'linen' && (
                         <p>
-                          Linen finish: +{formatUsd(0.5)} × {CARDS_PER_DECK} cards = +{formatUsd(LINEN_PER_DECK)}/deck
+                          Linen finish: +{formatUsdEstimate(0.5)} × {CARDS_PER_DECK} cards = +
+                          {formatUsdEstimate(LINEN_PER_DECK)}/deck
                         </p>
                       )}
-                      {shrinkWrap && <p>Shrink wrap: +{formatUsd(SHRINK_WRAP_EXTRA)}/deck</p>}
+                      {shrinkWrap && <p>Shrink wrap: +{formatUsdEstimate(SHRINK_WRAP_EXTRA)}/deck</p>}
                       <p>Tuck box: Included</p>
                       <p className="pt-2 font-medium" style={{ color: HEADING }}>
-                        Total per deck: {formatUsd(estimate.perDeck)}
+                        Total per deck: {formatUsdEstimate(estimate.perDeck)}
                       </p>
                     </>
                   )}
@@ -391,8 +386,8 @@ export function InstantQuoteSection() {
                 </p>
 
                 <p className="mt-4 text-xs leading-relaxed" style={{ color: CARD_BODY, opacity: 0.9 }}>
-                  Prices are estimates in USD. Final quote confirmed on file review. International orders may be subject
-                  to import duties and taxes.
+                  Estimates follow the site currency switcher (converted from USD list rates). Final quote confirmed on
+                  file review. International orders may be subject to import duties and taxes.
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3">

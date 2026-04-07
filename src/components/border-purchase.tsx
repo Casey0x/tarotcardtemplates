@@ -88,7 +88,16 @@ export function BorderPurchase({
               disabled={loading}
               className={`${purchaseOutlineClass} disabled:cursor-not-allowed disabled:opacity-50`}
             >
-              {loading ? 'Redirecting to checkout…' : `Continue to checkout — ${deckDownloadPriceDisplay}`}
+              {loading ? (
+                'Redirecting to checkout…'
+              ) : (
+                <>
+                  Continue to checkout —{' '}
+                  <span data-tct-price="deck_download" suppressHydrationWarning>
+                    {deckDownloadPriceDisplay}
+                  </span>
+                </>
+              )}
             </button>
           ) : (
             <Link href={loginRedirect} className={purchaseOutlineClass}>

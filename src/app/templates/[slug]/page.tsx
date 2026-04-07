@@ -802,19 +802,20 @@ export default async function TemplateDetailPage({
         <aside className="space-y-6">
           <div className="border border-charcoal/15 bg-white p-6">
             <h2 className="text-xl font-semibold">Purchase options</h2>
-            {currency !== "USD" && (
-              <p className="mt-1 text-xs text-charcoal/55">Prices shown in {currency}.</p>
-            )}
+            <p className="mt-1 text-xs text-charcoal/55">
+              Prices follow the site currency switcher. Checkout is charged in USD, NZD, or AUD (GBP is display-only).
+            </p>
             <div className="mt-6 space-y-4">
               <CheckoutButton
                 templateSlug={template.slug}
                 purchaseType="template"
                 label={
                   <>
-                    Buy template ({templatePriceDisplay})
-                    {currency !== "USD" && (
-                      <span className="ml-1.5 text-xs font-normal text-charcoal/50">{currency}</span>
-                    )}
+                    Buy template (
+                    <span data-tct-price="template" suppressHydrationWarning>
+                      {templatePriceDisplay}
+                    </span>
+                    )
                   </>
                 }
                 sublabel="Instant digital download. Print-ready files included."
@@ -861,10 +862,11 @@ export default async function TemplateDetailPage({
                 purchaseType="print"
                 label={
                   <>
-                    Buy printed deck from template ({printPriceDisplay})
-                    {currency !== "USD" && (
-                      <span className="ml-1.5 text-xs font-normal text-charcoal/50">{currency}</span>
-                    )}
+                    Buy printed deck from template (
+                    <span data-tct-price="printed_deck" suppressHydrationWarning>
+                      {printPriceDisplay}
+                    </span>
+                    )
                   </>
                 }
                 sublabel="Professionally printed and shipped."
@@ -980,14 +982,28 @@ export default async function TemplateDetailPage({
           <CheckoutButton
             templateSlug={template.slug}
             purchaseType="template"
-            buttonText={`Template ${templatePriceDisplay}`}
+            buttonText={
+              <>
+                Template{' '}
+                <span data-tct-price="template" className="whitespace-nowrap" suppressHydrationWarning>
+                  {templatePriceDisplay}
+                </span>
+              </>
+            }
             className="flex-1"
             buttonClassName="w-full bg-charcoal text-cream py-3 px-3 text-xs font-semibold hover:bg-charcoal/90 transition-colors disabled:opacity-60"
           />
           <CheckoutButton
             templateSlug={template.slug}
             purchaseType="print"
-            buttonText={`Printed ${printPriceDisplay}`}
+            buttonText={
+              <>
+                Printed{' '}
+                <span data-tct-price="printed_deck" className="whitespace-nowrap" suppressHydrationWarning>
+                  {printPriceDisplay}
+                </span>
+              </>
+            }
             className="flex-1"
             buttonClassName="w-full border-2 border-charcoal bg-white text-charcoal py-3 px-3 text-xs font-semibold hover:bg-charcoal hover:text-cream transition-colors disabled:opacity-60"
           />
