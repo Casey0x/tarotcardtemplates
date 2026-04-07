@@ -5,6 +5,27 @@ import { STUDIO_BORDER_TEMPLATE_CONFIG } from '@/lib/studio-border-template-conf
 const TEMPLATE_ID = '669959c5-4cca-476b-a484-5a9b1158e2a4';
 const TEMPLATED_RENDER_URL = 'https://api.templated.io/v1/render';
 
+function serializeClientError(err: unknown): Record<string, unknown> {
+  if (err == null) return { raw: err };
+  if (typeof err === 'object') {
+    const o = err as Record<string, unknown>;
+    return {
+      message: typeof o.message === 'string' ? o.message : undefined,
+      details: o.details,
+      hint: o.hint,
+      code: o.code,
+      statusCode: o.statusCode,
+      name: o.name,
+      ...(typeof o === 'object' ? Object.fromEntries(Object.entries(o).slice(0, 12)) : {}),
+    };
+  }
+  return { raw: String(err) };
+}
+
+function logRenderStep(step: string, extra: Record<string, unknown>) {
+  console.error(`[studio/render] ${step}`, extra);
+}
+
 async function renderWithTemplated(params: {
   borderId: string;
   artwork: string;
@@ -147,72 +168,205 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Render failed', detail: rendered.detail }, { status: rendered.status });
     }
 
-    const imageRes = await fetch(rendered.imageUrl);
-    if (!imageRes.ok) {
-      console.error('[studio/render] fetch rendered png', imageRes.status);
-      return NextResponse.json({ error: 'Failed to fetch rendered image' }, { status: 502 });
+    let imageBuffer: ArrayBuffer;
+    try {
+      const imageRes = await fetch(rendered.imageUrl);
+      if (!imageRes.ok) {
+        logRenderStep('fetch_rendered_png_failed', {
+          status: imageRes.status,
+          templatedImageUrl: rendered.imageUrl.slice(0, 180),
+        });
+        return NextResponse.json(
+          {
+            error: 'Failed to fetch rendered image',
+            detail: `HTTP ${imageRes.status} from templated image URL`,
+            step: 'templated.fetch_png',
+          },
+          { status: 502 },
+        );
+      }
+      imageBuffer = await imageRes.arrayBuffer();
+    } catch (fetchErr) {
+      logRenderStep('fetch_rendered_png_throw', { err: serializeClientError(fetchErr) });
+      return NextResponse.json(
+        {
+          error: 'Failed to fetch rendered image',
+          detail: fetchErr instanceof Error ? fetchErr.message : String(fetchErr),
+          step: 'templated.fetch_png',
+        },
+        { status: 502 },
+      );
     }
-    const imageBuffer = await imageRes.arrayBuffer();
 
     const filePath = `${user.id}/${deckId}/card-${cardIndex}.png`;
 
-    const { error: uploadError } = await supabase.storage
-      .from('studio-renders')
-      .upload(filePath, imageBuffer, {
-        contentType: 'image/png',
-        upsert: true,
-      });
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('studio-renders')
+        .upload(filePath, new Uint8Array(imageBuffer), {
+          contentType: 'image/png',
+          upsert: true,
+        });
 
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
-      return NextResponse.json({ error: 'Failed to store render' }, { status: 500 });
-    }
-
-    const { data: existingCard } = await supabase
-      .from('studio_cards')
-      .select('image_url')
-      .eq('deck_id', deckId)
-      .eq('card_index', cardIndex)
-      .maybeSingle();
-
-    const { error: upsertErr } = await supabase.from('studio_cards').upsert(
-      {
-        deck_id: deckId,
-        user_id: user.id,
-        card_index: cardIndex,
-        card_name,
-        numeral: numeral || null,
-        image_url: existingCard?.image_url ?? null,
-        image_path: filePath,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'deck_id,card_index' },
-    );
-
-    if (upsertErr) {
-      console.error('[studio/render] studio_cards upsert', upsertErr);
+      if (uploadError) {
+        logRenderStep('storage_upload_failed', {
+          filePath,
+          bucket: 'studio-renders',
+          err: serializeClientError(uploadError),
+        });
+        return NextResponse.json(
+          {
+            error: 'Failed to store render in storage',
+            detail: uploadError.message,
+            step: 'storage.upload',
+            code: typeof uploadError === 'object' && uploadError && 'name' in uploadError ? String((uploadError as { name?: string }).name) : undefined,
+          },
+          { status: 500 },
+        );
+      }
+    } catch (uploadThrow) {
+      logRenderStep('storage_upload_throw', { filePath, err: serializeClientError(uploadThrow) });
       return NextResponse.json(
-        { error: 'Failed to save card record', detail: upsertErr.message },
+        {
+          error: 'Failed to store render in storage',
+          detail: uploadThrow instanceof Error ? uploadThrow.message : String(uploadThrow),
+          step: 'storage.upload',
+        },
         { status: 500 },
       );
     }
 
-    await supabase
-      .from('studio_decks')
-      .update({ updated_at: new Date().toISOString() })
-      .eq('id', deckId)
-      .eq('user_id', user.id);
+    const upsertPayload = {
+      deck_id: deckId,
+      user_id: user.id,
+      card_index: cardIndex,
+      /** Required on many DBs — see supabase/migrations/20260404180000_studio_persistent_projects.sql */
+      card_key: String(cardIndex),
+      card_name,
+      numeral: numeral || null,
+      image_path: filePath,
+      updated_at: new Date().toISOString(),
+    };
 
-    const { data: signed, error: signErr } = await supabase.storage
-      .from('studio-renders')
-      .createSignedUrl(filePath, 300);
+    let existingImageUrl: string | null = null;
+    try {
+      const { data: existingCard, error: existingErr } = await supabase
+        .from('studio_cards')
+        .select('image_url')
+        .eq('deck_id', deckId)
+        .eq('card_index', cardIndex)
+        .maybeSingle();
 
-    if (signErr || !signed?.signedUrl) {
-      console.error('[studio/render] sign', signErr);
-      return NextResponse.json({ error: 'Render saved but could not sign URL' }, { status: 500 });
+      if (existingErr) {
+        logRenderStep('studio_cards_select_existing_failed', {
+          deckId,
+          cardIndex,
+          err: serializeClientError(existingErr),
+        });
+        return NextResponse.json(
+          {
+            error: 'Failed to read card row before save',
+            detail: existingErr.message,
+            step: 'db.studio_cards.select',
+          },
+          { status: 500 },
+        );
+      }
+      existingImageUrl = existingCard?.image_url ?? null;
+    } catch (selectThrow) {
+      logRenderStep('studio_cards_select_throw', { err: serializeClientError(selectThrow) });
+      return NextResponse.json(
+        {
+          error: 'Failed to read card row before save',
+          detail: selectThrow instanceof Error ? selectThrow.message : String(selectThrow),
+          step: 'db.studio_cards.select',
+        },
+        { status: 500 },
+      );
     }
 
-    return NextResponse.json({ renderUrl: signed.signedUrl, image_url: signed.signedUrl });
+    try {
+      const { error: upsertErr } = await supabase.from('studio_cards').upsert(
+        { ...upsertPayload, image_url: existingImageUrl },
+        { onConflict: 'deck_id,card_index' },
+      );
+
+      if (upsertErr) {
+        logRenderStep('studio_cards_upsert_failed', {
+          payload: { ...upsertPayload, image_url: existingImageUrl ? '[set]' : null },
+          err: serializeClientError(upsertErr),
+        });
+        return NextResponse.json(
+          {
+            error: 'Failed to save card record',
+            detail: upsertErr.message,
+            step: 'db.studio_cards.upsert',
+            code: upsertErr.code,
+            hint: upsertErr.hint,
+          },
+          { status: 500 },
+        );
+      }
+    } catch (upsertThrow) {
+      logRenderStep('studio_cards_upsert_throw', { err: serializeClientError(upsertThrow) });
+      return NextResponse.json(
+        {
+          error: 'Failed to save card record',
+          detail: upsertThrow instanceof Error ? upsertThrow.message : String(upsertThrow),
+          step: 'db.studio_cards.upsert',
+        },
+        { status: 500 },
+      );
+    }
+
+    try {
+      const { error: touchErr } = await supabase
+        .from('studio_decks')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', deckId)
+        .eq('user_id', user.id);
+
+      if (touchErr) {
+        logRenderStep('studio_decks_touch_failed', { deckId, err: serializeClientError(touchErr) });
+      }
+    } catch (touchThrow) {
+      logRenderStep('studio_decks_touch_throw', { err: serializeClientError(touchThrow) });
+    }
+
+    let signedUrl: string;
+    try {
+      const { data: signed, error: signErr } = await supabase.storage
+        .from('studio-renders')
+        .createSignedUrl(filePath, 300);
+
+      if (signErr || !signed?.signedUrl) {
+        logRenderStep('storage_sign_failed', {
+          filePath,
+          err: signErr ? serializeClientError(signErr) : { signErr: null, hadUrl: Boolean(signed) },
+        });
+        return NextResponse.json(
+          {
+            error: 'Render saved but could not sign URL',
+            detail: signErr?.message ?? 'No signed URL returned',
+            step: 'storage.createSignedUrl',
+          },
+          { status: 500 },
+        );
+      }
+      signedUrl = signed.signedUrl;
+    } catch (signThrow) {
+      logRenderStep('storage_sign_throw', { err: serializeClientError(signThrow) });
+      return NextResponse.json(
+        {
+          error: 'Render saved but could not sign URL',
+          detail: signThrow instanceof Error ? signThrow.message : String(signThrow),
+          step: 'storage.createSignedUrl',
+        },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({ renderUrl: signedUrl, image_url: signedUrl });
   }
 
   const cardId = typeof body.cardId === 'string' ? body.cardId.trim() : '';

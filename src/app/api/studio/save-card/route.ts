@@ -80,6 +80,8 @@ export async function POST(request: Request) {
     deck_id: deckId,
     user_id: user.id,
     card_index: cardIndex,
+    /** Legacy NOT NULL column — keep in sync with numeric card_index for upserts/renders */
+    card_key: cardKey,
     card_name: body.cardName ?? null,
     numeral: body.numeral ?? null,
     image_url: nextImageUrl,
