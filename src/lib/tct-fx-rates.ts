@@ -3,14 +3,22 @@ import {
   TCT_FX_RATES_TTL_MS,
 } from '@/lib/tct-display-currency';
 
-const FRANKFURTER_USD_LATEST = 'https://api.frankfurter.app/latest?from=USD';
-
 export type FxRatesMap = Record<string, number>;
 
+/**
+ * Same-origin proxy avoids CORS (Frankfurter does not send Access-Control-Allow-Origin for browsers).
+ * Route handler caches upstream for 24h via `next.revalidate`.
+ */
 export async function fetchUsdQuoteRates(): Promise<FxRatesMap> {
-  const res = await fetch(FRANKFURTER_USD_LATEST);
-  if (!res.ok) throw new Error('Frankfurter rates request failed');
-  const data = (await res.json()) as { rates: Record<string, number> };
+  const res = await fetch('/api/exchange-rates');
+  if (!res.ok) throw new Error('Exchange rates request failed');
+  const data = (await res.json()) as {
+    rates?: Record<string, number>;
+    error?: string;
+  };
+  if (!data.rates || typeof data.rates !== 'object') {
+    throw new Error(data.error || 'Invalid rates response');
+  }
   return { USD: 1, ...data.rates };
 }
 
