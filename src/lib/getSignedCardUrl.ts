@@ -1,17 +1,14 @@
 import { createServerClient } from '@/lib/supabase-server';
 
-/** Signed URL for a rendered card in private bucket `studio-renders`. */
+/** Public URL for a rendered card in public bucket `studio-renders`. */
 export async function getSignedCardUrl(path: string) {
+  const trimmed = path.trim();
+  if (!trimmed) return null;
+
   const supabase = await createServerClient();
-
-  const { data, error } = await supabase.storage.from('studio-renders').createSignedUrl(path, 300);
-
-  if (error) {
-    console.error(error);
-    return null;
-  }
-
-  return data.signedUrl;
+  const { data } = supabase.storage.from('studio-renders').getPublicUrl(trimmed);
+  const url = data.publicUrl?.trim() ?? '';
+  return url.length > 0 ? url : null;
 }
 
 /** Signed URL for user artwork in private bucket `studio-uploads`. */

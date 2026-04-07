@@ -342,40 +342,35 @@ export async function POST(request: Request) {
       logRenderStep('studio_decks_touch_throw', { err: serializeClientError(touchThrow) });
     }
 
-    let signedUrl: string;
+    let renderPublicUrl: string;
     try {
-      const { data: signed, error: signErr } = await supabase.storage
-        .from('studio-renders')
-        .createSignedUrl(filePath, 300);
-
-      if (signErr || !signed?.signedUrl) {
-        logRenderStep('storage_sign_failed', {
-          filePath,
-          err: signErr ? serializeClientError(signErr) : { signErr: null, hadUrl: Boolean(signed) },
-        });
+      const { data: publicRef } = supabase.storage.from('studio-renders').getPublicUrl(filePath);
+      const url = publicRef?.publicUrl?.trim() ?? '';
+      if (!url) {
+        logRenderStep('storage_public_url_failed', { filePath, hadUrl: Boolean(publicRef?.publicUrl) });
         return NextResponse.json(
           {
-            error: 'Render saved but could not sign URL',
-            detail: signErr?.message ?? 'No signed URL returned',
-            step: 'storage.createSignedUrl',
+            error: 'Render saved but could not build public URL',
+            detail: 'getPublicUrl returned an empty URL',
+            step: 'storage.getPublicUrl',
           },
           { status: 500 },
         );
       }
-      signedUrl = signed.signedUrl;
-    } catch (signThrow) {
-      logRenderStep('storage_sign_throw', { err: serializeClientError(signThrow) });
+      renderPublicUrl = url;
+    } catch (publicThrow) {
+      logRenderStep('storage_public_url_throw', { err: serializeClientError(publicThrow) });
       return NextResponse.json(
         {
-          error: 'Render saved but could not sign URL',
-          detail: signThrow instanceof Error ? signThrow.message : String(signThrow),
-          step: 'storage.createSignedUrl',
+          error: 'Render saved but could not build public URL',
+          detail: publicThrow instanceof Error ? publicThrow.message : String(publicThrow),
+          step: 'storage.getPublicUrl',
         },
         { status: 500 },
       );
     }
 
-    return NextResponse.json({ renderUrl: signedUrl, image_url: signedUrl });
+    return NextResponse.json({ renderUrl: renderPublicUrl, image_url: renderPublicUrl });
   }
 
   const cardId = typeof body.cardId === 'string' ? body.cardId.trim() : '';
