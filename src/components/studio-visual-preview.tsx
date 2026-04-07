@@ -453,7 +453,7 @@ function StudioVisualPreviewInner({
   }
 
   async function saveAndNextCard() {
-    if (!artworkSrc) return;
+    if (!artworkSrc && !previewImage) return;
     if (selectedCardIndex >= 77) return;
     const next = selectedCardIndex + 1;
     await selectCard(next);
@@ -1226,7 +1226,7 @@ function StudioVisualPreviewInner({
             ) : null}
 
             {previewImage ? (
-              <div className="absolute inset-0 z-[20] h-full w-full">
+              <div className="absolute inset-0 z-[30] h-full w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element -- signed / templated URL; must fill container */}
                 <img
                   src={previewImage}
@@ -1246,7 +1246,7 @@ function StudioVisualPreviewInner({
               </div>
             ) : null}
 
-            {!artworkSrc ? (
+            {!artworkSrc && !previewImage ? (
               <>
                 <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-cream/80 px-3 text-center sm:px-4">
                   <p className="max-w-[16rem] text-[11px] leading-snug text-charcoal/60 sm:text-xs">
@@ -1288,7 +1288,7 @@ function StudioVisualPreviewInner({
             After upload, your image appears in the preview above inside the border you pick. Preview Card swaps that for
             the full Templated render (art, template frame, and text in one image).
           </p>
-          {previewImage && artworkSrc ? (
+          {previewImage ? (
             <button
               type="button"
               className="mx-auto mt-2 hidden text-center text-xs text-charcoal underline underline-offset-2 hover:no-underline sm:block"
@@ -1350,7 +1350,7 @@ function StudioVisualPreviewInner({
               >
                 Preview Card
               </button>
-              {previewImage && artworkSrc ? (
+              {previewImage ? (
                 <button
                   type="button"
                   className="mt-2 w-full text-center text-xs text-charcoal underline underline-offset-2 hover:no-underline lg:mt-2"
@@ -1366,7 +1366,7 @@ function StudioVisualPreviewInner({
                   Back to upload in frame
                 </button>
               ) : null}
-              {artworkSrc ? (
+              {artworkSrc || previewImage ? (
                 <button
                   type="button"
                   disabled={selectedCardIndex >= 77}
