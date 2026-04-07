@@ -841,28 +841,6 @@ export function StudioVisualPreview({
               </div>
             ) : null}
 
-            {!previewImage && artworkSrc ? (
-              <>
-                {borderSlug !== 'day-of-the-dead' ? (
-                  <div className="top-banner pointer-events-none absolute inset-x-0 top-[5%] z-[11] px-2 text-center">
-                    {cardNumeral.trim() ? (
-                      <span className="text-[10px] font-medium uppercase tracking-wide text-charcoal drop-shadow-sm sm:text-xs">
-                        {cardNumeral || ''}
-                      </span>
-                    ) : null}
-                  </div>
-                ) : null}
-                <div className="bottom-banner pointer-events-none absolute inset-x-0 bottom-[6%] z-[11] px-2 text-center">
-                  <span className="text-[10px] font-semibold leading-tight text-charcoal drop-shadow-sm sm:text-xs">
-                    {borderSlug === 'day-of-the-dead'
-                      ? cardNumeral.trim()
-                        ? `${cardNumeral.trim()} ${cardName.trim()}`.trim()
-                        : cardName || ''
-                      : cardName || ''}
-                  </span>
-                </div>
-              </>
-            ) : null}
             {!artworkSrc ? (
               <>
                 <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-cream/80 px-3 text-center sm:px-4">
