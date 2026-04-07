@@ -1,0 +1,24 @@
+---
+description: After test-worthy code changes, commit and push main to GitHub for live testing
+alwaysApply: true
+---
+
+# Ship testable work to `main`
+
+When a task changes **runtime behavior**, **APIs**, **database assumptions**, or anything you would reasonably **verify on the deployed site**, finish by **committing and pushing** so the owner can test on the live environment tied to GitHub `main`.
+
+## Do this before ending the task
+
+1. **`git status`** — confirm intended files are changed; avoid committing secrets or local-only files.
+2. **`git add`** only what belongs in the commit.
+3. **`git commit`** with a short, accurate message (what changed and why).
+4. **`git push origin main`** (use another branch only if the owner asked).
+
+## If push fails
+
+- Read the error (auth, non-fast-forward, hooks).
+- Fix or tell the owner what blocked the push; do not claim the deploy is updated until `main` is pushed successfully.
+
+## When to skip
+
+- Read-only exploration, docs-only nits the owner did not ask to ship, or the owner explicitly says not to push yet.
