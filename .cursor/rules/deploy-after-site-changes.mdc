@@ -1,0 +1,15 @@
+---
+description: Commit and push after changes that affect live site behavior or appearance
+alwaysApply: true
+---
+
+# Ship site-facing changes for live testing
+
+When you change anything that affects **how the site works or looks** for visitors (UI, copy on public pages, navigation, pricing display, checkout-related client behavior, SEO-visible components, etc.):
+
+1. **Commit** the changes on the branch used for production (this project: `main` unless the user specifies otherwise) with a clear, conventional message (`feat:`, `fix:`, etc.).
+2. **Push** to the remote (`git push origin main`) so deploy pipelines and live testing stay in sync.
+
+Do this **as part of finishing the task**—do not only suggest that the user run git commands unless they have asked to skip push or use a different branch/PR flow.
+
+If there is nothing to commit (already clean), push is unnecessary. If push fails (auth/network), report the error and what was committed locally.
