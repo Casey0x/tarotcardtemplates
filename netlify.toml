@@ -17,6 +17,10 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+# Default Netlify Functions timeout is 10s; ZIP export needs longer (parallel downloads + archiver).
+[functions]
+  timeout = 30
+
 [[headers]]
   for = "/_next/static/chunks/app/*"
   [headers.values]

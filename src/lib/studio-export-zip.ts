@@ -1,9 +1,20 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import JSZip from 'jszip';
+import archiver from 'archiver';
+import { Readable } from 'node:stream';
 import { getTarotDefault } from '@/lib/tarot-cards';
 import type { StudioExportType } from '@/lib/studio-export-constants';
 
 const STUDIO_RENDERS_BUCKET = 'studio-renders';
+
+/** Server-side build budget before returning a JSON timeout (ms). */
+export const EXPORT_BUILD_TIMEOUT_MS = 25_000;
+
+export class StudioExportTimeoutError extends Error {
+  constructor() {
+    super('EXPORT_TIMEOUT');
+    this.name = 'StudioExportTimeoutError';
+  }
+}
 
 function cardFileName(cardIndex: number): string {
   const d = getTarotDefault(cardIndex);
@@ -23,9 +34,13 @@ function cardIndexRange(exportType: StudioExportType): { start: number; end: num
 }
 
 export type StudioZipBuildResult =
-  | { ok: true; buffer: Buffer }
+  | { ok: true; nodeStream: Readable }
   | { ok: false; error: string; missingIndices: number[] };
 
+/**
+ * Builds a ZIP of PNG renders using parallel downloads and a streaming ZIP (archiver).
+ * The returned Node `Readable` should be converted with `Readable.toWeb()` for `NextResponse`.
+ */
 export async function buildStudioExportZip(
   admin: SupabaseClient,
   deckId: string,
@@ -68,23 +83,39 @@ export async function buildStudioExportZip(
     };
   }
 
-  const zip = new JSZip();
-  for (let i = start; i <= end; i++) {
-    const path = byIndex.get(i)!;
-    const { data: blob, error: dlErr } = await admin.storage.from(STUDIO_RENDERS_BUCKET).download(path);
-    if (dlErr || !blob) {
-      return {
-        ok: false,
-        error: dlErr?.message ?? `Failed to download render for card ${i + 1}`,
-        missingIndices: [i],
-      };
-    }
-    const buf = Buffer.from(await blob.arrayBuffer());
-    zip.file(cardFileName(i), buf);
+  const indices: number[] = [];
+  for (let i = start; i <= end; i++) indices.push(i);
+
+  let downloaded: { index: number; buffer: Buffer }[];
+  try {
+    downloaded = await Promise.all(
+      indices.map(async (i) => {
+        const path = byIndex.get(i)!;
+        const { data: blob, error: dlErr } = await admin.storage.from(STUDIO_RENDERS_BUCKET).download(path);
+        if (dlErr || !blob) {
+          throw new Error(dlErr?.message ?? `Failed to download render for card ${i + 1}`);
+        }
+        const buffer = Buffer.from(await blob.arrayBuffer());
+        return { index: i, buffer };
+      }),
+    );
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Download failed';
+    return { ok: false, error: msg, missingIndices: [] };
   }
 
-  const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
-  return { ok: true, buffer };
+  const archive = archiver('zip', { zlib: { level: 6 } });
+  archive.on('error', (err: Error) => {
+    console.error('[studio-export-zip] archiver', err);
+  });
+
+  for (const { index, buffer } of downloaded) {
+    archive.append(buffer, { name: cardFileName(index) });
+  }
+
+  void archive.finalize();
+
+  return { ok: true, nodeStream: archive };
 }
 
 export function zipResponseHeaders(filename = 'tarot-deck.zip'): HeadersInit {
@@ -93,4 +124,20 @@ export function zipResponseHeaders(filename = 'tarot-deck.zip'): HeadersInit {
     'Content-Disposition': `attachment; filename="${filename}"`,
     'Cache-Control': 'no-store',
   };
+}
+
+export function withExportBuildTimeout<T>(p: Promise<T>, ms = EXPORT_BUILD_TIMEOUT_MS): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new StudioExportTimeoutError()), ms);
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
 }

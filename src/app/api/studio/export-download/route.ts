@@ -1,10 +1,19 @@
 import { NextResponse } from 'next/server';
+import { Readable } from 'node:stream';
 import { createServerClient, createServiceClient } from '@/lib/supabase-server';
 import { isStudioExportType, type StudioExportType } from '@/lib/studio-export-constants';
-import { buildStudioExportZip, zipResponseHeaders } from '@/lib/studio-export-zip';
+import {
+  buildStudioExportZip,
+  StudioExportTimeoutError,
+  zipResponseHeaders,
+  withExportBuildTimeout,
+} from '@/lib/studio-export-zip';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+const EXPORT_TIMEOUT_MESSAGE =
+  'Your deck is taking longer than expected — please try Download again';
 
 /** GET ?deck_id=&export_type= — re-download ZIP for an export the user already purchased. */
 export async function GET(request: Request) {
@@ -56,7 +65,19 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'No purchase found for this export' }, { status: 403 });
   }
 
-  const zip = await buildStudioExportZip(admin, deckId, exportType);
+  let zip;
+  try {
+    zip = await withExportBuildTimeout(buildStudioExportZip(admin, deckId, exportType));
+  } catch (e) {
+    if (e instanceof StudioExportTimeoutError) {
+      return NextResponse.json(
+        { error: EXPORT_TIMEOUT_MESSAGE, code: 'EXPORT_TIMEOUT' },
+        { status: 504 },
+      );
+    }
+    throw e;
+  }
+
   if (!zip.ok) {
     return NextResponse.json(
       { error: zip.error, missingIndices: zip.missingIndices },
@@ -64,5 +85,6 @@ export async function GET(request: Request) {
     );
   }
 
-  return new NextResponse(zip.buffer, { headers: zipResponseHeaders() });
+  const webStream = Readable.toWeb(zip.nodeStream) as ReadableStream<Uint8Array>;
+  return new NextResponse(webStream, { headers: zipResponseHeaders() });
 }
