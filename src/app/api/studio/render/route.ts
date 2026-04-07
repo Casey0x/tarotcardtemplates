@@ -37,25 +37,37 @@ async function renderWithTemplated(params: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ template: resolvedTemplateId, layers }),
+    body: JSON.stringify({ template: resolvedTemplateId, layers, format: 'png' }),
   });
 
-  const data = (await templatedRes.json()) as {
+  const raw = (await templatedRes.json()) as unknown;
+  const data = (Array.isArray(raw) ? raw[0] : raw) as {
     render_url?: string;
     url?: string;
     image_url?: string;
     download_url?: string;
+    status?: string;
+    id?: string;
   };
 
   if (!templatedRes.ok) {
-    const detail = typeof data === 'object' ? JSON.stringify(data) : await templatedRes.text();
+    const detail =
+      typeof data === 'object' && data !== null
+        ? JSON.stringify(data)
+        : typeof raw === 'string'
+          ? raw
+          : await templatedRes.text();
     return { ok: false, status: 502, detail };
   }
 
   const imageUrl =
     data.render_url || data.url || data.image_url || data.download_url;
   if (!imageUrl || typeof imageUrl !== 'string') {
-    return { ok: false, status: 502, detail: 'Templated response missing image URL' };
+    return {
+      ok: false,
+      status: 502,
+      detail: `Templated response missing image URL (${data.status ?? 'no status'}): ${JSON.stringify(raw)}`,
+    };
   }
 
   return { ok: true, imageUrl };
@@ -73,7 +85,7 @@ export async function POST(request: Request) {
   } = await supabaseAuth.auth.getUser();
 
   if (!user) {
-    return new Response('Unauthorized', { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   let body: Record<string, unknown>;
@@ -90,14 +102,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing deckId' }, { status: 400 });
   }
 
-  const studioDeck = await supabase
+  const { data: deckRow, error: deckLookupErr } = await supabase
     .from('studio_decks')
     .select('id')
     .eq('id', deckId)
     .eq('user_id', user.id)
     .maybeSingle();
 
-  if (studioDeck.data) {
+  if (deckLookupErr) {
+    console.error('[studio/render] deck lookup', deckLookupErr);
+    return NextResponse.json({ error: 'Deck lookup failed', detail: deckLookupErr.message }, { status: 500 });
+  }
+
+  if (deckRow) {
     const cardIndexRaw = body.cardIndex;
     const cardIndex =
       typeof cardIndexRaw === 'number'
@@ -151,6 +168,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to store render' }, { status: 500 });
     }
 
+    const { data: existingCard } = await supabase
+      .from('studio_cards')
+      .select('image_url')
+      .eq('deck_id', deckId)
+      .eq('card_index', cardIndex)
+      .maybeSingle();
+
     const { error: upsertErr } = await supabase.from('studio_cards').upsert(
       {
         deck_id: deckId,
@@ -158,6 +182,7 @@ export async function POST(request: Request) {
         card_index: cardIndex,
         card_name,
         numeral: numeral || null,
+        image_url: existingCard?.image_url ?? null,
         image_path: filePath,
         updated_at: new Date().toISOString(),
       },
@@ -166,7 +191,10 @@ export async function POST(request: Request) {
 
     if (upsertErr) {
       console.error('[studio/render] studio_cards upsert', upsertErr);
-      return NextResponse.json({ error: 'Failed to save card record' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to save card record', detail: upsertErr.message },
+        { status: 500 },
+      );
     }
 
     await supabase

@@ -437,7 +437,13 @@ export function StudioVisualPreview({
         }),
       });
 
-      let data: { image_url?: string; renderUrl?: string; error?: string };
+      if (res.status === 401) {
+        openSignInPrompt();
+        setPreviewError(null);
+        return;
+      }
+
+      let data: { image_url?: string; renderUrl?: string; error?: string; detail?: string };
       try {
         data = (await res.json()) as typeof data;
       } catch {
@@ -450,12 +456,6 @@ export function StudioVisualPreview({
         return;
       }
 
-      if (res.status === 401) {
-        openSignInPrompt();
-        setPreviewError(null);
-        return;
-      }
-
       const previewUrl = data.image_url ?? data.renderUrl;
       if (!res.ok || !previewUrl) {
         setPreviewByCard((prev) => {
@@ -463,8 +463,9 @@ export function StudioVisualPreview({
           delete next[selectedCardIndex];
           return next;
         });
-        alert(data.error || 'Render failed');
-        setPreviewError('Preview failed — check console');
+        const msg = [data.error || 'Render failed', data.detail].filter(Boolean).join(' — ');
+        alert(msg);
+        setPreviewError(data.detail?.trim() || 'Preview failed — check console');
         return;
       }
 

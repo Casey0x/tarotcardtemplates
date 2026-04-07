@@ -38,7 +38,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid cardKey' }, { status: 400 });
   }
 
-  const { data: deckRow, error: deckErr } = await supabase
+  const admin = createServiceClient();
+
+  const { data: deckRow, error: deckErr } = await admin
     .from('studio_decks')
     .select('id')
     .eq('id', deckId)
@@ -48,8 +50,6 @@ export async function POST(request: Request) {
   if (deckErr || !deckRow) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
-
-  const admin = createServiceClient();
 
   const { data: indexRow } = await admin
     .from('studio_cards')
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const { error: touchErr } = await supabase
+  const { error: touchErr } = await admin
     .from('studio_decks')
     .update({ updated_at: new Date().toISOString() })
     .eq('id', deckId)

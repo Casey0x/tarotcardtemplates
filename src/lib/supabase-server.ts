@@ -44,10 +44,10 @@ export function createServiceClient(): SupabaseClient {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       auth: { persistSession: false },
+      // Do not set global Content-Type — it breaks Storage uploads (merged with file type → "Invalid Content-Type header").
       global: {
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json',
         },
       },
     }

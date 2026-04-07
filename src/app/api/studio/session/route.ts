@@ -19,7 +19,7 @@ type SessionCardPayload = {
 
 /** Never throws; returns [] if query, RLS, or signing fails. */
 async function loadSessionCardsSafe(
-  supabase: Awaited<ReturnType<typeof createAppServerClient>>,
+  supabase: Awaited<ReturnType<typeof createAppServerClient>> | ReturnType<typeof createServiceClient>,
   deckId: string,
 ): Promise<SessionCardPayload[]> {
   try {
@@ -121,7 +121,10 @@ export async function POST(request: Request) {
     const borderSlug = String(body.borderSlug ?? '').trim();
     const borderSlugForDb = borderSlug || FALLBACK_BORDER_SLUG;
 
-    const { data: decks, error: fetchError } = await supabase
+    /** Service role: user JWT is verified above; RLS often blocks anon/user on `studio_decks`. */
+    const admin = createServiceClient();
+
+    const { data: decks, error: fetchError } = await admin
       .from('studio_decks')
       .select('*')
       .eq('user_id', user.id)
@@ -139,7 +142,7 @@ export async function POST(request: Request) {
       console.log('[studio-session] using existing deck:', existingDeck.id);
 
       if (borderSlugForDb !== existingDeck.border_slug) {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await admin
           .from('studio_decks')
           .update({
             border_slug: borderSlugForDb,
@@ -158,7 +161,7 @@ export async function POST(request: Request) {
     } else {
       console.log('[studio-session] incoming borderSlug:', body.borderSlug);
 
-      const { data: newDeck, error: insertError } = await supabase
+      const { data: newDeck, error: insertError } = await admin
         .from('studio_decks')
         .insert({
           user_id: user.id,
@@ -176,7 +179,7 @@ export async function POST(request: Request) {
       deckId = newDeck.id;
     }
 
-    const cards = await loadSessionCardsSafe(supabase, deckId);
+    const cards = await loadSessionCardsSafe(admin, deckId);
 
     return NextResponse.json({
       deckId,
