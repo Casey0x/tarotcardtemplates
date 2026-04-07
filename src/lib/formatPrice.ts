@@ -12,8 +12,10 @@ export function formatPrice(amount: number, currency: string): string {
   return `$${fixed}`;
 }
 
-/** e.g. `NZD NZ$24.95` — ISO code plus localized symbol for clarity. */
+/**
+ * Same as {@link formatPrice} — symbol only (e.g. NZ$24.95, $14.95, A$22.95, £11.80).
+ * Kept under this name so existing call sites (template-pricing, DOM sync, provider) stay stable.
+ */
 export function formatPriceWithCurrencyCode(amount: number, currency: string): string {
-  const code = currency.toUpperCase();
-  return `${code} ${formatPrice(amount, code)}`;
+  return formatPrice(amount, currency);
 }
