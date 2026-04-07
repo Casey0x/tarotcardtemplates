@@ -54,6 +54,14 @@ function StudioVisualPreviewInner({
   /** Server said stored renders exist even if local `renderedCount` is stale. */
   const [forceConfirmClearRenders, setForceConfirmClearRenders] = useState(false);
 
+  const cardUploadInputRef = useRef<HTMLInputElement>(null);
+  const [borderRerenderProgress, setBorderRerenderProgress] = useState<null | { current: number; total: number }>(
+    null,
+  );
+  const [borderRerenderSuccess, setBorderRerenderSuccess] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [showRenderSuccessFlash, setShowRenderSuccessFlash] = useState(false);
+
   const [selectedCardIndex, setSelectedCardIndex] = useState(0);
 
   useEffect(() => {
@@ -118,7 +126,8 @@ function StudioVisualPreviewInner({
 
   const [previewByCard, setPreviewByCard] = useState<Record<number, string>>({});
 
-  const hydrateFromSessionCards = useCallback((rows: SessionCardRow[], opts?: { resetSelection?: boolean }) => {
+  const hydrateFromSessionCards = useCallback(
+    (rows: SessionCardRow[], opts?: { resetSelection?: boolean; skipRenderedPreviews?: boolean }) => {
     const nextArtwork: Record<number, string> = {};
     const nextPreview: Record<number, string> = {};
     artworkPathByCardRef.current = {};
@@ -128,7 +137,7 @@ function StudioVisualPreviewInner({
       if (Number.isNaN(i) || i < 0 || i > 77) continue;
       if (row.image_url) nextArtwork[i] = row.image_url;
       if (row.artwork_path) artworkPathByCardRef.current[i] = row.artwork_path;
-      if (row.rendered_url) nextPreview[i] = row.rendered_url;
+      if (row.rendered_url && !opts?.skipRenderedPreviews) nextPreview[i] = row.rendered_url;
       cardFieldsRef.current[i] = {
         cardName: row.card_name ?? '',
         numeral: row.numeral ?? '',
@@ -145,7 +154,9 @@ function StudioVisualPreviewInner({
     setCardName(sSel?.cardName?.trim() ? sSel.cardName : (dSel?.name ?? ''));
     setCardNumeral(sSel?.numeral ?? dSel?.numeral ?? '');
     setPreviewError(null);
-  }, []);
+  },
+    [],
+  );
 
   const loadStudio = useCallback(async () => {
     setSessionError(null);
@@ -316,16 +327,7 @@ function StudioVisualPreviewInner({
   const [previewError, setPreviewError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!deckBorderSlug) {
-      prevDeckBorderSlugRef.current = deckBorderSlug;
-      return;
-    }
-    const prev = prevDeckBorderSlugRef.current;
-    prevDeckBorderSlugRef.current = deckBorderSlug;
-    if (prev && prev !== deckBorderSlug) {
-      setPreviewByCard({});
-      setPreviewError(null);
-    }
+    if (deckBorderSlug) prevDeckBorderSlugRef.current = deckBorderSlug;
   }, [deckBorderSlug]);
 
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
@@ -345,7 +347,97 @@ function StudioVisualPreviewInner({
     });
   }
 
-  const openSignInPrompt = () => setShowSignInPrompt(true);
+  const openSignInPrompt = useCallback(() => setShowSignInPrompt(true), []);
+
+  function findNextIncompleteCardIndex(fromIndex: number, previews: Record<number, string>): number {
+    for (let step = 1; step < 78; step++) {
+      const idx = (fromIndex + step) % 78;
+      if (!previews[idx]) return idx;
+    }
+    return fromIndex;
+  }
+
+  const renderCardWithArtwork = useCallback(
+    async (
+      cardIndex: number,
+      artwork: string,
+      card_name: string,
+      numeral: string,
+      opts?: { manageLoading?: boolean },
+    ): Promise<string | null> => {
+      const id = deckId;
+      const manageLoading = opts?.manageLoading !== false;
+      if (!id) return null;
+      const cardNameTrimmed = card_name.trim();
+      if (!cardNameTrimmed) {
+        if (manageLoading) alert('Add a card name before rendering.');
+        return null;
+      }
+      if (manageLoading) {
+        setRenderLoading(true);
+        setPreviewError(null);
+      }
+      try {
+        let artworkPayload = artwork;
+        if (artwork.startsWith('blob:')) {
+          artworkPayload = await blobUrlToDataUrl(artwork);
+        }
+        const res = await fetch('/api/studio/render', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deckId: id,
+            cardIndex,
+            artwork: artworkPayload,
+            numeral,
+            card_name: cardNameTrimmed,
+          }),
+        });
+        if (res.status === 401) {
+          openSignInPrompt();
+          return null;
+        }
+        let data: { image_url?: string; renderUrl?: string; error?: string; detail?: string };
+        try {
+          data = (await res.json()) as typeof data;
+        } catch {
+          if (manageLoading) setPreviewError('Render failed — check console');
+          return null;
+        }
+        const previewUrl = data.image_url ?? data.renderUrl;
+        if (!res.ok || !previewUrl) {
+          if (manageLoading) {
+            setPreviewByCard((prev) => {
+              const next = { ...prev };
+              delete next[cardIndex];
+              return next;
+            });
+            const msg = [data.error || 'Render failed', data.detail].filter(Boolean).join(' — ');
+            alert(msg);
+            setPreviewError(data.detail?.trim() || 'Render failed');
+          }
+          return null;
+        }
+        setPreviewByCard((prev) => ({ ...prev, [cardIndex]: previewUrl }));
+        cardFieldsRef.current[cardIndex] = { cardName: card_name, numeral };
+        if (manageLoading) setPreviewError(null);
+        return previewUrl;
+      } catch {
+        if (manageLoading) {
+          setPreviewByCard((prev) => {
+            const next = { ...prev };
+            delete next[cardIndex];
+            return next;
+          });
+          setPreviewError('Render failed — check console');
+        }
+        return null;
+      } finally {
+        if (manageLoading) setRenderLoading(false);
+      }
+    },
+    [deckId, openSignInPrompt],
+  );
 
   const handleUpload = async (file: File) => {
     try {
@@ -358,10 +450,12 @@ function StudioVisualPreviewInner({
         return;
       }
 
+      const cardIndex = selectedCardIndexRef.current;
+
       const form = new FormData();
       form.append('file', file);
       form.append('deckId', effectiveDeckId);
-      form.append('cardIndex', String(selectedCardIndex));
+      form.append('cardIndex', String(cardIndex));
 
       const uploadRes = await fetch('/api/studio/upload', { method: 'POST', body: form });
       const rawUpload = await uploadRes.text();
@@ -377,19 +471,24 @@ function StudioVisualPreviewInner({
         return;
       }
 
-      artworkPathByCardRef.current[selectedCardIndex] = uploadData.path;
+      artworkPathByCardRef.current[cardIndex] = uploadData.path;
 
       setArtworkByCard((prev) => ({
         ...prev,
-        [selectedCardIndex]: uploadData.url!,
+        [cardIndex]: uploadData.url!,
       }));
       setPreviewByCard((prev) => {
         const next = { ...prev };
-        delete next[selectedCardIndex];
+        delete next[cardIndex];
         return next;
       });
 
-      cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
+      const fields = cardFieldsRef.current[cardIndex] ?? {
+        cardName: getTarotDefault(cardIndex)?.name ?? '',
+        numeral: getTarotDefault(cardIndex)?.numeral ?? '',
+      };
+      cardFieldsRef.current[cardIndex] = fields;
+
       setSaveStatusSaving(true);
       setSaveStatusSaved(false);
       setSaveError(null);
@@ -399,9 +498,9 @@ function StudioVisualPreviewInner({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             deckId: effectiveDeckId,
-            cardKey: String(selectedCardIndex),
-            cardName,
-            numeral: cardNumeral,
+            cardKey: String(cardIndex),
+            cardName: fields.cardName,
+            numeral: fields.numeral,
             artworkPath: uploadData.path,
           }),
         });
@@ -415,15 +514,43 @@ function StudioVisualPreviewInner({
         if (!saveRes.ok) {
           setSaveStatusSaved(false);
           setSaveError(savePayload.error?.trim() || `Save failed (${saveRes.status}). Retrying soon…`);
-        } else {
-          setSaveError(null);
-          setSaveStatusSaved(true);
+          return;
         }
+        setSaveError(null);
+        setSaveStatusSaved(true);
       } catch {
         setSaveStatusSaved(false);
         setSaveError('Save failed. Check your connection.');
+        return;
       } finally {
         setSaveStatusSaving(false);
+      }
+
+      const previewUrl = await renderCardWithArtwork(
+        cardIndex,
+        uploadData.url,
+        fields.cardName,
+        fields.numeral,
+        { manageLoading: true },
+      );
+
+      if (previewUrl) {
+        setShowRenderSuccessFlash(true);
+        window.setTimeout(() => setShowRenderSuccessFlash(false), 900);
+        let nextIdx = cardIndex;
+        setPreviewByCard((prev) => {
+          const merged = { ...prev, [cardIndex]: previewUrl };
+          nextIdx = findNextIncompleteCardIndex(cardIndex, merged);
+          return merged;
+        });
+        window.setTimeout(() => {
+          void selectCard(nextIdx);
+          requestAnimationFrame(() => {
+            document
+              .querySelector(`.studio-card-nav [data-studio-card-index="${nextIdx}"]`)
+              ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          });
+        }, 1500);
       }
     } catch (err) {
       console.error('Upload crash:', err);
@@ -454,106 +581,37 @@ function StudioVisualPreviewInner({
     }
   }
 
-  async function saveAndNextCard() {
-    if (!artworkSrc && !previewImage) return;
-    if (selectedCardIndex >= 77) return;
-    const next = selectedCardIndex + 1;
-    await selectCard(next);
-    requestAnimationFrame(() => {
-      document
-        .querySelector(`.studio-card-nav [data-studio-card-index="${next}"]`)
-        ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    });
-  }
-
-  async function handlePreviewCard() {
-    if (uploading) {
-      alert('Please wait for upload to finish');
-      return;
-    }
-
-    const artwork = artworkSrc;
-    const numeral = cardNumeral;
-    const cardNameTrimmed = cardName.trim();
-
-    if (!artwork) {
-      alert('Please upload artwork first');
-      return;
-    }
-    if (!cardNameTrimmed) {
-      return;
-    }
-
-    setRenderLoading(true);
-    setPreviewError(null);
-    try {
-      let artworkPayload = artwork;
-      if (artwork.startsWith('blob:')) {
-        artworkPayload = await blobUrlToDataUrl(artwork);
+  const runBorderRerenders = useCallback(
+    async (rows: SessionCardRow[]) => {
+      const targets: { index: number; artwork: string; card_name: string; numeral: string }[] = [];
+      for (const row of rows) {
+        const i = parseInt(row.card_key, 10);
+        if (Number.isNaN(i) || i < 0 || i > 77) continue;
+        if (!row.image_url) continue;
+        const d = getTarotDefault(i);
+        const card_name = row.card_name?.trim() ? row.card_name : d?.name ?? '';
+        const numeral = row.numeral ?? d?.numeral ?? '';
+        targets.push({ index: i, artwork: row.image_url, card_name, numeral });
       }
 
-      if (!deckId) {
-        alert('Deck session not ready. Wait a moment and try again.');
+      if (targets.length === 0) {
+        setBorderRerenderSuccess(true);
+        window.setTimeout(() => setBorderRerenderSuccess(false), 6000);
         return;
       }
 
-      const res = await fetch('/api/studio/render', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          deckId,
-          cardIndex: selectedCardIndex,
-          artwork: artworkPayload,
-          numeral,
-          card_name: cardNameTrimmed,
-        }),
-      });
-
-      if (res.status === 401) {
-        openSignInPrompt();
-        setPreviewError(null);
-        return;
+      for (let t = 0; t < targets.length; t++) {
+        setBorderRerenderProgress({ current: t + 1, total: targets.length });
+        const { index, artwork, card_name, numeral } = targets[t];
+        await renderCardWithArtwork(index, artwork, card_name, numeral, { manageLoading: false });
       }
 
-      let data: { image_url?: string; renderUrl?: string; error?: string; detail?: string };
-      try {
-        data = (await res.json()) as typeof data;
-      } catch {
-        setPreviewByCard((prev) => {
-          const next = { ...prev };
-          delete next[selectedCardIndex];
-          return next;
-        });
-        setPreviewError('Preview failed — check console');
-        return;
-      }
-
-      const previewUrl = data.image_url ?? data.renderUrl;
-      if (!res.ok || !previewUrl) {
-        setPreviewByCard((prev) => {
-          const next = { ...prev };
-          delete next[selectedCardIndex];
-          return next;
-        });
-        const msg = [data.error || 'Render failed', data.detail].filter(Boolean).join(' — ');
-        alert(msg);
-        setPreviewError(data.detail?.trim() || 'Preview failed — check console');
-        return;
-      }
-
-      setPreviewByCard((prev) => ({ ...prev, [selectedCardIndex]: previewUrl }));
-      setPreviewError(null);
-    } catch {
-      setPreviewByCard((prev) => {
-        const next = { ...prev };
-        delete next[selectedCardIndex];
-        return next;
-      });
-      setPreviewError('Preview failed — check console');
-    } finally {
-      setRenderLoading(false);
-    }
-  }
+      setBorderRerenderProgress(null);
+      setBorderRerenderSuccess(true);
+      window.setTimeout(() => setBorderRerenderSuccess(false), 6000);
+    },
+    [renderCardWithArtwork],
+  );
 
   const renderedCount = useMemo(
     () => Object.values(previewByCard).filter((u) => typeof u === 'string' && u.length > 0).length,
@@ -640,9 +698,10 @@ function StudioVisualPreviewInner({
           }
           setDeckId(data.deckId);
           setDeckBorderSlug(data.borderSlug ?? q);
-          hydrateFromSessionCards(data.cards, { resetSelection: false });
+          hydrateFromSessionCards(data.cards, { resetSelection: false, skipRenderedPreviews: true });
           router.replace(studioBasePath, { scroll: false });
           urlBorderAttemptRef.current = null;
+          void runBorderRerenders(data.cards);
           return;
         }
 
@@ -664,6 +723,7 @@ function StudioVisualPreviewInner({
     hydrateFromSessionCards,
     router,
     studioBasePath,
+    runBorderRerenders,
   ]);
 
   const artworkCount = useMemo(
@@ -795,7 +855,7 @@ function StudioVisualPreviewInner({
       }
       setDeckId(data.deckId);
       setDeckBorderSlug(data.borderSlug ?? slug);
-      hydrateFromSessionCards(data.cards, { resetSelection: false });
+      hydrateFromSessionCards(data.cards, { resetSelection: false, skipRenderedPreviews: true });
       setChangeBorderOpen(false);
       setChangeBorderStep('pick');
       setForceConfirmClearRenders(false);
@@ -803,6 +863,7 @@ function StudioVisualPreviewInner({
       if (searchParams.get('border')) {
         router.replace(studioBasePath, { scroll: false });
       }
+      void runBorderRerenders(data.cards);
     } finally {
       setChangeBorderBusy(false);
     }
@@ -977,8 +1038,8 @@ function StudioVisualPreviewInner({
               {changeBorderStep === 'warn' ? (
                 <div className="space-y-4">
                   <p className="text-sm text-charcoal/80">
-                    Changing your border will require all completed cards to be re-rendered with the new border. Your
-                    artwork will be kept but renders will be cleared. Are you sure?
+                    Changing your border will re-render every card that has artwork using the new frame. Your original
+                    uploads stay in place. This can take a minute for larger decks.
                   </p>
                   <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
                     <button
@@ -1056,6 +1117,36 @@ function StudioVisualPreviewInner({
         </div>
       ) : null}
 
+      {borderRerenderProgress ? (
+        <div
+          className="fixed inset-0 z-[75] flex items-center justify-center bg-charcoal/50 p-4"
+          role="alertdialog"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <div className="w-full max-w-md rounded-sm border border-charcoal/15 bg-cream p-6 shadow-lg">
+            <p className="text-sm font-semibold text-charcoal">Re-rendering all cards with new border…</p>
+            <p className="mt-2 text-xs text-charcoal/70">
+              {borderRerenderProgress.current} / {borderRerenderProgress.total} cards
+            </p>
+            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-charcoal/10">
+              <div
+                className="h-full bg-charcoal transition-[width] duration-300"
+                style={{
+                  width: `${borderRerenderProgress.total > 0 ? (borderRerenderProgress.current / borderRerenderProgress.total) * 100 : 0}%`,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {borderRerenderSuccess ? (
+        <div className="pointer-events-none fixed bottom-6 left-1/2 z-[75] max-w-sm -translate-x-1/2 rounded-sm border border-emerald-800/25 bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-950 shadow-lg">
+          All cards updated with new border!
+        </div>
+      ) : null}
+
       {showSignInPrompt ? (
         <div
           className="fixed inset-0 z-[60] flex items-end justify-center bg-charcoal/40 p-4 sm:items-center lg:p-6"
@@ -1067,9 +1158,7 @@ function StudioVisualPreviewInner({
             <h2 id="studio-signin-title" className="text-lg font-semibold text-charcoal">
               Sign in to continue
             </h2>
-            <p className="mt-2 text-sm text-charcoal/75">
-              Sign in to upload artwork, preview cards, and sync your deck.
-            </p>
+            <p className="mt-2 text-sm text-charcoal/75">Sign in to upload artwork and sync your deck.</p>
             <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Link
                 href={`/auth/login?redirect=${encodeURIComponent(loginRedirect)}`}
@@ -1322,58 +1411,52 @@ function StudioVisualPreviewInner({
           </div>
         </div>
 
-        {/* mobile order 2 / desktop col 2 */}
+        {/* mobile order 2 / desktop col 2 — card preview + drag-drop */}
         <div className="flex flex-col items-center justify-center lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <input
+            ref={cardUploadInputRef}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            tabIndex={-1}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handleUpload(file);
+              e.target.value = '';
+            }}
+          />
+
           <div
             key={deckBorderSlug || 'deck'}
             className={`relative w-full max-w-[280px] rounded-sm border border-charcoal/10 sm:max-w-sm lg:max-w-sm ${
-              artworkSrc && !previewImage ? 'overflow-hidden bg-transparent' : 'overflow-hidden bg-cream/90'
-            }`}
+              dragActive ? 'ring-2 ring-charcoal/35' : ''
+            } overflow-hidden bg-cream/90`}
             style={{ aspectRatio: '2 / 3' }}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              setDragActive(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragActive(false);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'copy';
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragActive(false);
+              const file = e.dataTransfer.files?.[0];
+              if (file?.type.startsWith('image/')) void handleUpload(file);
+            }}
           >
-            {/* Layering: artwork (z-1) + border PNG (z-2). Native <img> for both so z-index stacks correctly
-                (next/image wraps a span; the wrapper stayed z-auto and hid artwork behind an opaque hole). */}
-            {artworkSrc && !previewImage ? (
-              // eslint-disable-next-line @next/next/no-img-element -- must stack with border <img>; next/image wrapper breaks z-index
-              <img
-                src={artworkSrc}
-                alt="Uploaded tarot artwork preview in the card frame"
-                className="absolute left-0 top-0 z-[1] h-full w-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            ) : null}
-
-            {!previewImage ? (
-              // eslint-disable-next-line @next/next/no-img-element -- must stack with artwork <img>; next/image wrapper breaks z-index
-              <img
-                src={borderOverlaySrc}
-                alt="Border overlay"
-                className="pointer-events-none absolute left-0 top-0 z-[2] h-full w-full object-contain"
-              />
-            ) : null}
-
-            {/* Layer 3: brief “lifted” duplicate so upload success is obvious before Preview Card */}
-            {artworkSrc && !previewImage ? (
-              <div
-                className="pointer-events-none absolute left-0 top-0 z-[3] flex h-full w-full items-center justify-center p-1"
-                aria-hidden
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element -- duplicate layer for upload confirmation */}
-                <img
-                  src={artworkSrc}
-                  alt=""
-                  className="h-full w-full max-h-full max-w-full origin-center object-cover shadow-lg ring-1 ring-charcoal/20 scale-[0.97]"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-            ) : null}
-
             {previewImage ? (
               <div className="absolute inset-0 z-[30] h-full w-full">
-                {/* eslint-disable-next-line @next/next/no-img-element -- signed / templated URL; must fill container */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previewImage}
-                  alt="Templated card render preview"
+                  alt="Rendered card"
                   loading="eager"
                   decoding="async"
                   className="pointer-events-none h-full w-full object-contain"
@@ -1386,98 +1469,105 @@ function StudioVisualPreviewInner({
                     });
                   }}
                 />
+                {showRenderSuccessFlash ? (
+                  <div
+                    className="studio-success-check pointer-events-none absolute inset-0 z-[31] flex items-center justify-center bg-charcoal/20"
+                    aria-hidden
+                  >
+                    <span className="text-4xl drop-shadow-md">✅</span>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
-            {!artworkSrc && !previewImage ? (
-              <>
-                <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-cream/80 px-3 text-center sm:px-4">
-                  <p className="max-w-[16rem] text-[11px] leading-snug text-charcoal/60 sm:text-xs">
-                    Upload your artwork to begin designing this card
-                  </p>
-                  <p className="mt-1.5 text-[10px] text-charcoal/50 sm:text-xs">PNG or JPG recommended</p>
-                  {uploadError ? (
-                    <p className="pointer-events-auto mt-3 max-w-[18rem] text-[11px] font-medium leading-snug text-red-800 sm:text-xs" role="alert">
-                      {uploadError}
-                    </p>
-                  ) : null}
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={uploading}
-                  className="absolute inset-0 z-[25] cursor-pointer opacity-0 disabled:cursor-not-allowed"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      void handleUpload(file);
-                    }
-                    e.target.value = '';
-                  }}
-                  aria-label="Upload artwork for this card"
+            {!previewImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={borderOverlaySrc}
+                alt=""
+                className="pointer-events-none absolute left-0 top-0 z-[2] h-full w-full object-contain"
+              />
+            ) : null}
+
+            {!previewImage && (uploading || renderLoading) ? (
+              <div className="absolute inset-0 z-[40] flex flex-col items-center justify-center bg-charcoal/40 px-3 text-center">
+                <span
+                  className="inline-block h-10 w-10 animate-spin rounded-full border-2 border-cream/30 border-t-cream"
+                  aria-hidden
                 />
-              </>
+                <p className="mt-3 text-xs font-medium text-cream">
+                  {uploading ? 'Uploading…' : 'Rendering your card…'}
+                </p>
+              </div>
+            ) : null}
+
+            {!previewImage && !uploading && !renderLoading ? (
+              <button
+                type="button"
+                disabled={uploading || renderLoading}
+                className="absolute inset-0 z-[25] flex cursor-pointer flex-col items-center justify-center bg-cream/65 px-3 text-center outline-none ring-offset-2 transition hover:bg-cream/80 focus-visible:ring-2 focus-visible:ring-charcoal disabled:cursor-not-allowed"
+                onClick={() => cardUploadInputRef.current?.click()}
+              >
+                <span className="pointer-events-none max-w-[15rem] text-[11px] font-medium leading-snug text-charcoal/80 sm:text-xs">
+                  Drop your artwork here or click to upload
+                </span>
+                <span className="pointer-events-none mt-1.5 text-[10px] text-charcoal/50">PNG or JPG recommended</span>
+              </button>
+            ) : null}
+
+            {uploadError ? (
+              <p
+                className="absolute bottom-1 left-2 right-2 z-[45] text-center text-[10px] font-medium leading-snug text-red-900 sm:text-[11px]"
+                role="alert"
+              >
+                {uploadError}
+              </p>
             ) : null}
           </div>
-          {artworkSrc && !previewImage ? (
-            <p
-              className="mx-auto mt-2 max-w-sm px-2 text-center text-[10px] font-medium leading-snug text-emerald-900/90 sm:text-[11px]"
-              role="status"
-            >
-              ✓ Artwork ready — click Preview Card
-            </p>
-          ) : null}
-          <p className="mx-auto mt-3 hidden max-w-sm px-2 text-center text-[10px] leading-relaxed text-charcoal/55 sm:block">
-            After upload, your image appears in the preview above inside the border you pick. Preview Card swaps that for
-            the full Templated render (art, template frame, and text in one image).
-          </p>
+
           {previewImage ? (
             <button
               type="button"
-              className="mx-auto mt-2 hidden text-center text-xs text-charcoal underline underline-offset-2 hover:no-underline sm:block"
-              onClick={() => {
-                setPreviewByCard((prev) => {
-                  const next = { ...prev };
-                  delete next[selectedCardIndex];
-                  return next;
-                });
-                setPreviewError(null);
-              }}
+              className="mt-3 text-xs text-charcoal underline underline-offset-2 hover:no-underline disabled:opacity-50"
+              disabled={uploading || renderLoading}
+              onClick={() => cardUploadInputRef.current?.click()}
             >
-              Back to upload in frame
+              Replace artwork
             </button>
           ) : null}
 
-          {uploading ? <p className="mt-4 text-center text-xs text-charcoal/60">Uploading…</p> : null}
-          {renderLoading ? <p className="mt-4 text-center text-xs text-charcoal/60">Rendering…</p> : null}
+          {previewError ? (
+            <p className="mt-3 max-w-sm text-center text-xs text-red-800/90" role="alert">
+              {previewError}
+            </p>
+          ) : null}
+
+          <style jsx>{`
+            .studio-success-check {
+              animation: studioSuccessFade 0.9s ease forwards;
+            }
+            @keyframes studioSuccessFade {
+              0%,
+              65% {
+                opacity: 1;
+              }
+              100% {
+                opacity: 0;
+              }
+            }
+          `}</style>
         </div>
 
-        {/* mobile order 3 / desktop col 3 row 2: upload + preview */}
+        {/* mobile order 3 / desktop col 3 row 2 */}
         <div className="space-y-4 lg:col-start-3 lg:row-start-2">
           <div className="space-y-4 rounded-sm border border-charcoal/10 bg-cream/80 p-4 lg:border-0 lg:bg-transparent lg:p-0">
             <div className="border-t border-charcoal/10 pt-4 first:mt-0 first:border-t-0 first:pt-0 lg:mt-0 lg:border-t lg:pt-4">
-              <label className="block text-xs text-charcoal/70">
-                Replace artwork
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={uploading}
-                  className="mt-1 w-full text-xs text-charcoal file:mr-2 file:rounded-sm file:border file:border-charcoal/20 file:bg-cream file:px-2 file:py-1 disabled:opacity-50"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      void handleUpload(file);
-                    }
-                    e.target.value = '';
-                  }}
-                />
-              </label>
               {artworkSrc ? (
                 <button
                   type="button"
-                  disabled={uploading}
+                  disabled={uploading || renderLoading}
                   onClick={() => void handleRemoveArtwork()}
-                  className="mt-2 text-xs text-red-700/80 underline decoration-red-700/40 underline-offset-2 hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="text-xs text-red-700/80 underline decoration-red-700/40 underline-offset-2 hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Remove artwork
                 </button>
@@ -1485,60 +1575,15 @@ function StudioVisualPreviewInner({
             </div>
 
             <div className="sticky bottom-0 z-30 -mx-1 border-t border-charcoal/10 bg-cream/95 px-1 py-3 backdrop-blur-sm lg:static lg:z-auto lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-              <button
-                type="button"
-                onClick={() => void handlePreviewCard()}
-                disabled={uploading || renderLoading || !artworkSrc || !cardName.trim()}
-                className="w-full rounded-sm border border-charcoal bg-charcoal px-3 py-3 text-sm font-medium text-cream transition hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-50 lg:py-2 lg:text-xs"
-              >
-                Preview Card
-              </button>
-              {previewImage ? (
+              {selectedCardIndex >= 77 && fullDeckComplete ? (
                 <button
                   type="button"
-                  className="mt-2 w-full text-center text-xs text-charcoal underline underline-offset-2 hover:no-underline lg:mt-2"
-                  onClick={() => {
-                    setPreviewByCard((prev) => {
-                      const next = { ...prev };
-                      delete next[selectedCardIndex];
-                      return next;
-                    });
-                    setPreviewError(null);
-                  }}
+                  disabled={exportZipCheckoutBusy !== null}
+                  onClick={() => handleFullDeckExportPrimaryAction()}
+                  className="w-full rounded-sm border border-charcoal/30 bg-transparent px-3 py-2 text-xs font-medium text-charcoal transition hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Back to upload in frame
+                  {exportPaid.fullDeck ? 'Download again — Full deck' : 'Download Full Deck — NZ$14.95'}
                 </button>
-              ) : null}
-              {artworkSrc || previewImage ? (
-                <button
-                  type="button"
-                  disabled={exportZipCheckoutBusy !== null || (selectedCardIndex >= 77 && !fullDeckComplete)}
-                  onClick={() => {
-                    if (selectedCardIndex >= 77 && fullDeckComplete) {
-                      handleFullDeckExportPrimaryAction();
-                      return;
-                    }
-                    void saveAndNextCard();
-                  }}
-                  className="mt-2 w-full rounded-sm border border-charcoal/30 bg-transparent px-3 py-2 text-xs font-medium text-charcoal transition hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {selectedCardIndex >= 77 && fullDeckComplete
-                    ? exportPaid.fullDeck
-                      ? 'Download again — Full deck'
-                      : 'Download Full Deck — NZ$14.95'
-                    : selectedCardIndex >= 77
-                      ? 'All cards done!'
-                      : 'Save & Next Card →'}
-                </button>
-              ) : null}
-              <p className="mt-2 hidden text-[10px] leading-snug text-charcoal/55 lg:block">
-                Requires artwork and card name. While editing, the preview shows your upload under the site border;
-                after preview, use “Back to upload in frame” below the card to return.
-              </p>
-              {previewError ? (
-                <p className="mt-2 text-xs text-charcoal/80" role="alert">
-                  {previewError}
-                </p>
               ) : null}
             </div>
           </div>

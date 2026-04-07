@@ -215,6 +215,7 @@ type SessionBody = {
  * - { intent: 'start', borderSlug } — create deck or set border when none set yet (first-time setup).
  * - { intent: 'changeBorder', borderSlug, confirmClearRenders?: boolean } — change deck border;
  *   if any card has a stored render (`image_path`), require `confirmClearRenders: true` or get 409.
+ *   Renders are not cleared server-side; the client re-renders each card with artwork via `/api/studio/render`.
  */
 export async function POST(request: Request) {
   try {
@@ -361,7 +362,7 @@ export async function POST(request: Request) {
             error: 'CONFIRM_CLEAR_RENDERS',
             completedRenders,
             message:
-              'Changing your border will require all completed cards to be re-rendered. Confirm to clear stored renders.',
+              'Changing your border will re-render every card that has artwork. Confirm to apply the new border.',
           },
           { status: 409 },
         );
@@ -381,27 +382,12 @@ export async function POST(request: Request) {
         return new Response('Failed to update deck border', { status: 500 });
       }
 
-      if (completedRenders > 0) {
-        const { error: clearErr } = await admin
-          .from('studio_cards')
-          .update({
-            image_path: null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('deck_id', deckId);
-
-        if (clearErr) {
-          console.error('[studio-session] changeBorder clear renders:', clearErr.message);
-          return new Response('Failed to clear rendered images', { status: 500 });
-        }
-      }
-
       const cards = await loadSessionCardsSafe(admin, deckId);
       return NextResponse.json({
         deckId,
         borderSlug,
         cards,
-        clearedRenders: completedRenders > 0,
+        clearedRenders: false,
       });
     }
 
