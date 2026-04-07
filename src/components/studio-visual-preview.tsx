@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
 import type { StudioPreviewItem } from '@/lib/studio-border-options';
 import { createClient } from '@/lib/supabase-client';
@@ -24,7 +24,7 @@ type Props = {
   noBordersInCatalog?: boolean;
 };
 
-export function StudioVisualPreview({
+function StudioVisualPreviewInner({
   borders,
   borderCatalog,
   studioBasePath = '/studio',
@@ -33,6 +33,7 @@ export function StudioVisualPreview({
   noBordersInCatalog = false,
 }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const catalog = borderCatalog.length ? borderCatalog : borders;
 
   const firstSlug = catalog[0]?.slug ?? '';
@@ -92,6 +93,9 @@ export function StudioVisualPreview({
   /** Storage path in private bucket `studio-uploads` (not a display URL). */
   const artworkPathByCardRef = useRef<Record<number, string>>({});
   const selectedCardIndexRef = useRef(0);
+  /** Blocks duplicate handling for the same deck + ?border= pair (Try in Studio). */
+  const urlBorderAttemptRef = useRef<string | null>(null);
+  const prevDeckBorderSlugRef = useRef<string | null>(null);
   useEffect(() => {
     artworkByCardRef.current = artworkByCard;
   }, [artworkByCard]);
@@ -310,6 +314,19 @@ export function StudioVisualPreview({
   const previewImage = previewByCard[selectedCardIndex] ?? null;
   const [renderLoading, setRenderLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!deckBorderSlug) {
+      prevDeckBorderSlugRef.current = deckBorderSlug;
+      return;
+    }
+    const prev = prevDeckBorderSlugRef.current;
+    prevDeckBorderSlugRef.current = deckBorderSlug;
+    if (prev && prev !== deckBorderSlug) {
+      setPreviewByCard({});
+      setPreviewError(null);
+    }
+  }, [deckBorderSlug]);
 
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [showExportPaywall, setShowExportPaywall] = useState(false);
@@ -541,6 +558,89 @@ export function StudioVisualPreview({
     [previewByCard],
   );
 
+  useEffect(() => {
+    const q = searchParams.get('border')?.trim() ?? '';
+    if (flowPhase !== 'builder' || !deckId || !deckBorderSlug) return;
+
+    if (!q) {
+      urlBorderAttemptRef.current = null;
+      return;
+    }
+
+    if (!catalog.some((b) => b.slug === q)) return;
+    if (q === deckBorderSlug) {
+      urlBorderAttemptRef.current = null;
+      return;
+    }
+
+    const key = `${deckId}:${q}`;
+    if (urlBorderAttemptRef.current === key) return;
+    urlBorderAttemptRef.current = key;
+
+    const hasRender = renderedCount > 0;
+
+    void (async () => {
+      try {
+        if (!hasRender) {
+          const res = await fetch('/api/studio/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              intent: 'changeBorder',
+              borderSlug: q,
+              confirmClearRenders: false,
+            }),
+          });
+          const raw = await res.text();
+          let data: {
+            deckId?: string;
+            borderSlug?: string;
+            cards?: SessionCardRow[];
+            error?: string;
+          } = {};
+          try {
+            data = JSON.parse(raw) as typeof data;
+          } catch {
+            data = {};
+          }
+          if (!res.ok) {
+            urlBorderAttemptRef.current = null;
+            setSessionError(data.error?.trim() || `Could not match border from link (${res.status}).`);
+            return;
+          }
+          if (!data.deckId || !data.cards) {
+            urlBorderAttemptRef.current = null;
+            setSessionError('Invalid response from server.');
+            return;
+          }
+          setDeckId(data.deckId);
+          setDeckBorderSlug(data.borderSlug ?? q);
+          hydrateFromSessionCards(data.cards, { resetSelection: false });
+          router.replace(studioBasePath, { scroll: false });
+          urlBorderAttemptRef.current = null;
+          return;
+        }
+
+        setChangePickSlug(q);
+        setChangeBorderStep('warn');
+        setForceConfirmClearRenders(true);
+        setChangeBorderOpen(true);
+      } catch {
+        urlBorderAttemptRef.current = null;
+      }
+    })();
+  }, [
+    flowPhase,
+    deckId,
+    deckBorderSlug,
+    renderedCount,
+    searchParams,
+    catalog,
+    hydrateFromSessionCards,
+    router,
+    studioBasePath,
+  ]);
+
   const artworkCount = useMemo(
     () => Object.values(artworkByCard).filter((u) => typeof u === 'string' && u.length > 0).length,
     [artworkByCard],
@@ -558,11 +658,24 @@ export function StudioVisualPreview({
 
   const borderOverlaySrc = useMemo(() => {
     const b = catalog.find((x) => x.slug === deckBorderSlug) ?? catalog[0];
-    return b?.image?.trim() && b.image.trim().length > 0 ? b.image.trim() : FALLBACK_BORDER_IMAGE;
-  }, [catalog, deckBorderSlug]);
+    const transparent = b?.transparentImage?.trim();
+    const solid = b?.image?.trim();
+    /** Full composited border PNGs often include title/numeral artwork; show transparent frame until Templated render. */
+    if (!previewImage && transparent) return transparent;
+    return solid && solid.length > 0 ? solid : FALLBACK_BORDER_IMAGE;
+  }, [catalog, deckBorderSlug, previewImage]);
 
   const mobileCardSelectValue = String(selectedCardIndex);
   const loginRedirect = `${studioBasePath}${deckBorderSlug ? `?border=${encodeURIComponent(deckBorderSlug)}` : ''}`;
+
+  function dismissChangeBorderModal() {
+    setForceConfirmClearRenders(false);
+    setChangeBorderOpen(false);
+    if (searchParams.get('border')) {
+      urlBorderAttemptRef.current = null;
+      router.replace(studioBasePath, { scroll: false });
+    }
+  }
 
   async function submitChangeBorder(confirmClearRenders: boolean) {
     const slug = changePickSlug.trim();
@@ -612,6 +725,10 @@ export function StudioVisualPreview({
       setChangeBorderOpen(false);
       setChangeBorderStep('pick');
       setForceConfirmClearRenders(false);
+      urlBorderAttemptRef.current = null;
+      if (searchParams.get('border')) {
+        router.replace(studioBasePath, { scroll: false });
+      }
     } finally {
       setChangeBorderBusy(false);
     }
@@ -793,10 +910,7 @@ export function StudioVisualPreview({
                     <button
                       type="button"
                       className="rounded-sm border border-charcoal/30 px-4 py-2 text-sm text-charcoal hover:bg-charcoal/5"
-                      onClick={() => {
-                        setForceConfirmClearRenders(false);
-                        setChangeBorderOpen(false);
-                      }}
+                      onClick={() => dismissChangeBorderModal()}
                     >
                       Cancel
                     </button>
@@ -846,10 +960,7 @@ export function StudioVisualPreview({
                     <button
                       type="button"
                       className="rounded-sm border border-charcoal/30 px-4 py-2 text-sm text-charcoal hover:bg-charcoal/5"
-                      onClick={() => {
-                        setForceConfirmClearRenders(false);
-                        setChangeBorderOpen(false);
-                      }}
+                      onClick={() => dismissChangeBorderModal()}
                     >
                       Cancel
                     </button>
@@ -1071,6 +1182,7 @@ export function StudioVisualPreview({
         {/* mobile order 2 / desktop col 2 */}
         <div className="flex flex-col items-center justify-center lg:col-start-2 lg:row-span-2 lg:row-start-1">
           <div
+            key={deckBorderSlug || 'deck'}
             className={`relative w-full max-w-[280px] rounded-sm border border-charcoal/10 sm:max-w-sm lg:max-w-sm ${
               artworkSrc && !previewImage ? 'overflow-hidden bg-transparent' : 'overflow-hidden bg-cream/90'
             }`}
@@ -1354,5 +1466,20 @@ export function StudioVisualPreview({
         </div>
       </div>
     </div>
+  );
+}
+
+export function StudioVisualPreview(props: Props) {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto w-full max-w-7xl px-6 py-16">
+          <h1 className="text-2xl font-semibold text-charcoal">Studio</h1>
+          <p className="mt-4 text-sm text-charcoal/65">Loading Studio…</p>
+        </div>
+      }
+    >
+      <StudioVisualPreviewInner {...props} />
+    </Suspense>
   );
 }
