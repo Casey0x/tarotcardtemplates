@@ -1,0 +1,16 @@
+---
+description: After code changes, commit and push to main for live testing
+alwaysApply: true
+---
+
+# Git: push to main after updates
+
+When you finish a meaningful code update in this repo (feature, fix, or refactor the user cares to test):
+
+1. Stage the relevant files (`git add`).
+2. Commit with a clear message (what changed and why).
+3. Push to **`main`**: `git push origin main`.
+
+Do this as part of the same task unless the user explicitly asks not to push or to use a branch/PR. If push fails (auth, remote), report the error and suggest fixes.
+
+Do not skip push when the user wants live testing on Netlify/hosting tied to `main`.

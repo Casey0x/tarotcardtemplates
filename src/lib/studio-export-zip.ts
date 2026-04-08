@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import archiver from 'archiver';
 import { Readable } from 'node:stream';
 import { getTarotDefault } from '@/lib/tarot-cards';
-import type { StudioExportType } from '@/lib/studio-export-constants';
+import { STUDIO_EXPORT_CARD_RANGE, type StudioExportType } from '@/lib/studio-export-constants';
 
 const STUDIO_RENDERS_BUCKET = 'studio-renders';
 
@@ -29,8 +29,7 @@ function cardFileName(cardIndex: number): string {
 }
 
 function cardIndexRange(exportType: StudioExportType): { start: number; end: number } {
-  if (exportType === 'major_arcana') return { start: 0, end: 21 };
-  return { start: 0, end: 77 };
+  return STUDIO_EXPORT_CARD_RANGE[exportType];
 }
 
 export type StudioZipBuildResult =

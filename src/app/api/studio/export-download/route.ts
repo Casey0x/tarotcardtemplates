@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { Readable } from 'node:stream';
 import { createServerClient, createServiceClient } from '@/lib/supabase-server';
-import { isStudioExportType, type StudioExportType } from '@/lib/studio-export-constants';
+import {
+  hasFullDeckUnlockedByAllSuitePurchases,
+  isStudioExportType,
+  type StudioExportType,
+} from '@/lib/studio-export-constants';
 import {
   buildStudioExportZip,
   StudioExportTimeoutError,
@@ -14,6 +18,12 @@ export const runtime = 'nodejs';
 
 const EXPORT_TIMEOUT_MESSAGE =
   'Your deck is taking longer than expected — please try Download again';
+
+function userHasExportAccess(exportTypes: string[], requested: StudioExportType): boolean {
+  if (exportTypes.includes(requested)) return true;
+  if (requested === 'full_deck' && hasFullDeckUnlockedByAllSuitePurchases(exportTypes)) return true;
+  return false;
+}
 
 /** GET ?deck_id=&export_type= — re-download ZIP for an export the user already purchased. */
 export async function GET(request: Request) {
@@ -49,19 +59,19 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Deck not found' }, { status: 404 });
   }
 
-  const { data: purchase, error: purchaseErr } = await admin
+  const { data: exportRows, error: purchaseErr } = await admin
     .from('studio_exports')
-    .select('id')
+    .select('export_type')
     .eq('user_id', user.id)
-    .eq('deck_id', deckId)
-    .eq('export_type', exportType)
-    .maybeSingle();
+    .eq('deck_id', deckId);
 
   if (purchaseErr) {
-    console.error('[studio/export-download] export row', purchaseErr);
+    console.error('[studio/export-download] export rows', purchaseErr);
     return NextResponse.json({ error: 'Purchase lookup failed' }, { status: 500 });
   }
-  if (!purchase?.id) {
+
+  const exportTypes = (exportRows ?? []).map((r) => String(r.export_type));
+  if (!userHasExportAccess(exportTypes, exportType)) {
     return NextResponse.json({ error: 'No purchase found for this export' }, { status: 403 });
   }
 

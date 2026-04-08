@@ -6,9 +6,23 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
 import type { StudioPreviewItem } from '@/lib/studio-border-options';
 import { createClient } from '@/lib/supabase-client';
+import type { StudioExportType } from '@/lib/studio-export-constants';
 import { getTarotDefault, TAROT_CARDS_78, TAROT_SECTIONS } from '@/lib/tarot-cards';
 
 export type { StudioPreviewItem } from '@/lib/studio-border-options';
+
+/** Must match sidebar / mobile select: truthy `previewByCard[index]` means a saved render exists. */
+function hasSavedPreviewRender(previewByCard: Record<number, string>, index: number): boolean {
+  return Boolean(previewByCard[index]);
+}
+
+type StudioSuiteBannerKey =
+  | 'full_deck'
+  | 'major_arcana'
+  | 'wands'
+  | 'cups'
+  | 'swords'
+  | 'pentacles';
 
 type Props = {
   borders: StudioPreviewItem[];
@@ -333,8 +347,16 @@ function StudioVisualPreviewInner({
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [showExportPaywall, setShowExportPaywall] = useState(false);
   const [exportCheckoutKind, setExportCheckoutKind] = useState<null | 'print'>(null);
-  const [exportZipCheckoutBusy, setExportZipCheckoutBusy] = useState<null | 'major_arcana' | 'full_deck'>(null);
-  const [exportPaid, setExportPaid] = useState({ majorArcana: false, fullDeck: false });
+  const [exportZipCheckoutBusy, setExportZipCheckoutBusy] = useState<null | StudioExportType>(null);
+  const [exportPaid, setExportPaid] = useState({
+    majorArcana: false,
+    wands: false,
+    cups: false,
+    swords: false,
+    pentacles: false,
+    fullDeck: false,
+    fullDeckUnlockedByAllSuites: false,
+  });
 
   async function blobUrlToDataUrl(blobUrl: string): Promise<string> {
     const res = await fetch(blobUrl);
@@ -352,7 +374,7 @@ function StudioVisualPreviewInner({
   function findNextIncompleteCardIndex(fromIndex: number, previews: Record<number, string>): number {
     for (let step = 1; step < 78; step++) {
       const idx = (fromIndex + step) % 78;
-      if (!previews[idx]) return idx;
+      if (!hasSavedPreviewRender(previews, idx)) return idx;
     }
     return fromIndex;
   }
@@ -613,29 +635,127 @@ function StudioVisualPreviewInner({
     [renderCardWithArtwork],
   );
 
-  const renderedCount = useMemo(
-    () => Object.values(previewByCard).filter((u) => typeof u === 'string' && u.length > 0).length,
-    [previewByCard],
-  );
+  const renderedCount = useMemo(() => {
+    let n = 0;
+    for (let i = 0; i < 78; i++) {
+      if (hasSavedPreviewRender(previewByCard, i)) n++;
+    }
+    return n;
+  }, [previewByCard]);
 
   const majorArcanaComplete = useMemo(() => {
     for (let i = 0; i <= 21; i++) {
-      if (!previewByCard[i]) return false;
+      if (!hasSavedPreviewRender(previewByCard, i)) return false;
+    }
+    return true;
+  }, [previewByCard]);
+
+  const wandsComplete = useMemo(() => {
+    for (let i = 22; i <= 35; i++) {
+      if (!hasSavedPreviewRender(previewByCard, i)) return false;
+    }
+    return true;
+  }, [previewByCard]);
+
+  const cupsComplete = useMemo(() => {
+    for (let i = 36; i <= 49; i++) {
+      if (!hasSavedPreviewRender(previewByCard, i)) return false;
+    }
+    return true;
+  }, [previewByCard]);
+
+  const swordsComplete = useMemo(() => {
+    for (let i = 50; i <= 63; i++) {
+      if (!hasSavedPreviewRender(previewByCard, i)) return false;
+    }
+    return true;
+  }, [previewByCard]);
+
+  const pentaclesComplete = useMemo(() => {
+    for (let i = 64; i <= 77; i++) {
+      if (!hasSavedPreviewRender(previewByCard, i)) return false;
     }
     return true;
   }, [previewByCard]);
 
   const fullDeckComplete = useMemo(() => renderedCount === 78, [renderedCount]);
 
+  /**
+   * Which export milestone banners to show. Suites are evaluated independently (e.g. Wands can
+   * complete before Major Arcana). When all 78 cards have previews, only the full-deck banner is shown.
+   */
+  const suiteBannersToShow = useMemo((): readonly StudioSuiteBannerKey[] => {
+    if (flowPhase !== 'builder') return [];
+    if (fullDeckComplete) return ['full_deck'];
+    const out: StudioSuiteBannerKey[] = [];
+    if (majorArcanaComplete) out.push('major_arcana');
+    if (wandsComplete) out.push('wands');
+    if (cupsComplete) out.push('cups');
+    if (swordsComplete) out.push('swords');
+    if (pentaclesComplete) out.push('pentacles');
+    return out;
+  }, [
+    flowPhase,
+    fullDeckComplete,
+    majorArcanaComplete,
+    wandsComplete,
+    cupsComplete,
+    swordsComplete,
+    pentaclesComplete,
+  ]);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
+    console.log('[Studio suite completion]', {
+      renderedCount,
+      suiteBannersToShow,
+      majorArcanaComplete,
+      wandsComplete,
+      cupsComplete,
+      swordsComplete,
+      pentaclesComplete,
+      fullDeckComplete,
+    });
+  }, [
+    renderedCount,
+    suiteBannersToShow,
+    majorArcanaComplete,
+    wandsComplete,
+    cupsComplete,
+    swordsComplete,
+    pentaclesComplete,
+    fullDeckComplete,
+  ]);
+
   useEffect(() => {
     if (!deckId || flowPhase !== 'builder') return;
     let cancelled = false;
     void fetch(`/api/studio/export-status?deckId=${encodeURIComponent(deckId)}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((j: { paidMajorArcana?: boolean; paidFullDeck?: boolean } | null) => {
-        if (cancelled || !j) return;
-        setExportPaid({ majorArcana: !!j.paidMajorArcana, fullDeck: !!j.paidFullDeck });
-      });
+      .then(
+        (
+          j: {
+            paidMajorArcana?: boolean;
+            paidWands?: boolean;
+            paidCups?: boolean;
+            paidSwords?: boolean;
+            paidPentacles?: boolean;
+            paidFullDeck?: boolean;
+            fullDeckUnlockedByAllSuites?: boolean;
+          } | null,
+        ) => {
+          if (cancelled || !j) return;
+          setExportPaid({
+            majorArcana: !!j.paidMajorArcana,
+            wands: !!j.paidWands,
+            cups: !!j.paidCups,
+            swords: !!j.paidSwords,
+            pentacles: !!j.paidPentacles,
+            fullDeck: !!j.paidFullDeck,
+            fullDeckUnlockedByAllSuites: !!j.fullDeckUnlockedByAllSuites,
+          });
+        },
+      );
     return () => {
       cancelled = true;
     };
@@ -753,7 +873,7 @@ function StudioVisualPreviewInner({
   const mobileCardSelectValue = String(selectedCardIndex);
   const loginRedirect = `${studioBasePath}${deckBorderSlug ? `?border=${encodeURIComponent(deckBorderSlug)}` : ''}`;
 
-  async function startStudioZipExportCheckout(exportType: 'major_arcana' | 'full_deck') {
+  async function startStudioZipExportCheckout(exportType: StudioExportType) {
     const id = deckId;
     if (!id) return;
     setExportZipCheckoutBusy(exportType);
@@ -778,28 +898,50 @@ function StudioVisualPreviewInner({
     }
   }
 
-  function triggerFreeStudioExportDownload(exportType: 'major_arcana' | 'full_deck') {
+  function triggerFreeStudioExportDownload(exportType: StudioExportType) {
     const id = deckId;
     if (!id) return;
     window.location.href = `/api/studio/export-download?deck_id=${encodeURIComponent(id)}&export_type=${encodeURIComponent(exportType)}`;
   }
 
   function handleFullDeckExportPrimaryAction() {
-    if (exportPaid.fullDeck) {
+    if (exportPaid.fullDeck || exportPaid.fullDeckUnlockedByAllSuites) {
       triggerFreeStudioExportDownload('full_deck');
       return;
     }
     void startStudioZipExportCheckout('full_deck');
   }
 
-  function continueToMinorArcanaNav() {
-    void selectCard(22);
+  function continueToSuiteNav(cardIndex: number) {
+    void selectCard(cardIndex);
     requestAnimationFrame(() => {
-      document.querySelector(`[data-studio-card-index="22"]`)?.scrollIntoView({
-        block: 'nearest',
-        behavior: 'smooth',
-      });
+      document
+        .querySelector(`[data-studio-card-index="${cardIndex}"]`)
+        ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
+  }
+
+  function continueToMinorArcanaNav() {
+    continueToSuiteNav(22);
+  }
+
+  function paidForExportType(t: StudioExportType): boolean {
+    switch (t) {
+      case 'major_arcana':
+        return exportPaid.majorArcana;
+      case 'wands':
+        return exportPaid.wands;
+      case 'cups':
+        return exportPaid.cups;
+      case 'swords':
+        return exportPaid.swords;
+      case 'pentacles':
+        return exportPaid.pentacles;
+      case 'full_deck':
+        return exportPaid.fullDeck || exportPaid.fullDeckUnlockedByAllSuites;
+      default:
+        return false;
+    }
   }
 
   function dismissChangeBorderModal() {
@@ -1275,7 +1417,7 @@ function StudioVisualPreviewInner({
         </p>
       </div>
 
-      {flowPhase === 'builder' && fullDeckComplete ? (
+      {flowPhase === 'builder' && suiteBannersToShow.includes('full_deck') ? (
         <div className="mb-4 w-full rounded-sm border border-emerald-800/20 bg-emerald-50/90 px-4 py-4">
           <p className="text-sm font-semibold text-charcoal">🎉 Your full deck is complete!</p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -1287,7 +1429,7 @@ function StudioVisualPreviewInner({
             >
               {exportZipCheckoutBusy === 'full_deck'
                 ? 'Redirecting…'
-                : exportPaid.fullDeck
+                : paidForExportType('full_deck')
                   ? 'Download again — Full deck (ZIP)'
                   : 'Download Full Deck — NZ$14.95'}
             </button>
@@ -1295,33 +1437,33 @@ function StudioVisualPreviewInner({
               type="button"
               disabled={exportZipCheckoutBusy !== null}
               onClick={() =>
-                exportPaid.majorArcana
-                  ? triggerFreeStudioExportDownload('major_arcana')
-                  : void startStudioZipExportCheckout('major_arcana')
+                paidForExportType('pentacles')
+                  ? triggerFreeStudioExportDownload('pentacles')
+                  : void startStudioZipExportCheckout('pentacles')
               }
               className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportZipCheckoutBusy === 'major_arcana'
+              {exportZipCheckoutBusy === 'pentacles'
                 ? 'Redirecting…'
-                : exportPaid.majorArcana
-                  ? 'Download again — Major Arcana (ZIP)'
-                  : 'Download Major Arcana only — NZ$7.95'}
+                : paidForExportType('pentacles')
+                  ? 'Download again — Pentacles (ZIP)'
+                  : 'Download Pentacles only — NZ$3.95'}
             </button>
           </div>
         </div>
       ) : null}
 
-      {flowPhase === 'builder' && majorArcanaComplete && !fullDeckComplete ? (
+      {flowPhase === 'builder' && suiteBannersToShow.includes('major_arcana') ? (
         <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
           <p className="text-sm font-semibold text-charcoal">
-            🎉 Major Arcana complete! Download your 22 cards for NZ$7.95 or continue to build your full deck.
+            🎉 Major Arcana complete! Download your 22 cards for NZ$7.95 or continue to Minor Arcana
           </p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
               disabled={exportZipCheckoutBusy !== null}
               onClick={() =>
-                exportPaid.majorArcana
+                paidForExportType('major_arcana')
                   ? triggerFreeStudioExportDownload('major_arcana')
                   : void startStudioZipExportCheckout('major_arcana')
               }
@@ -1329,16 +1471,141 @@ function StudioVisualPreviewInner({
             >
               {exportZipCheckoutBusy === 'major_arcana'
                 ? 'Redirecting…'
-                : exportPaid.majorArcana
+                : paidForExportType('major_arcana')
                   ? 'Download again — Major Arcana (ZIP)'
                   : 'Download Major Arcana — NZ$7.95'}
             </button>
             <button
               type="button"
-              onClick={() => continueToMinorArcanaNav()}
+              onClick={() => continueToSuiteNav(22)}
               className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5"
             >
               Continue to Minor Arcana →
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {flowPhase === 'builder' && suiteBannersToShow.includes('wands') ? (
+        <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
+          <p className="text-sm font-semibold text-charcoal">
+            🎉 Wands complete! Download your 14 Wands cards for NZ$3.95
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <button
+              type="button"
+              disabled={exportZipCheckoutBusy !== null}
+              onClick={() =>
+                paidForExportType('wands')
+                  ? triggerFreeStudioExportDownload('wands')
+                  : void startStudioZipExportCheckout('wands')
+              }
+              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exportZipCheckoutBusy === 'wands'
+                ? 'Redirecting…'
+                : paidForExportType('wands')
+                  ? 'Download again — Wands (ZIP)'
+                  : 'Download Wands — NZ$3.95'}
+            </button>
+            <button
+              type="button"
+              onClick={() => continueToSuiteNav(36)}
+              className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5"
+            >
+              Continue to Cups →
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {flowPhase === 'builder' && suiteBannersToShow.includes('cups') ? (
+        <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
+          <p className="text-sm font-semibold text-charcoal">
+            🎉 Cups complete! Download your 14 Cups cards for NZ$3.95
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <button
+              type="button"
+              disabled={exportZipCheckoutBusy !== null}
+              onClick={() =>
+                paidForExportType('cups')
+                  ? triggerFreeStudioExportDownload('cups')
+                  : void startStudioZipExportCheckout('cups')
+              }
+              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exportZipCheckoutBusy === 'cups'
+                ? 'Redirecting…'
+                : paidForExportType('cups')
+                  ? 'Download again — Cups (ZIP)'
+                  : 'Download Cups — NZ$3.95'}
+            </button>
+            <button
+              type="button"
+              onClick={() => continueToSuiteNav(50)}
+              className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5"
+            >
+              Continue to Swords →
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {flowPhase === 'builder' && suiteBannersToShow.includes('swords') ? (
+        <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
+          <p className="text-sm font-semibold text-charcoal">
+            🎉 Swords complete! Download your 14 Swords cards for NZ$3.95
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <button
+              type="button"
+              disabled={exportZipCheckoutBusy !== null}
+              onClick={() =>
+                paidForExportType('swords')
+                  ? triggerFreeStudioExportDownload('swords')
+                  : void startStudioZipExportCheckout('swords')
+              }
+              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exportZipCheckoutBusy === 'swords'
+                ? 'Redirecting…'
+                : paidForExportType('swords')
+                  ? 'Download again — Swords (ZIP)'
+                  : 'Download Swords — NZ$3.95'}
+            </button>
+            <button
+              type="button"
+              onClick={() => continueToSuiteNav(64)}
+              className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5"
+            >
+              Continue to Pentacles →
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {flowPhase === 'builder' && suiteBannersToShow.includes('pentacles') ? (
+        <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
+          <p className="text-sm font-semibold text-charcoal">
+            🎉 Pentacles complete! Download your 14 Pentacles cards for NZ$3.95
+          </p>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <button
+              type="button"
+              disabled={exportZipCheckoutBusy !== null}
+              onClick={() =>
+                paidForExportType('pentacles')
+                  ? triggerFreeStudioExportDownload('pentacles')
+                  : void startStudioZipExportCheckout('pentacles')
+              }
+              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {exportZipCheckoutBusy === 'pentacles'
+                ? 'Redirecting…'
+                : paidForExportType('pentacles')
+                  ? 'Download again — Pentacles (ZIP)'
+                  : 'Download Pentacles — NZ$3.95'}
             </button>
           </div>
         </div>
@@ -1582,7 +1849,9 @@ function StudioVisualPreviewInner({
                   onClick={() => handleFullDeckExportPrimaryAction()}
                   className="w-full rounded-sm border border-charcoal/30 bg-transparent px-3 py-2 text-xs font-medium text-charcoal transition hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {exportPaid.fullDeck ? 'Download again — Full deck' : 'Download Full Deck — NZ$14.95'}
+                  {paidForExportType('full_deck')
+                    ? 'Download again — Full deck'
+                    : 'Download Full Deck — NZ$14.95'}
                 </button>
               ) : null}
             </div>
@@ -1602,7 +1871,7 @@ function StudioVisualPreviewInner({
                 </h2>
                 <ul className="mt-1 space-y-0.5">
                   {TAROT_CARDS_78.slice(section.startIndex, section.endIndex).map((card) => {
-                    const done = Boolean(previewByCard[card.index]);
+                    const done = hasSavedPreviewRender(previewByCard, card.index);
                     const active = selectedCardIndex === card.index;
                     return (
                       <li key={card.index}>
@@ -1650,7 +1919,7 @@ function StudioVisualPreviewInner({
                     label={section.title === 'Major Arcana' ? 'Major Arcana' : `Minor · ${section.title}`}
                   >
                     {TAROT_CARDS_78.slice(section.startIndex, section.endIndex).map((card) => {
-                      const done = Boolean(previewByCard[card.index]);
+                      const done = hasSavedPreviewRender(previewByCard, card.index);
                       return (
                         <option key={card.index} value={card.index}>
                           {done ? '✓ ' : ''}

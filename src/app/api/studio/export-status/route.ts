@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createServerClient, createServiceClient } from '@/lib/supabase-server';
+import { hasFullDeckUnlockedByAllSuitePurchases } from '@/lib/studio-export-constants';
 
 export const dynamic = 'force-dynamic';
 
-/** GET ?deckId= — whether the signed-in user has paid for each Studio export type for this deck. */
+/** GET ?deckId= — paid Studio export flags per deck for the signed-in user. */
 export async function GET(request: Request) {
   const supabase = await createServerClient();
   const {
@@ -45,8 +46,23 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Lookup failed' }, { status: 500 });
   }
 
-  const paidMajorArcana = (rows ?? []).some((r) => r.export_type === 'major_arcana');
-  const paidFullDeck = (rows ?? []).some((r) => r.export_type === 'full_deck');
+  const types = (rows ?? []).map((r) => r.export_type);
 
-  return NextResponse.json({ paidMajorArcana, paidFullDeck });
+  const paidMajorArcana = types.includes('major_arcana');
+  const paidWands = types.includes('wands');
+  const paidCups = types.includes('cups');
+  const paidSwords = types.includes('swords');
+  const paidPentacles = types.includes('pentacles');
+  const paidFullDeck = types.includes('full_deck');
+  const fullDeckUnlockedByAllSuites = hasFullDeckUnlockedByAllSuitePurchases(types);
+
+  return NextResponse.json({
+    paidMajorArcana,
+    paidWands,
+    paidCups,
+    paidSwords,
+    paidPentacles,
+    paidFullDeck,
+    fullDeckUnlockedByAllSuites,
+  });
 }
