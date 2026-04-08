@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import Stripe from 'stripe';
@@ -237,6 +238,9 @@ export async function POST(request: Request) {
       templateSlug,
       purchaseType,
       templateName,
+      ...(purchaseType === 'template'
+        ? { orderReference: `TPL-${randomBytes(4).toString('hex').toUpperCase()}` }
+        : {}),
     },
     ...(purchaseType === 'print'
       ? {
