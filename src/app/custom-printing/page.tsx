@@ -330,57 +330,93 @@ export default function CustomPrintingPage() {
         </div>
       </section>
 
-      {/* CardCrafter interactive experience */}
+      {/* DeckWhisper interactive experience */}
       <section className="px-6 py-20 md:px-8">
         <div
           className="mx-auto max-w-6xl rounded-lg border px-8 py-12 shadow-[0_12px_48px_rgba(0,0,0,0.35)] md:px-12 md:py-14"
           style={{ backgroundColor: SPEC_PANEL, borderColor: CARD_BORDER }}
         >
-          <h2
-            className="font-serif text-2xl font-semibold tracking-tight md:text-[1.75rem]"
-            style={{ color: HEADING }}
-          >
-            Turn Your Deck Into an Interactive Experience
-          </h2>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed" style={{ color: CARD_BODY }}>
-            Add a QR code to your deck and connect it to a digital experience.
-          </p>
-          <ul className="mt-8 max-w-xl space-y-3 text-sm leading-relaxed" style={{ color: BODY }}>
-            {[
-              'Teach players how to play',
-              'Add story, lore, or expansions',
-              'Connect your deck to AI-powered gameplay',
-            ].map((line) => (
-              <li key={line} className="flex gap-3">
-                <span style={{ color: FEATURED_GOLD }} aria-hidden>
-                  ✦
+          <div className="flex flex-col items-stretch gap-10 lg:flex-row lg:items-center lg:gap-12">
+            <div className="order-2 min-w-0 flex-1 space-y-6 lg:order-1">
+              <h2
+                className="font-serif text-2xl font-semibold tracking-tight md:text-[1.75rem]"
+                style={{ color: HEADING }}
+              >
+                Turn Your Deck Into an Interactive Experience
+              </h2>
+              <p className="max-w-2xl text-base leading-relaxed" style={{ color: CARD_BODY }}>
+                Add a QR code to your deck and connect it to a digital experience with{' '}
+                <span className="font-medium" style={{ color: ACCENT }}>
+                  DeckWhisper
                 </span>
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
-          <p
-            className="mt-8 inline-block rounded-sm border px-4 py-2 text-sm font-medium"
-            style={{
-              borderColor: `${FEATURED_GOLD}66`,
-              backgroundColor: 'rgba(212, 175, 55, 0.08)',
-              color: ACCENT,
-            }}
-          >
-            Included with CardCrafter-powered decks
-          </p>
-          <div className="mt-8">
-            <Link
-              href="#"
-              className="inline-flex rounded-sm border px-6 py-3.5 text-sm font-semibold transition-all hover:brightness-105"
-              style={{
-                borderColor: FEATURED_GOLD,
-                backgroundColor: FEATURED_GOLD,
-                color: BTN_DARK_TEXT,
-              }}
-            >
-              Enable CardCrafter Integration
-            </Link>
+                .
+              </p>
+              <ul className="max-w-xl space-y-3 text-sm leading-relaxed" style={{ color: BODY }}>
+                {[
+                  'Teach players how to play',
+                  'Add story, lore, or expansions',
+                  'Connect your deck to AI-powered gameplay',
+                ].map((line) => (
+                  <li key={line} className="flex gap-3">
+                    <span style={{ color: FEATURED_GOLD }} aria-hidden>
+                      ✦
+                    </span>
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+              <p
+                className="inline-block rounded-sm border px-4 py-2 text-sm font-medium"
+                style={{
+                  borderColor: `${FEATURED_GOLD}66`,
+                  backgroundColor: 'rgba(212, 175, 55, 0.08)',
+                  color: ACCENT,
+                }}
+              >
+                Included with DeckWhisper-powered decks
+              </p>
+              <div>
+                <Link
+                  href="https://www.nextcard.ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex rounded-sm border px-6 py-3.5 text-sm font-semibold transition-all hover:brightness-105"
+                  style={{
+                    borderColor: FEATURED_GOLD,
+                    backgroundColor: FEATURED_GOLD,
+                    color: BTN_DARK_TEXT,
+                  }}
+                >
+                  Enable DeckWhisper Integration
+                </Link>
+              </div>
+            </div>
+
+            <div className="order-1 flex w-full shrink-0 justify-center lg:order-2 lg:w-auto lg:justify-end">
+              <div
+                className="relative rounded-2xl border px-4 py-5 shadow-[0_0_36px_rgba(212,175,55,0.35),0_0_72px_rgba(199,169,107,0.12)]"
+                style={{
+                  borderColor: 'rgba(212, 175, 55, 0.35)',
+                  background: 'radial-gradient(ellipse at 50% 40%, rgba(212,175,55,0.12) 0%, rgba(0,0,0,0.65) 55%, #0c0b0a 100%)',
+                }}
+              >
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-2xl opacity-70"
+                  style={{
+                    boxShadow: 'inset 0 0 40px rgba(212, 175, 55, 0.15)',
+                  }}
+                  aria-hidden
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element -- blend mode for black-keyed mascot art */}
+                <img
+                  src="/mascot.png"
+                  alt="DeckWhisper — luminous moth mascot with tarot cards"
+                  width={200}
+                  height={400}
+                  className="relative z-[1] mx-auto h-auto w-[200px] max-w-full mix-blend-screen drop-shadow-[0_0_24px_rgba(255,245,220,0.45)]"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
