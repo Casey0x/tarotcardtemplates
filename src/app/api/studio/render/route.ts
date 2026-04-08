@@ -146,6 +146,8 @@ export async function POST(request: Request) {
     const artwork = typeof body.artwork === 'string' ? body.artwork : '';
     const card_name = typeof body.card_name === 'string' ? body.card_name : '';
     const numeral = typeof body.numeral === 'string' ? body.numeral : '';
+    const artworkIdBody =
+      typeof body.artworkId === 'string' && body.artworkId.trim().length > 0 ? body.artworkId.trim() : null;
 
     const borderSlugFromDeck = String(
       (deckRow as { border_slug?: string | null } | null)?.border_slug ?? '',
@@ -245,23 +247,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const upsertPayload = {
-      deck_id: deckId,
-      user_id: user.id,
-      card_index: cardIndex,
-      /** Required on many DBs — see supabase/migrations/20260404180000_studio_persistent_projects.sql */
-      card_key: String(cardIndex),
-      card_name,
-      numeral: numeral || null,
-      image_path: filePath,
-      updated_at: new Date().toISOString(),
-    };
-
     let existingImageUrl: string | null = null;
+    let existingArtworkId: string | null = null;
     try {
       const { data: existingCard, error: existingErr } = await supabase
         .from('studio_cards')
-        .select('image_url')
+        .select('image_url, artwork_id')
         .eq('deck_id', deckId)
         .eq('card_index', cardIndex)
         .maybeSingle();
@@ -282,6 +273,10 @@ export async function POST(request: Request) {
         );
       }
       existingImageUrl = existingCard?.image_url ?? null;
+      existingArtworkId =
+        existingCard?.artwork_id != null && String(existingCard.artwork_id).trim().length > 0
+          ? String(existingCard.artwork_id).trim()
+          : null;
     } catch (selectThrow) {
       logRenderStep('studio_cards_select_throw', { err: serializeClientError(selectThrow) });
       return NextResponse.json(
@@ -293,6 +288,21 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
+
+    const resolvedArtworkId = artworkIdBody ?? existingArtworkId;
+
+    const upsertPayload = {
+      deck_id: deckId,
+      user_id: user.id,
+      card_index: cardIndex,
+      /** Required on many DBs — see supabase/migrations/20260404180000_studio_persistent_projects.sql */
+      card_key: String(cardIndex),
+      card_name,
+      numeral: numeral || null,
+      image_path: filePath,
+      artwork_id: resolvedArtworkId,
+      updated_at: new Date().toISOString(),
+    };
 
     try {
       const { error: upsertErr } = await supabase.from('studio_cards').upsert(

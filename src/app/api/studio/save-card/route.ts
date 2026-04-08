@@ -20,6 +20,8 @@ export async function POST(request: Request) {
     numeral?: string;
     /** Storage path in `studio-uploads`, or null to remove artwork */
     artworkPath?: string | null;
+    /** Library row — takes precedence over artworkPath when set */
+    artworkId?: string | null;
   };
   try {
     body = (await request.json()) as typeof body;
@@ -53,26 +55,47 @@ export async function POST(request: Request) {
 
   const { data: indexRow } = await admin
     .from('studio_cards')
-    .select('id, image_url')
+    .select('id, image_url, artwork_id')
     .eq('deck_id', deckId)
     .eq('card_index', cardIndex)
     .maybeSingle();
 
-  const existingRow: { id: string; image_url: string | null } | null = indexRow?.id
-    ? { id: indexRow.id, image_url: indexRow.image_url ?? null }
+  const existingRow: { id: string; image_url: string | null; artwork_id: string | null } | null = indexRow?.id
+    ? {
+        id: indexRow.id,
+        image_url: indexRow.image_url ?? null,
+        artwork_id: indexRow.artwork_id ?? null,
+      }
     : null;
 
   let nextImageUrl = existingRow?.image_url ?? null;
+  let nextArtworkId: string | null = existingRow?.artwork_id ?? null;
 
-  if (body.artworkPath !== undefined) {
-    if (body.artworkPath === null) {
-      const prev = existingRow?.image_url;
-      if (prev && isLikelySupabaseStoragePath(prev)) {
-        await admin.storage.from('studio-uploads').remove([prev]);
-      }
+  if (body.artworkId !== undefined) {
+    if (body.artworkId === null || body.artworkId === '') {
       nextImageUrl = null;
+      nextArtworkId = null;
+    } else {
+      const aid = String(body.artworkId).trim();
+      const { data: art, error: artErr } = await admin
+        .from('studio_artwork')
+        .select('id, file_path')
+        .eq('id', aid)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (artErr || !art?.file_path) {
+        return NextResponse.json({ error: 'Artwork not found' }, { status: 400 });
+      }
+      nextImageUrl = String(art.file_path).trim();
+      nextArtworkId = art.id;
+    }
+  } else if (body.artworkPath !== undefined) {
+    if (body.artworkPath === null) {
+      nextImageUrl = null;
+      nextArtworkId = null;
     } else {
       nextImageUrl = body.artworkPath;
+      nextArtworkId = null;
     }
   }
 
@@ -85,6 +108,7 @@ export async function POST(request: Request) {
     card_name: body.cardName ?? null,
     numeral: body.numeral ?? null,
     image_url: nextImageUrl,
+    artwork_id: nextArtworkId,
     updated_at: new Date().toISOString(),
   };
 
@@ -112,5 +136,16 @@ export async function POST(request: Request) {
     console.warn('[studio/save-card] deck touch', touchErr.message);
   }
 
-  return NextResponse.json({ ok: true });
+  let signedPreviewUrl: string | null = null;
+  if (nextImageUrl && isLikelySupabaseStoragePath(nextImageUrl)) {
+    const { data: s } = await admin.storage.from('studio-uploads').createSignedUrl(nextImageUrl, 3600);
+    signedPreviewUrl = s?.signedUrl ?? null;
+  }
+
+  return NextResponse.json({
+    ok: true,
+    artwork_id: nextArtworkId,
+    image_url: signedPreviewUrl,
+    artwork_path: nextImageUrl && isLikelySupabaseStoragePath(nextImageUrl) ? nextImageUrl : null,
+  });
 }

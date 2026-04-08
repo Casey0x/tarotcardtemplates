@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase-client';
 import { BORDER_TEMPLATES } from '@/data/border-templates-static';
+import { AccountArtworkLibrary } from '@/components/account-artwork-library';
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
 
 type DeckRow = {
@@ -299,6 +300,8 @@ export default function AccountPage() {
           </ul>
         )}
       </section>
+
+      <AccountArtworkLibrary />
 
       <section>
         <h2 className="text-xl font-semibold text-charcoal">Your Deck</h2>

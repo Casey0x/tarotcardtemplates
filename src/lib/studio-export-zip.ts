@@ -2,7 +2,6 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import archiver from 'archiver';
 import { Readable } from 'node:stream';
 import { getTarotDefault } from '@/lib/tarot-cards';
-import { STUDIO_EXPORT_CARD_RANGE, type StudioExportType } from '@/lib/studio-export-constants';
 
 const STUDIO_RENDERS_BUCKET = 'studio-renders';
 
@@ -28,25 +27,18 @@ function cardFileName(cardIndex: number): string {
   return `${ord}-${slug}.png`;
 }
 
-function cardIndexRange(exportType: StudioExportType): { start: number; end: number } {
-  return STUDIO_EXPORT_CARD_RANGE[exportType];
-}
-
 export type StudioZipBuildResult =
   | { ok: true; nodeStream: Readable }
   | { ok: false; error: string; missingIndices: number[] };
 
 /**
- * Builds a ZIP of PNG renders using parallel downloads and a streaming ZIP (archiver).
- * The returned Node `Readable` should be converted with `Readable.toWeb()` for `NextResponse`.
+ * ZIP all cards that have a saved render (`image_path`) for this deck, in card index order.
+ * Free download — no suite gating.
  */
-export async function buildStudioExportZip(
+export async function buildStudioDeckZipAllRendered(
   admin: SupabaseClient,
   deckId: string,
-  exportType: StudioExportType,
 ): Promise<StudioZipBuildResult> {
-  const { start, end } = cardIndexRange(exportType);
-
   const { data: rows, error } = await admin
     .from('studio_cards')
     .select('card_index, image_path')
@@ -65,32 +57,29 @@ export async function buildStudioExportZip(
           ? Number(row.card_index)
           : NaN;
     const path = row.image_path != null ? String(row.image_path).trim() : '';
-    if (Number.isFinite(idx) && idx >= start && idx <= end && path) {
+    if (Number.isFinite(idx) && idx >= 0 && idx <= 77 && path) {
       byIndex.set(idx, path);
     }
   }
 
-  const missing: number[] = [];
-  for (let i = start; i <= end; i++) {
-    if (!byIndex.has(i)) missing.push(i);
-  }
-  if (missing.length > 0) {
+  if (byIndex.size === 0) {
     return {
       ok: false,
-      error: 'Not all required cards have a saved render in storage.',
-      missingIndices: missing,
+      error: 'No rendered cards to export yet.',
+      missingIndices: [],
     };
   }
 
-  const indices: number[] = [];
-  for (let i = start; i <= end; i++) indices.push(i);
+  const indices = [...byIndex.keys()].sort((a, b) => a - b);
 
   let downloaded: { index: number; buffer: Buffer }[];
   try {
     downloaded = await Promise.all(
       indices.map(async (i) => {
         const path = byIndex.get(i)!;
-        const { data: blob, error: dlErr } = await admin.storage.from(STUDIO_RENDERS_BUCKET).download(path);
+        const { data: blob, error: dlErr } = await admin.storage
+          .from(STUDIO_RENDERS_BUCKET)
+          .download(path);
         if (dlErr || !blob) {
           throw new Error(dlErr?.message ?? `Failed to download render for card ${i + 1}`);
         }

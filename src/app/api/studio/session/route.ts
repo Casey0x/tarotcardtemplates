@@ -14,6 +14,7 @@ type SessionCardPayload = {
   numeral: string | null;
   image_url: string | null;
   artwork_path: string | null;
+  artwork_id: string | null;
   rendered_url: string | null;
 };
 
@@ -54,6 +55,7 @@ async function loadSessionCardsSafe(
           const numeral = row.numeral != null ? String(row.numeral) : null;
           const imageUrlRaw = row.image_url != null ? String(row.image_url) : null;
           const imagePathRaw = row.image_path != null ? String(row.image_path) : null;
+          const artworkIdRaw = row.artwork_id != null ? String(row.artwork_id) : null;
 
           const artwork_path =
             imageUrlRaw && isLikelySupabaseStoragePath(imageUrlRaw) ? imageUrlRaw : null;
@@ -77,6 +79,7 @@ async function loadSessionCardsSafe(
             numeral,
             image_url,
             artwork_path,
+            artwork_id: artworkIdRaw && artworkIdRaw.length > 0 ? artworkIdRaw : null,
             rendered_url,
           };
         }),
@@ -172,6 +175,7 @@ export async function GET(request: Request) {
       .from('studio_decks')
       .select('id, border_slug')
       .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
       .limit(1);
 
     if (fetchError) {
@@ -214,7 +218,7 @@ type SessionBody = {
  * POST
  * - { intent: 'start', borderSlug } — create deck or set border when none set yet (first-time setup).
  * - { intent: 'changeBorder', borderSlug, confirmClearRenders?: boolean } — change deck border;
- *   if any card has a stored render (`image_path`), require `confirmClearRenders: true` or get 409.
+ *   if any card has a stored render (`image_path`), require `confirmClearRenders: true` or response includes `needsConfirm`.
  *   Renders are not cleared server-side; the client re-renders each card with artwork via `/api/studio/render`.
  */
 export async function POST(request: Request) {
@@ -240,6 +244,7 @@ export async function POST(request: Request) {
       .from('studio_decks')
       .select('id, border_slug')
       .eq('user_id', user.id)
+      .order('updated_at', { ascending: false })
       .limit(1);
 
     if (fetchError) {
@@ -271,10 +276,18 @@ export async function POST(request: Request) {
             : null;
 
         if (current && current !== borderSlug) {
-          return NextResponse.json(
-            { error: 'Deck already has a border. Use changeBorder to switch.' },
-            { status: 409 },
-          );
+          const cards = await loadSessionCardsSafe(admin, existingDeck.id);
+          console.warn('[studio-session] start: border mismatch; returning current deck', {
+            requested: borderSlug,
+            current,
+          });
+          return NextResponse.json({
+            deckId: existingDeck.id,
+            borderSlug: current,
+            cards,
+            borderMismatch: true,
+            message: 'Deck already has a border — use Change border to switch.',
+          });
         }
 
         if (!current) {
@@ -357,15 +370,13 @@ export async function POST(request: Request) {
 
       const completedRenders = count ?? 0;
       if (completedRenders > 0 && !body.confirmClearRenders) {
-        return NextResponse.json(
-          {
-            error: 'CONFIRM_CLEAR_RENDERS',
-            completedRenders,
-            message:
-              'Changing your border will re-render every card that has artwork. Confirm to apply the new border.',
-          },
-          { status: 409 },
-        );
+        return NextResponse.json({
+          needsConfirm: true,
+          error: 'CONFIRM_CLEAR_RENDERS',
+          completedRenders,
+          message:
+            'Changing your border will re-render every card that has artwork. Confirm to apply the new border.',
+        });
       }
 
       const { error: updateDeckErr } = await admin

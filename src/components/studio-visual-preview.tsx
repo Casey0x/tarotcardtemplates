@@ -6,7 +6,8 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import { FALLBACK_BORDER_IMAGE } from '@/lib/media-fallbacks';
 import type { StudioPreviewItem } from '@/lib/studio-border-options';
 import { createClient } from '@/lib/supabase-client';
-import type { StudioExportType } from '@/lib/studio-export-constants';
+import { StudioArtworkPicker } from '@/components/studio-artwork-picker';
+import { studioDownloadSubtitle } from '@/lib/studio-download-label';
 import { getTarotDefault, TAROT_CARDS_78, TAROT_SECTIONS } from '@/lib/tarot-cards';
 
 export type { StudioPreviewItem } from '@/lib/studio-border-options';
@@ -15,14 +16,6 @@ export type { StudioPreviewItem } from '@/lib/studio-border-options';
 function hasSavedPreviewRender(previewByCard: Record<number, string>, index: number): boolean {
   return Boolean(previewByCard[index]);
 }
-
-type StudioSuiteBannerKey =
-  | 'full_deck'
-  | 'major_arcana'
-  | 'wands'
-  | 'cups'
-  | 'swords'
-  | 'pentacles';
 
 type Props = {
   borders: StudioPreviewItem[];
@@ -114,6 +107,8 @@ function StudioVisualPreviewInner({
   const artworkByCardRef = useRef(artworkByCard);
   /** Storage path in private bucket `studio-uploads` (not a display URL). */
   const artworkPathByCardRef = useRef<Record<number, string>>({});
+  /** `studio_artwork.id` for the image assigned to each card (when using the library upload flow). */
+  const artworkIdByCardRef = useRef<Record<number, string>>({});
   const selectedCardIndexRef = useRef(0);
   /** Blocks duplicate handling for the same deck + ?border= pair (Try in Studio). */
   const urlBorderAttemptRef = useRef<string | null>(null);
@@ -135,6 +130,7 @@ function StudioVisualPreviewInner({
     numeral: string | null;
     image_url: string | null;
     artwork_path: string | null;
+    artwork_id?: string | null;
     rendered_url: string | null;
   };
 
@@ -145,12 +141,16 @@ function StudioVisualPreviewInner({
     const nextArtwork: Record<number, string> = {};
     const nextPreview: Record<number, string> = {};
     artworkPathByCardRef.current = {};
+    artworkIdByCardRef.current = {};
     cardFieldsRef.current = {};
     for (const row of rows) {
       const i = parseInt(row.card_key, 10);
       if (Number.isNaN(i) || i < 0 || i > 77) continue;
       if (row.image_url) nextArtwork[i] = row.image_url;
       if (row.artwork_path) artworkPathByCardRef.current[i] = row.artwork_path;
+      if (row.artwork_id && String(row.artwork_id).trim()) {
+        artworkIdByCardRef.current[i] = String(row.artwork_id).trim();
+      }
       if (row.rendered_url && !opts?.skipRenderedPreviews) nextPreview[i] = row.rendered_url;
       cardFieldsRef.current[i] = {
         cardName: row.card_name ?? '',
@@ -245,7 +245,10 @@ function StudioVisualPreviewInner({
   }
 
   const persistCardToServer = useCallback(
-    async (cardIndex: number, overrides?: { cardName?: string; numeral?: string; artworkPath?: string | null }) => {
+    async (
+      cardIndex: number,
+      overrides?: { cardName?: string; numeral?: string; artworkPath?: string | null; artworkId?: string | null },
+    ) => {
       const id = deckId;
       if (!id) return;
       const fields = cardFieldsRef.current[cardIndex] ?? {
@@ -271,6 +274,11 @@ function StudioVisualPreviewInner({
         };
         if (path !== undefined) {
           payload.artworkPath = path;
+        }
+        const artId =
+          overrides?.artworkId !== undefined ? overrides.artworkId : artworkIdByCardRef.current[cardIndex];
+        if (artId !== undefined) {
+          payload.artworkId = artId;
         }
         const res = await fetch('/api/studio/save-card', {
           method: 'POST',
@@ -347,16 +355,9 @@ function StudioVisualPreviewInner({
   const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [showExportPaywall, setShowExportPaywall] = useState(false);
   const [exportCheckoutKind, setExportCheckoutKind] = useState<null | 'print'>(null);
-  const [exportZipCheckoutBusy, setExportZipCheckoutBusy] = useState<null | StudioExportType>(null);
-  const [exportPaid, setExportPaid] = useState({
-    majorArcana: false,
-    wands: false,
-    cups: false,
-    swords: false,
-    pentacles: false,
-    fullDeck: false,
-    fullDeckUnlockedByAllSuites: false,
-  });
+  const [deckDownloadBusy, setDeckDownloadBusy] = useState(false);
+  const [downloadRotateIndex, setDownloadRotateIndex] = useState(0);
+  const [showPrintUpsell, setShowPrintUpsell] = useState(false);
 
   async function blobUrlToDataUrl(blobUrl: string): Promise<string> {
     const res = await fetch(blobUrl);
@@ -404,6 +405,7 @@ function StudioVisualPreviewInner({
         if (artwork.startsWith('blob:')) {
           artworkPayload = await blobUrlToDataUrl(artwork);
         }
+        const aid = artworkIdByCardRef.current[cardIndex]?.trim();
         const res = await fetch('/api/studio/render', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -413,6 +415,7 @@ function StudioVisualPreviewInner({
             artwork: artworkPayload,
             numeral,
             card_name: cardNameTrimmed,
+            ...(aid ? { artworkId: aid } : {}),
           }),
         });
         if (res.status === 401) {
@@ -481,7 +484,7 @@ function StudioVisualPreviewInner({
 
       const uploadRes = await fetch('/api/studio/upload', { method: 'POST', body: form });
       const rawUpload = await uploadRes.text();
-      let uploadData: { url?: string; path?: string; error?: string } = {};
+      let uploadData: { url?: string; path?: string; artworkId?: string; error?: string } = {};
       try {
         uploadData = JSON.parse(rawUpload) as typeof uploadData;
       } catch {
@@ -494,6 +497,9 @@ function StudioVisualPreviewInner({
       }
 
       artworkPathByCardRef.current[cardIndex] = uploadData.path;
+      if (uploadData.artworkId) {
+        artworkIdByCardRef.current[cardIndex] = uploadData.artworkId;
+      }
 
       setArtworkByCard((prev) => ({
         ...prev,
@@ -524,6 +530,7 @@ function StudioVisualPreviewInner({
             cardName: fields.cardName,
             numeral: fields.numeral,
             artworkPath: uploadData.path,
+            artworkId: uploadData.artworkId ?? null,
           }),
         });
         const rawSave = await saveRes.text();
@@ -586,6 +593,7 @@ function StudioVisualPreviewInner({
     const name = cardName.trim() || getTarotDefault(selectedCardIndex)?.name || 'this card';
     if (!confirm(`Remove artwork for ${name}?`)) return;
     delete artworkPathByCardRef.current[selectedCardIndex];
+    delete artworkIdByCardRef.current[selectedCardIndex];
     setArtworkByCard((prev) => {
       const next = { ...prev };
       delete next[selectedCardIndex];
@@ -599,7 +607,7 @@ function StudioVisualPreviewInner({
     setPreviewError(null);
     if (deckId) {
       cardFieldsRef.current[selectedCardIndex] = { cardName, numeral: cardNumeral };
-      void persistCardToServer(selectedCardIndex, { artworkPath: null });
+      void persistCardToServer(selectedCardIndex, { artworkPath: null, artworkId: null });
     }
   }
 
@@ -680,86 +688,35 @@ function StudioVisualPreviewInner({
 
   const fullDeckComplete = useMemo(() => renderedCount === 78, [renderedCount]);
 
-  /**
-   * Which export milestone banners to show. Suites are evaluated independently (e.g. Wands can
-   * complete before Major Arcana). When all 78 cards have previews, only the full-deck banner is shown.
-   */
-  const suiteBannersToShow = useMemo((): readonly StudioSuiteBannerKey[] => {
-    if (flowPhase !== 'builder') return [];
-    if (fullDeckComplete) return ['full_deck'];
-    const out: StudioSuiteBannerKey[] = [];
-    if (majorArcanaComplete) out.push('major_arcana');
-    if (wandsComplete) out.push('wands');
-    if (cupsComplete) out.push('cups');
-    if (swordsComplete) out.push('swords');
-    if (pentaclesComplete) out.push('pentacles');
-    return out;
-  }, [
-    flowPhase,
-    fullDeckComplete,
-    majorArcanaComplete,
-    wandsComplete,
-    cupsComplete,
-    swordsComplete,
-    pentaclesComplete,
-  ]);
-
-  useEffect(() => {
-    if (process.env.NODE_ENV !== 'development') return;
-    console.log('[Studio suite completion]', {
+  const downloadSubtitle = useMemo(
+    () =>
+      studioDownloadSubtitle({
+        renderedCount,
+        majorArcanaComplete,
+        wandsComplete,
+        cupsComplete,
+        swordsComplete,
+        pentaclesComplete,
+        fullDeckComplete,
+      }),
+    [
       renderedCount,
-      suiteBannersToShow,
       majorArcanaComplete,
       wandsComplete,
       cupsComplete,
       swordsComplete,
       pentaclesComplete,
       fullDeckComplete,
-    });
-  }, [
-    renderedCount,
-    suiteBannersToShow,
-    majorArcanaComplete,
-    wandsComplete,
-    cupsComplete,
-    swordsComplete,
-    pentaclesComplete,
-    fullDeckComplete,
-  ]);
+    ],
+  );
 
   useEffect(() => {
-    if (!deckId || flowPhase !== 'builder') return;
-    let cancelled = false;
-    void fetch(`/api/studio/export-status?deckId=${encodeURIComponent(deckId)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then(
-        (
-          j: {
-            paidMajorArcana?: boolean;
-            paidWands?: boolean;
-            paidCups?: boolean;
-            paidSwords?: boolean;
-            paidPentacles?: boolean;
-            paidFullDeck?: boolean;
-            fullDeckUnlockedByAllSuites?: boolean;
-          } | null,
-        ) => {
-          if (cancelled || !j) return;
-          setExportPaid({
-            majorArcana: !!j.paidMajorArcana,
-            wands: !!j.paidWands,
-            cups: !!j.paidCups,
-            swords: !!j.paidSwords,
-            pentacles: !!j.paidPentacles,
-            fullDeck: !!j.paidFullDeck,
-            fullDeckUnlockedByAllSuites: !!j.fullDeckUnlockedByAllSuites,
-          });
-        },
-      );
-    return () => {
-      cancelled = true;
-    };
-  }, [deckId, flowPhase]);
+    if (!deckDownloadBusy) return;
+    const id = window.setInterval(() => {
+      setDownloadRotateIndex((i) => (i + 1) % 4);
+    }, 2500);
+    return () => window.clearInterval(id);
+  }, [deckDownloadBusy]);
 
   useEffect(() => {
     const q = searchParams.get('border')?.trim() ?? '';
@@ -846,16 +803,6 @@ function StudioVisualPreviewInner({
     runBorderRerenders,
   ]);
 
-  const artworkCount = useMemo(
-    () => Object.values(artworkByCard).filter((u) => typeof u === 'string' && u.length > 0).length,
-    [artworkByCard],
-  );
-
-  const exportUnlocked = useMemo(
-    () => exportUnlockedBorderSlugs.includes(deckBorderSlug),
-    [exportUnlockedBorderSlugs, deckBorderSlug],
-  );
-
   const currentBorderName = useMemo(
     () => catalog.find((b) => b.slug === deckBorderSlug)?.name ?? 'This border',
     [catalog, deckBorderSlug],
@@ -873,74 +820,112 @@ function StudioVisualPreviewInner({
   const mobileCardSelectValue = String(selectedCardIndex);
   const loginRedirect = `${studioBasePath}${deckBorderSlug ? `?border=${encodeURIComponent(deckBorderSlug)}` : ''}`;
 
-  async function startStudioZipExportCheckout(exportType: StudioExportType) {
+  const DOWNLOAD_ROTATING = [
+    'Gathering your cards…',
+    'Packaging your artwork…',
+    'Almost ready…',
+    'Preparing your download…',
+  ] as const;
+
+  async function applyLibraryArtwork(artworkId: string) {
     const id = deckId;
     if (!id) return;
-    setExportZipCheckoutBusy(exportType);
+    const cardIndex = selectedCardIndexRef.current;
+    const fields = cardFieldsRef.current[cardIndex] ?? {
+      cardName: getTarotDefault(cardIndex)?.name ?? '',
+      numeral: getTarotDefault(cardIndex)?.numeral ?? '',
+    };
+    setUploadError(null);
     try {
-      const res = await fetch('/api/studio/checkout', {
+      const res = await fetch('/api/studio/save-card', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deckId: id, exportType }),
+        body: JSON.stringify({
+          deckId: id,
+          cardKey: String(cardIndex),
+          cardName: fields.cardName,
+          numeral: fields.numeral,
+          artworkId,
+        }),
       });
-      const data = (await res.json()) as { url?: string; error?: string };
+      const raw = await res.text();
+      let j: {
+        ok?: boolean;
+        image_url?: string | null;
+        artwork_path?: string | null;
+        error?: string;
+      } = {};
+      try {
+        j = JSON.parse(raw) as typeof j;
+      } catch {
+        j = {};
+      }
       if (!res.ok) {
-        if (res.status === 401) {
-          window.location.href = `/auth/login?redirect=${encodeURIComponent(loginRedirect)}`;
-          return;
-        }
-        alert(data.error || 'Checkout failed');
+        setUploadError(j.error?.trim() || 'Could not assign artwork');
         return;
       }
-      if (data.url) window.location.href = data.url;
-    } finally {
-      setExportZipCheckoutBusy(null);
+      const url = j.image_url?.trim() ?? '';
+      if (j.artwork_path) {
+        artworkPathByCardRef.current[cardIndex] = j.artwork_path;
+      }
+      artworkIdByCardRef.current[cardIndex] = artworkId;
+      if (url) {
+        setArtworkByCard((prev) => ({ ...prev, [cardIndex]: url }));
+      }
+      setPreviewByCard((prev) => {
+        const next = { ...prev };
+        delete next[cardIndex];
+        return next;
+      });
+      if (!url) {
+        setUploadError('No image URL returned');
+        return;
+      }
+      await renderCardWithArtwork(cardIndex, url, fields.cardName, fields.numeral, { manageLoading: true });
+    } catch {
+      setUploadError('Could not assign artwork');
     }
   }
 
-  function triggerFreeStudioExportDownload(exportType: StudioExportType) {
+  async function downloadDeckZip() {
     const id = deckId;
-    if (!id) return;
-    window.location.href = `/api/studio/export-download?deck_id=${encodeURIComponent(id)}&export_type=${encodeURIComponent(exportType)}`;
-  }
-
-  function handleFullDeckExportPrimaryAction() {
-    if (exportPaid.fullDeck || exportPaid.fullDeckUnlockedByAllSuites) {
-      triggerFreeStudioExportDownload('full_deck');
-      return;
-    }
-    void startStudioZipExportCheckout('full_deck');
-  }
-
-  function continueToSuiteNav(cardIndex: number) {
-    void selectCard(cardIndex);
-    requestAnimationFrame(() => {
-      document
-        .querySelector(`[data-studio-card-index="${cardIndex}"]`)
-        ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    });
-  }
-
-  function continueToMinorArcanaNav() {
-    continueToSuiteNav(22);
-  }
-
-  function paidForExportType(t: StudioExportType): boolean {
-    switch (t) {
-      case 'major_arcana':
-        return exportPaid.majorArcana;
-      case 'wands':
-        return exportPaid.wands;
-      case 'cups':
-        return exportPaid.cups;
-      case 'swords':
-        return exportPaid.swords;
-      case 'pentacles':
-        return exportPaid.pentacles;
-      case 'full_deck':
-        return exportPaid.fullDeck || exportPaid.fullDeckUnlockedByAllSuites;
-      default:
-        return false;
+    if (!id || renderedCount < 1) return;
+    setDeckDownloadBusy(true);
+    setDownloadRotateIndex(0);
+    setShowPrintUpsell(false);
+    try {
+      const res = await fetch(`/api/studio/export-download?deck_id=${encodeURIComponent(id)}`, {
+        credentials: 'include',
+      });
+      if (res.status === 401) {
+        window.location.href = `/auth/login?redirect=${encodeURIComponent(loginRedirect)}`;
+        return;
+      }
+      if (!res.ok) {
+        let msg = `Download failed (${res.status})`;
+        try {
+          const j = (await res.json()) as { error?: string };
+          if (j.error) msg = j.error;
+        } catch {
+          /* ignore */
+        }
+        alert(msg);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'tarot-deck.zip';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setShowPrintUpsell(true);
+    } catch {
+      alert('Download failed. Check your connection.');
+    } finally {
+      setDeckDownloadBusy(false);
     }
   }
 
@@ -976,13 +961,17 @@ function StudioVisualPreviewInner({
         error?: string;
         message?: string;
         completedRenders?: number;
+        needsConfirm?: boolean;
       } = {};
       try {
         data = JSON.parse(raw) as typeof data;
       } catch {
         data = {};
       }
-      if (res.status === 409 && data.error === 'CONFIRM_CLEAR_RENDERS') {
+      if (
+        (res.ok && data.needsConfirm && data.error === 'CONFIRM_CLEAR_RENDERS') ||
+        (res.status === 409 && data.error === 'CONFIRM_CLEAR_RENDERS')
+      ) {
         setForceConfirmClearRenders(true);
         setChangeBorderStep('warn');
         return;
@@ -1378,7 +1367,7 @@ function StudioVisualPreviewInner({
             Design your tarot deck card by card. Choose a border, upload your artwork, and export print-ready files.
           </p>
           <p className="mt-1 text-xs text-charcoal/55">
-            Preview your deck for free. Pay only when you&apos;re ready to export.
+            Upload artwork, render with your border, and download your deck as a ZIP — free.
           </p>
           {(saveStatusSaving || saveStatusSaved || saveError) && (
             <p
@@ -1417,219 +1406,45 @@ function StudioVisualPreviewInner({
         </p>
       </div>
 
-      {flowPhase === 'builder' && suiteBannersToShow.includes('full_deck') ? (
+      {flowPhase === 'builder' && renderedCount > 0 ? (
         <div className="mb-4 w-full rounded-sm border border-emerald-800/20 bg-emerald-50/90 px-4 py-4">
-          <p className="text-sm font-semibold text-charcoal">🎉 Your full deck is complete!</p>
+          <p className="text-sm font-semibold text-charcoal">Download my deck</p>
+          <p className="mt-1 text-xs text-charcoal/70">{downloadSubtitle}</p>
+          <p className="mt-1 text-xs text-charcoal/55">This usually takes 10–20 seconds.</p>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
-              disabled={exportZipCheckoutBusy !== null}
-              onClick={() => handleFullDeckExportPrimaryAction()}
+              disabled={deckDownloadBusy}
+              onClick={() => void downloadDeckZip()}
               className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {exportZipCheckoutBusy === 'full_deck'
-                ? 'Redirecting…'
-                : paidForExportType('full_deck')
-                  ? 'Download again — Full deck (ZIP)'
-                  : 'Download Full Deck — NZ$14.95'}
-            </button>
-            <button
-              type="button"
-              disabled={exportZipCheckoutBusy !== null}
-              onClick={() =>
-                paidForExportType('pentacles')
-                  ? triggerFreeStudioExportDownload('pentacles')
-                  : void startStudioZipExportCheckout('pentacles')
-              }
-              className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {exportZipCheckoutBusy === 'pentacles'
-                ? 'Redirecting…'
-                : paidForExportType('pentacles')
-                  ? 'Download again — Pentacles (ZIP)'
-                  : 'Download Pentacles only — NZ$3.95'}
+              {deckDownloadBusy ? DOWNLOAD_ROTATING[downloadRotateIndex % DOWNLOAD_ROTATING.length] : 'Download ZIP'}
             </button>
           </div>
         </div>
       ) : null}
 
-      {flowPhase === 'builder' && suiteBannersToShow.includes('major_arcana') ? (
-        <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
-          <p className="text-sm font-semibold text-charcoal">
-            🎉 Major Arcana complete! Download your 22 cards for NZ$7.95 or continue to Minor Arcana
+      {flowPhase === 'builder' && showPrintUpsell ? (
+        <div className="mb-4 w-full rounded-sm border border-charcoal/15 bg-cream/90 px-4 py-4">
+          <p className="text-sm font-semibold text-charcoal">Love your deck?</p>
+          <p className="mt-1 text-xs text-charcoal/70">
+            Get it professionally printed from NZ$39.95 — order a printed deck when you&apos;re ready.
           </p>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              disabled={exportZipCheckoutBusy !== null}
-              onClick={() =>
-                paidForExportType('major_arcana')
-                  ? triggerFreeStudioExportDownload('major_arcana')
-                  : void startStudioZipExportCheckout('major_arcana')
-              }
-              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => setShowExportPaywall(true)}
+              className="inline-flex rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-xs font-semibold text-cream hover:bg-charcoal/90"
             >
-              {exportZipCheckoutBusy === 'major_arcana'
-                ? 'Redirecting…'
-                : paidForExportType('major_arcana')
-                  ? 'Download again — Major Arcana (ZIP)'
-                  : 'Download Major Arcana — NZ$7.95'}
+              Order printed deck →
             </button>
             <button
               type="button"
-              onClick={() => continueToSuiteNav(22)}
-              className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5"
+              onClick={() => setShowPrintUpsell(false)}
+              className="inline-flex rounded-sm border border-charcoal/25 px-4 py-2 text-xs text-charcoal hover:bg-charcoal/5"
             >
-              Continue to Minor Arcana →
+              Dismiss
             </button>
-          </div>
-        </div>
-      ) : null}
-
-      {flowPhase === 'builder' && suiteBannersToShow.includes('wands') ? (
-        <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
-          <p className="text-sm font-semibold text-charcoal">
-            🎉 Wands complete! Download your 14 Wands cards for NZ$3.95
-          </p>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <button
-              type="button"
-              disabled={exportZipCheckoutBusy !== null}
-              onClick={() =>
-                paidForExportType('wands')
-                  ? triggerFreeStudioExportDownload('wands')
-                  : void startStudioZipExportCheckout('wands')
-              }
-              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {exportZipCheckoutBusy === 'wands'
-                ? 'Redirecting…'
-                : paidForExportType('wands')
-                  ? 'Download again — Wands (ZIP)'
-                  : 'Download Wands — NZ$3.95'}
-            </button>
-            <button
-              type="button"
-              onClick={() => continueToSuiteNav(36)}
-              className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5"
-            >
-              Continue to Cups →
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {flowPhase === 'builder' && suiteBannersToShow.includes('cups') ? (
-        <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
-          <p className="text-sm font-semibold text-charcoal">
-            🎉 Cups complete! Download your 14 Cups cards for NZ$3.95
-          </p>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <button
-              type="button"
-              disabled={exportZipCheckoutBusy !== null}
-              onClick={() =>
-                paidForExportType('cups')
-                  ? triggerFreeStudioExportDownload('cups')
-                  : void startStudioZipExportCheckout('cups')
-              }
-              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {exportZipCheckoutBusy === 'cups'
-                ? 'Redirecting…'
-                : paidForExportType('cups')
-                  ? 'Download again — Cups (ZIP)'
-                  : 'Download Cups — NZ$3.95'}
-            </button>
-            <button
-              type="button"
-              onClick={() => continueToSuiteNav(50)}
-              className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5"
-            >
-              Continue to Swords →
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {flowPhase === 'builder' && suiteBannersToShow.includes('swords') ? (
-        <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
-          <p className="text-sm font-semibold text-charcoal">
-            🎉 Swords complete! Download your 14 Swords cards for NZ$3.95
-          </p>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <button
-              type="button"
-              disabled={exportZipCheckoutBusy !== null}
-              onClick={() =>
-                paidForExportType('swords')
-                  ? triggerFreeStudioExportDownload('swords')
-                  : void startStudioZipExportCheckout('swords')
-              }
-              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {exportZipCheckoutBusy === 'swords'
-                ? 'Redirecting…'
-                : paidForExportType('swords')
-                  ? 'Download again — Swords (ZIP)'
-                  : 'Download Swords — NZ$3.95'}
-            </button>
-            <button
-              type="button"
-              onClick={() => continueToSuiteNav(64)}
-              className="inline-flex justify-center rounded-sm border border-charcoal/30 bg-cream px-4 py-2.5 text-xs font-medium text-charcoal hover:bg-charcoal/5"
-            >
-              Continue to Pentacles →
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {flowPhase === 'builder' && suiteBannersToShow.includes('pentacles') ? (
-        <div className="mb-4 w-full rounded-sm border border-amber-800/25 bg-amber-50/90 px-4 py-4">
-          <p className="text-sm font-semibold text-charcoal">
-            🎉 Pentacles complete! Download your 14 Pentacles cards for NZ$3.95
-          </p>
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <button
-              type="button"
-              disabled={exportZipCheckoutBusy !== null}
-              onClick={() =>
-                paidForExportType('pentacles')
-                  ? triggerFreeStudioExportDownload('pentacles')
-                  : void startStudioZipExportCheckout('pentacles')
-              }
-              className="inline-flex justify-center rounded-sm border border-charcoal bg-charcoal px-4 py-2.5 text-xs font-semibold text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {exportZipCheckoutBusy === 'pentacles'
-                ? 'Redirecting…'
-                : paidForExportType('pentacles')
-                  ? 'Download again — Pentacles (ZIP)'
-                  : 'Download Pentacles — NZ$3.95'}
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {artworkCount > 0 ? (
-        <div className="mb-4 w-full rounded-sm border border-charcoal/10 bg-cream/80 px-4 py-4">
-          <h2 className="text-sm font-semibold text-charcoal">Full deck export</h2>
-          <p className="mt-1 text-xs text-charcoal/65">
-            Preview your deck for free. Pay only when you&apos;re ready to export.
-          </p>
-          {exportUnlocked ? (
-            <p className="mt-2 text-sm text-emerald-900">✓ Export unlocked for {currentBorderName}.</p>
-          ) : null}
-          <div className="mt-4 flex flex-wrap gap-3">
-            {!exportUnlocked ? (
-              <button
-                type="button"
-                onClick={() => setShowExportPaywall(true)}
-                className="inline-flex rounded-sm border border-charcoal/35 bg-cream px-4 py-2 text-xs font-medium text-charcoal hover:bg-charcoal/5"
-              >
-                Unlock export
-              </button>
-            ) : null}
           </div>
         </div>
       ) : null}
@@ -1841,17 +1656,22 @@ function StudioVisualPreviewInner({
               ) : null}
             </div>
 
+            {deckId ? (
+              <StudioArtworkPicker
+                disabled={uploading || renderLoading}
+                onPick={(aid) => void applyLibraryArtwork(aid)}
+              />
+            ) : null}
+
             <div className="sticky bottom-0 z-30 -mx-1 border-t border-charcoal/10 bg-cream/95 px-1 py-3 backdrop-blur-sm lg:static lg:z-auto lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
-              {selectedCardIndex >= 77 && fullDeckComplete ? (
+              {renderedCount > 0 ? (
                 <button
                   type="button"
-                  disabled={exportZipCheckoutBusy !== null}
-                  onClick={() => handleFullDeckExportPrimaryAction()}
+                  disabled={deckDownloadBusy}
+                  onClick={() => void downloadDeckZip()}
                   className="w-full rounded-sm border border-charcoal/30 bg-transparent px-3 py-2 text-xs font-medium text-charcoal transition hover:bg-charcoal/5 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {paidForExportType('full_deck')
-                    ? 'Download again — Full deck'
-                    : 'Download Full Deck — NZ$14.95'}
+                  {deckDownloadBusy ? 'Preparing ZIP…' : 'Download my deck (ZIP)'}
                 </button>
               ) : null}
             </div>

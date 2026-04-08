@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { createServerClient, createServiceClient } from '@/lib/supabase-server';
 
@@ -7,6 +8,10 @@ const STUDIO_BUCKET = 'studio-uploads';
 /** Avoid Edge quirks with multipart; ensure full Node body parsing for FormData. */
 export const runtime = 'nodejs';
 
+/**
+ * Upload artwork for the current Studio card: stored permanently in the user's artwork library
+ * and linked via `studio_artwork` (path: `{userId}/artwork-library/{uuid}.ext`).
+ */
 export async function POST(request: Request) {
   const supabaseAuth = await createServerClient();
   const {
@@ -52,7 +57,6 @@ export async function POST(request: Request) {
 
   const supabase = createServiceClient();
   const deckIdTrim = deckId.trim();
-  const safeCardIndex = cardIndex.trim();
 
   const { data: studioDeck } = await supabase
     .from('studio_decks')
@@ -72,29 +76,48 @@ export async function POST(request: Request) {
   const fileExt = ext || 'png';
 
   if (studioDeck) {
-    const filePath = `${user.id}/${deckIdTrim}/artwork-${safeCardIndex}.${fileExt}`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from(STUDIO_BUCKET)
-      .upload(filePath, buffer, {
-        contentType: file.type || 'image/png',
-        upsert: true,
-      });
+    const fileId = randomUUID();
+    const filePath = `${user.id}/artwork-library/${fileId}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage.from(STUDIO_BUCKET).upload(filePath, buffer, {
+      contentType: file.type || 'image/png',
+      upsert: false,
+    });
 
     if (uploadError) {
-      console.error('Upload error', uploadError);
+      console.error('[studio/upload]', uploadError);
       return NextResponse.json({ error: uploadError.message }, { status: 400 });
     }
 
-    const { data: signed, error: signErr } = await supabase.storage
-      .from(STUDIO_BUCKET)
-      .createSignedUrl(uploadData.path, 3600);
+    const { data: signed, error: signErr } = await supabase.storage.from(STUDIO_BUCKET).createSignedUrl(filePath, 3600);
 
     if (signErr || !signed?.signedUrl) {
-      console.error('Sign error', signErr);
+      console.error('[studio/upload] sign', signErr);
       return NextResponse.json({ error: 'Upload saved but sign failed' }, { status: 500 });
     }
 
-    return NextResponse.json({ url: signed.signedUrl, path: uploadData.path });
+    const { data: artRow, error: artErr } = await supabase
+      .from('studio_artwork')
+      .insert({
+        user_id: user.id,
+        file_path: filePath,
+        file_url: signed.signedUrl,
+        original_filename: file.name || null,
+      })
+      .select('id')
+      .single();
+
+    if (artErr || !artRow?.id) {
+      console.error('[studio/upload] studio_artwork insert', artErr);
+      await supabase.storage.from(STUDIO_BUCKET).remove([filePath]);
+      return NextResponse.json({ error: 'Failed to save artwork library entry' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      url: signed.signedUrl,
+      path: filePath,
+      artworkId: artRow.id,
+    });
   }
 
   const { data: purchaseDeck } = await supabase
@@ -108,6 +131,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Deck not found or access denied' }, { status: 403 });
   }
 
+  const safeCardIndex = cardIndex.trim();
   const legacyPath = `${deckIdTrim}/${safeCardIndex}.${fileExt}`;
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from(LEGACY_BUCKET)

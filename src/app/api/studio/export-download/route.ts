@@ -2,12 +2,7 @@ import { NextResponse } from 'next/server';
 import { Readable } from 'node:stream';
 import { createServerClient, createServiceClient } from '@/lib/supabase-server';
 import {
-  hasFullDeckUnlockedByAllSuitePurchases,
-  isStudioExportType,
-  type StudioExportType,
-} from '@/lib/studio-export-constants';
-import {
-  buildStudioExportZip,
+  buildStudioDeckZipAllRendered,
   StudioExportTimeoutError,
   zipResponseHeaders,
   withExportBuildTimeout,
@@ -19,13 +14,7 @@ export const runtime = 'nodejs';
 const EXPORT_TIMEOUT_MESSAGE =
   'Your deck is taking longer than expected — please try Download again';
 
-function userHasExportAccess(exportTypes: string[], requested: StudioExportType): boolean {
-  if (exportTypes.includes(requested)) return true;
-  if (requested === 'full_deck' && hasFullDeckUnlockedByAllSuitePurchases(exportTypes)) return true;
-  return false;
-}
-
-/** GET ?deck_id=&export_type= — re-download ZIP for an export the user already purchased. */
+/** GET ?deck_id= — free ZIP of all rendered cards for the user's deck. */
 export async function GET(request: Request) {
   const supabase = await createServerClient();
   const {
@@ -35,13 +24,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const deckId = searchParams.get('deck_id')?.trim() ?? '';
-  const exportTypeRaw = searchParams.get('export_type')?.trim() ?? '';
-  if (!deckId || !isStudioExportType(exportTypeRaw)) {
-    return NextResponse.json({ error: 'Missing or invalid parameters' }, { status: 400 });
+  const deckId = new URL(request.url).searchParams.get('deck_id')?.trim() ?? '';
+  if (!deckId) {
+    return NextResponse.json({ error: 'Missing deck_id' }, { status: 400 });
   }
-  const exportType = exportTypeRaw as StudioExportType;
 
   const admin = createServiceClient();
   const { data: deck, error: deckErr } = await admin
@@ -59,25 +45,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Deck not found' }, { status: 404 });
   }
 
-  const { data: exportRows, error: purchaseErr } = await admin
-    .from('studio_exports')
-    .select('export_type')
-    .eq('user_id', user.id)
-    .eq('deck_id', deckId);
-
-  if (purchaseErr) {
-    console.error('[studio/export-download] export rows', purchaseErr);
-    return NextResponse.json({ error: 'Purchase lookup failed' }, { status: 500 });
-  }
-
-  const exportTypes = (exportRows ?? []).map((r) => String(r.export_type));
-  if (!userHasExportAccess(exportTypes, exportType)) {
-    return NextResponse.json({ error: 'No purchase found for this export' }, { status: 403 });
-  }
-
   let zip;
   try {
-    zip = await withExportBuildTimeout(buildStudioExportZip(admin, deckId, exportType));
+    zip = await withExportBuildTimeout(buildStudioDeckZipAllRendered(admin, deckId));
   } catch (e) {
     if (e instanceof StudioExportTimeoutError) {
       return NextResponse.json(
