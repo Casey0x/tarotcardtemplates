@@ -6,6 +6,10 @@ import { cookies } from 'next/headers';
 import { createServiceClient } from '@/lib/supabase-server';
 import { getUserCurrency } from '@/lib/getUserCurrency';
 import {
+  buildCatalogCheckoutLineItem,
+  buildStudioPrintedDeckLineItem,
+} from '@/lib/stripe-catalog-price-ids';
+import {
   getDeckDownloadPriceByCurrency,
   getPrintedDeckPriceByCurrency,
   getTemplatePriceByCurrency,
@@ -139,23 +143,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid price for this product' }, { status: 400 });
     }
 
-    const unitAmount = Math.round(amount * 100);
-    const stripeCurrency = currency.toLowerCase();
     const lineItemName = `${borderName} — Printed deck (Studio)`;
     const stripe = new Stripe(stripeSecret);
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
-        {
-          price_data: {
-            currency: stripeCurrency,
-            product_data: {
-              name: lineItemName,
-            },
-            unit_amount: unitAmount,
-          },
-          quantity: 1,
-        },
+        buildStudioPrintedDeckLineItem(currency, lineItemName, amount),
       ],
       mode: 'payment',
       customer_creation: 'always',
@@ -205,8 +198,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid price for this product' }, { status: 400 });
   }
 
-  const unitAmount = Math.round(amount * 100);
-  const stripeCurrency = currency.toLowerCase();
   const lineItemName =
     purchaseType === 'print' ? `${templateName} — Printed Deck` : templateName;
 
@@ -219,16 +210,7 @@ export async function POST(request: Request) {
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [
-      {
-        price_data: {
-          currency: stripeCurrency,
-          product_data: {
-            name: lineItemName,
-          },
-          unit_amount: unitAmount,
-        },
-        quantity: 1,
-      },
+      buildCatalogCheckoutLineItem(purchaseType, currency, lineItemName, amount),
     ],
     mode: 'payment',
     customer_creation: 'always',
