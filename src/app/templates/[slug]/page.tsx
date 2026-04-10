@@ -180,29 +180,25 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
     {
       name: "The Star",
       slug: "the-star",
-      image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/preview-1.png",
+      image: "/template-previews/ASTRAL-DOMINION/the-star.png",
       alt: "The Star tarot card — Astral Dominion deck",
     },
     {
       name: "The Moon",
       slug: "the-moon",
-      image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/preview-2.png",
+      image: "/template-previews/ASTRAL-DOMINION/the-moon.png",
       alt: "The Moon tarot card — Astral Dominion deck",
     },
     {
       name: "The Magician",
       slug: "the-magician",
-      image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/thumb.png",
+      image: "/template-previews/ASTRAL-DOMINION/the-magician.png",
       alt: "The Magician tarot card — Astral Dominion deck",
     },
     {
       name: "The Fool",
       slug: "the-fool",
-      image:
-        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/the-fool.png",
+      image: "/template-previews/ASTRAL-DOMINION/the-fool.png",
       alt: "The Fool tarot card — Astral Dominion deck",
     },
   ],
