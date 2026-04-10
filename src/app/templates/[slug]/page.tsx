@@ -176,6 +176,36 @@ const TEMPLATE_CARD_SPOTLIGHTS = {
       alt: "Ten of Pentacles tarot card — Psychedelic 70s Tarot deck",
     },
   ],
+  "Astral-Dominion": [
+    {
+      name: "The Star",
+      slug: "the-star",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/preview-1.png",
+      alt: "The Star tarot card — Astral Dominion deck",
+    },
+    {
+      name: "The Moon",
+      slug: "the-moon",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/preview-2.png",
+      alt: "The Moon tarot card — Astral Dominion deck",
+    },
+    {
+      name: "The Magician",
+      slug: "the-magician",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/thumb.png",
+      alt: "The Magician tarot card — Astral Dominion deck",
+    },
+    {
+      name: "The Fool",
+      slug: "the-fool",
+      image:
+        "https://iwhejzjkdqkmkzzhibtv.supabase.co/storage/v1/object/public/template-previews/ASTRAL-DOMINION/the-fool.png",
+      alt: "The Fool tarot card — Astral Dominion deck",
+    },
+  ],
   "Amduat-Tarot": [
     {
       name: "Judgement",
