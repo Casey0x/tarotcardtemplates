@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { SupabaseAuthRecovery } from "@/components/supabase-auth-recovery";
 import { TctCurrencyProvider } from "@/components/tct-currency-provider";
 import { getUserCurrency } from "@/lib/getUserCurrency";
 import { SITE_URL } from "@/lib/site";
@@ -54,6 +55,7 @@ gtag('config', '${GA_MEASUREMENT_ID}');
         ) : null}
       </head>
       <body>
+        <SupabaseAuthRecovery />
         <TctCurrencyProvider serverPricingCurrency={currency}>
           <SiteHeader />
           <main className="mx-auto w-full max-w-6xl px-6 py-12">

@@ -58,8 +58,10 @@ function StudioVisualPreviewInner({
   const [changeBorderStep, setChangeBorderStep] = useState<'warn' | 'pick'>('pick');
   const [changePickSlug, setChangePickSlug] = useState<string>('');
   const [changeBorderBusy, setChangeBorderBusy] = useState(false);
-  /** Server said stored renders exist even if local `renderedCount` is stale. */
+  /** Server said stored renders even if local `renderedCount` is stale (needs POST with confirmClearRenders). */
   const [forceConfirmClearRenders, setForceConfirmClearRenders] = useState(false);
+  /** After API returns CONFIRM_CLEAR_RENDERS, warn-step Continue applies border instead of returning to picker. */
+  const [confirmContinueAppliesBorder, setConfirmContinueAppliesBorder] = useState(false);
 
   const cardUploadInputRef = useRef<HTMLInputElement>(null);
   const [borderRerenderProgress, setBorderRerenderProgress] = useState<null | { current: number; total: number }>(
@@ -737,55 +739,63 @@ function StudioVisualPreviewInner({
     if (urlBorderAttemptRef.current === key) return;
     urlBorderAttemptRef.current = key;
 
-    const hasRender = renderedCount > 0;
-
     void (async () => {
       try {
-        if (!hasRender) {
+        const tryApplyUrlBorder = async (confirmClearRenders: boolean) => {
           const res = await fetch('/api/studio/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               intent: 'changeBorder',
               borderSlug: q,
-              confirmClearRenders: false,
+              confirmClearRenders,
             }),
           });
           const raw = await res.text();
-          let data: {
+          let payload: {
             deckId?: string;
             borderSlug?: string;
             cards?: SessionCardRow[];
             error?: string;
+            needsConfirm?: boolean;
           } = {};
           try {
-            data = JSON.parse(raw) as typeof data;
+            payload = JSON.parse(raw) as typeof payload;
           } catch {
-            data = {};
+            payload = {};
+          }
+          if (
+            (res.ok && payload.needsConfirm && payload.error === 'CONFIRM_CLEAR_RENDERS') ||
+            (res.status === 409 && payload.error === 'CONFIRM_CLEAR_RENDERS')
+          ) {
+            setChangePickSlug(q);
+            setForceConfirmClearRenders(true);
+            setConfirmContinueAppliesBorder(true);
+            setChangeBorderStep('warn');
+            setChangeBorderOpen(true);
+            urlBorderAttemptRef.current = null;
+            return;
           }
           if (!res.ok) {
             urlBorderAttemptRef.current = null;
-            setSessionError(data.error?.trim() || `Could not match border from link (${res.status}).`);
+            setSessionError(payload.error?.trim() || `Could not match border from link (${res.status}).`);
             return;
           }
-          if (!data.deckId || !data.cards) {
+          if (!payload.deckId || !payload.cards) {
             urlBorderAttemptRef.current = null;
             setSessionError('Invalid response from server.');
             return;
           }
-          setDeckId(data.deckId);
-          setDeckBorderSlug(data.borderSlug ?? q);
-          hydrateFromSessionCards(data.cards, { resetSelection: false, skipRenderedPreviews: true });
+          setDeckId(payload.deckId);
+          setDeckBorderSlug(payload.borderSlug ?? q);
+          hydrateFromSessionCards(payload.cards, { resetSelection: false });
           router.replace(studioBasePath, { scroll: false });
           urlBorderAttemptRef.current = null;
-          void runBorderRerenders(data.cards);
-          return;
-        }
+          setConfirmContinueAppliesBorder(false);
+          void runBorderRerenders(payload.cards);
+        };
 
-        setChangePickSlug(q);
-        setChangeBorderStep('warn');
-        setForceConfirmClearRenders(true);
-        setChangeBorderOpen(true);
+        void tryApplyUrlBorder(false);
       } catch {
         urlBorderAttemptRef.current = null;
       }
@@ -794,7 +804,6 @@ function StudioVisualPreviewInner({
     flowPhase,
     deckId,
     deckBorderSlug,
-    renderedCount,
     searchParams,
     catalog,
     hydrateFromSessionCards,
@@ -931,6 +940,7 @@ function StudioVisualPreviewInner({
 
   function dismissChangeBorderModal() {
     setForceConfirmClearRenders(false);
+    setConfirmContinueAppliesBorder(false);
     setChangeBorderOpen(false);
     if (searchParams.get('border')) {
       urlBorderAttemptRef.current = null;
@@ -973,6 +983,7 @@ function StudioVisualPreviewInner({
         (res.status === 409 && data.error === 'CONFIRM_CLEAR_RENDERS')
       ) {
         setForceConfirmClearRenders(true);
+        setConfirmContinueAppliesBorder(true);
         setChangeBorderStep('warn');
         return;
       }
@@ -986,10 +997,11 @@ function StudioVisualPreviewInner({
       }
       setDeckId(data.deckId);
       setDeckBorderSlug(data.borderSlug ?? slug);
-      hydrateFromSessionCards(data.cards, { resetSelection: false, skipRenderedPreviews: true });
+      hydrateFromSessionCards(data.cards, { resetSelection: false });
       setChangeBorderOpen(false);
       setChangeBorderStep('pick');
       setForceConfirmClearRenders(false);
+      setConfirmContinueAppliesBorder(false);
       urlBorderAttemptRef.current = null;
       if (searchParams.get('border')) {
         router.replace(studioBasePath, { scroll: false });
@@ -1003,6 +1015,7 @@ function StudioVisualPreviewInner({
   function openChangeBorder() {
     setChangePickSlug(deckBorderSlug || catalog[0]?.slug || '');
     setForceConfirmClearRenders(false);
+    setConfirmContinueAppliesBorder(false);
     if (renderedCount > 0) {
       setChangeBorderStep('warn');
     } else {
@@ -1183,7 +1196,14 @@ function StudioVisualPreviewInner({
                     <button
                       type="button"
                       className="rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-sm font-medium text-cream hover:bg-charcoal/90"
-                      onClick={() => setChangeBorderStep('pick')}
+                      onClick={() => {
+                        if (confirmContinueAppliesBorder && changePickSlug.trim()) {
+                          setConfirmContinueAppliesBorder(false);
+                          void submitChangeBorder(true);
+                          return;
+                        }
+                        setChangeBorderStep('pick');
+                      }}
                     >
                       Continue
                     </button>
