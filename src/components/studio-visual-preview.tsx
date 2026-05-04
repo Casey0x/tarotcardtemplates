@@ -62,6 +62,10 @@ function StudioVisualPreviewInner({
   const [forceConfirmClearRenders, setForceConfirmClearRenders] = useState(false);
   /** After API returns CONFIRM_CLEAR_RENDERS, warn-step Continue applies border instead of returning to picker. */
   const [confirmContinueAppliesBorder, setConfirmContinueAppliesBorder] = useState(false);
+  /** User clicked Continue on the intro “re-render” warning — send confirmClearRenders even if preview count dropped to 0. */
+  const [acknowledgedChangeBorderWarning, setAcknowledgedChangeBorderWarning] = useState(false);
+  /** Last attempted border slug when POST asks for confirmation (backup if UI state blips). */
+  const pendingChangeBorderSlugRef = useRef<string | null>(null);
 
   const cardUploadInputRef = useRef<HTMLInputElement>(null);
   const [borderRerenderProgress, setBorderRerenderProgress] = useState<null | { current: number; total: number }>(
@@ -742,9 +746,11 @@ function StudioVisualPreviewInner({
     void (async () => {
       try {
         const tryApplyUrlBorder = async (confirmClearRenders: boolean) => {
+          pendingChangeBorderSlugRef.current = q;
           const res = await fetch('/api/studio/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({
               intent: 'changeBorder',
               borderSlug: q,
@@ -941,6 +947,8 @@ function StudioVisualPreviewInner({
   function dismissChangeBorderModal() {
     setForceConfirmClearRenders(false);
     setConfirmContinueAppliesBorder(false);
+    setAcknowledgedChangeBorderWarning(false);
+    pendingChangeBorderSlugRef.current = null;
     setChangeBorderOpen(false);
     if (searchParams.get('border')) {
       urlBorderAttemptRef.current = null;
@@ -949,14 +957,19 @@ function StudioVisualPreviewInner({
   }
 
   async function submitChangeBorder(confirmClearRenders: boolean) {
-    const slug = changePickSlug.trim();
+    const slug =
+      changePickSlug.trim() ||
+      pendingChangeBorderSlugRef.current?.trim() ||
+      '';
     if (!slug || changeBorderBusy) return;
+    pendingChangeBorderSlugRef.current = slug;
     setChangeBorderBusy(true);
     setSessionError(null);
     try {
       const res = await fetch('/api/studio/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           intent: 'changeBorder',
           borderSlug: slug,
@@ -1002,6 +1015,8 @@ function StudioVisualPreviewInner({
       setChangeBorderStep('pick');
       setForceConfirmClearRenders(false);
       setConfirmContinueAppliesBorder(false);
+      setAcknowledgedChangeBorderWarning(false);
+      pendingChangeBorderSlugRef.current = null;
       urlBorderAttemptRef.current = null;
       if (searchParams.get('border')) {
         router.replace(studioBasePath, { scroll: false });
@@ -1016,6 +1031,8 @@ function StudioVisualPreviewInner({
     setChangePickSlug(deckBorderSlug || catalog[0]?.slug || '');
     setForceConfirmClearRenders(false);
     setConfirmContinueAppliesBorder(false);
+    setAcknowledgedChangeBorderWarning(false);
+    pendingChangeBorderSlugRef.current = null;
     if (renderedCount > 0) {
       setChangeBorderStep('warn');
     } else {
@@ -1197,11 +1214,21 @@ function StudioVisualPreviewInner({
                       type="button"
                       className="rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-sm font-medium text-cream hover:bg-charcoal/90"
                       onClick={() => {
-                        if (confirmContinueAppliesBorder && changePickSlug.trim()) {
-                          setConfirmContinueAppliesBorder(false);
-                          void submitChangeBorder(true);
+                        if (confirmContinueAppliesBorder) {
+                          const pick =
+                            changePickSlug.trim() ||
+                            pendingChangeBorderSlugRef.current?.trim() ||
+                            '';
+                          if (pick) {
+                            setChangePickSlug(pick);
+                            setConfirmContinueAppliesBorder(false);
+                            void submitChangeBorder(true);
+                            return;
+                          }
+                          setSessionError('Could not apply border — pick a border and try Apply again.');
                           return;
                         }
+                        setAcknowledgedChangeBorderWarning(true);
                         setChangeBorderStep('pick');
                       }}
                     >
@@ -1254,7 +1281,11 @@ function StudioVisualPreviewInner({
                       type="button"
                       disabled={changeBorderBusy || !changePickSlug}
                       onClick={() =>
-                        void submitChangeBorder(renderedCount > 0 || forceConfirmClearRenders)
+                        void submitChangeBorder(
+                          renderedCount > 0 ||
+                            forceConfirmClearRenders ||
+                            acknowledgedChangeBorderWarning,
+                        )
                       }
                       className="rounded-sm border border-charcoal bg-charcoal px-4 py-2 text-sm font-medium text-cream hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-50"
                     >

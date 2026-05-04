@@ -238,6 +238,7 @@ export async function POST(request: Request) {
 
     const intentRaw = typeof body.intent === 'string' ? body.intent.trim() : '';
     const borderSlug = normalizeBorderSlug(body.borderSlug);
+    const confirmClearRenders = body.confirmClearRenders === true;
     const admin = createServiceClient();
 
     const { data: decks, error: fetchError } = await admin
@@ -369,7 +370,7 @@ export async function POST(request: Request) {
       }
 
       const completedRenders = count ?? 0;
-      if (completedRenders > 0 && !body.confirmClearRenders) {
+      if (completedRenders > 0 && !confirmClearRenders) {
         return NextResponse.json({
           needsConfirm: true,
           error: 'CONFIRM_CLEAR_RENDERS',
@@ -379,18 +380,33 @@ export async function POST(request: Request) {
         });
       }
 
-      const { error: updateDeckErr } = await admin
+      const { data: updatedDeck, error: updateDeckErr } = await admin
         .from('studio_decks')
         .update({
           border_slug: borderSlug,
           updated_at: new Date().toISOString(),
         })
         .eq('id', deckId)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .select('border_slug')
+        .maybeSingle();
 
       if (updateDeckErr) {
         console.error('[studio-session] changeBorder deck update:', updateDeckErr.message);
         return new Response('Failed to update deck border', { status: 500 });
+      }
+
+      const appliedSlug = updatedDeck?.border_slug != null ? String(updatedDeck.border_slug).trim() : '';
+      if (!appliedSlug || appliedSlug !== borderSlug) {
+        console.error('[studio-session] changeBorder no row updated or slug mismatch', {
+          deckId,
+          requested: borderSlug,
+          applied: appliedSlug || '(empty)',
+        });
+        return NextResponse.json(
+          { error: 'Could not save the new border on your deck. Try again or refresh the page.' },
+          { status: 500 },
+        );
       }
 
       const cards = await loadSessionCardsSafe(admin, deckId);
