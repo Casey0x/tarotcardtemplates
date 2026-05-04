@@ -14,7 +14,14 @@ export type StudioBorderTemplateConfig = {
   layout?: 'bottom-combined';
 };
 
-/** Templated.io template IDs and optional artwork frame (percent of card) for Studio preview. `id` matches border slug. */
+/**
+ * Templated.io template IDs and optional artwork frame (percent of card). `id` must match deck `border_slug` /
+ * catalog slug. Missing slugs fall back to `TEMPLATE_ID` in `src/app/api/studio/render/route.ts` (Ocean / legacy default).
+ *
+ * Cross-check: every `slug` in `src/data/border-templates-static.ts` (`BORDER_TEMPLATES`) should have an entry here
+ * once template IDs exist. Current gaps (no Studio mapping — still fall back): `celestial-gilded`, `minimal-line`,
+ * `vintage-velvet`, `ocean-mermaid`.
+ */
 export const STUDIO_BORDER_TEMPLATE_CONFIG: StudioBorderTemplateConfig[] = [
   {
     id: 'steampunk-brass',
@@ -80,6 +87,28 @@ export const STUDIO_BORDER_TEMPLATE_CONFIG: StudioBorderTemplateConfig[] = [
       top: 14,
       width: 76,
       height: 68,
+    },
+  },
+  {
+    id: 'golden-honeycomb',
+    name: 'Golden Honeycomb Border',
+    templateId: 'b6b912d2-c105-40f6-9661-ec89ad4dd68a',
+    frame: {
+      left: 10,
+      top: 12,
+      width: 80,
+      height: 70,
+    },
+  },
+  {
+    id: 'mystic-candlelight',
+    name: 'Mystic Candlelight Border',
+    templateId: '624746e8-c0e5-4be5-b84a-412ca0145cea',
+    frame: {
+      left: 10,
+      top: 12,
+      width: 80,
+      height: 70,
     },
   },
 ];
