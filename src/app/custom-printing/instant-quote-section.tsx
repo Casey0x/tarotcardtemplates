@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTctCurrency } from '@/components/tct-currency-provider';
@@ -18,9 +17,6 @@ const RESULT_PANEL = '#2e2b27';
 const RESULT_BORDER = 'rgba(255,255,255,0.1)';
 const FEATURED_GOLD = '#D4AF37';
 
-const CARDS_PER_DECK = 78;
-const LINEN_PER_DECK = 0.5 * CARDS_PER_DECK;
-const STOCK_350_EXTRA = 0.4;
 const SHRINK_WRAP_EXTRA = 0.15;
 
 /** Matches the published pricing scale (prototype + per-deck tiers). */
@@ -54,14 +50,12 @@ export function InstantQuoteSection() {
   const router = useRouter();
   const { formatUsdEstimate } = useTctCurrency();
   const [quantity, setQuantity] = useState(1);
-  const [stock, setStock] = useState<'300' | '350'>('300');
-  const [finish, setFinish] = useState<'gloss' | 'linen'>('gloss');
   const [shrinkWrap, setShrinkWrap] = useState(false);
 
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
   const [formQuantity, setFormQuantity] = useState(1);
-  const [formFinish, setFormFinish] = useState<'gloss' | 'linen' | 'unsure'>('gloss');
+  const [formFinish, setFormFinish] = useState<'gloss' | 'unsure'>('gloss');
   const [formShrink, setFormShrink] = useState(false);
   const [formNotes, setFormNotes] = useState('');
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'error'>('idle');
@@ -84,17 +78,13 @@ export function InstantQuoteSection() {
         perDeck: PROTOTYPE_FLAT,
         total: PROTOTYPE_FLAT,
         basePerDeck: PROTOTYPE_FLAT,
-        stockExtra: 0,
-        linenExtra: 0,
         shrinkExtra: 0,
       };
     }
 
     const base = baseRatePerDeck(qty);
-    const stockExtra = stock === '350' ? STOCK_350_EXTRA : 0;
-    const linenExtra = finish === 'linen' ? LINEN_PER_DECK : 0;
     const shrinkExtra = shrinkWrap ? SHRINK_WRAP_EXTRA : 0;
-    const perDeck = base + stockExtra + linenExtra + shrinkExtra;
+    const perDeck = base + shrinkExtra;
     const total = perDeck * qty;
 
     return {
@@ -103,11 +93,9 @@ export function InstantQuoteSection() {
       perDeck,
       total,
       basePerDeck: base,
-      stockExtra: stock === '350' ? STOCK_350_EXTRA : 0,
-      linenExtra: finish === 'linen' ? LINEN_PER_DECK : 0,
       shrinkExtra: shrinkWrap ? SHRINK_WRAP_EXTRA : 0,
     };
-  }, [quantity, stock, finish, shrinkWrap, clampQty]);
+  }, [quantity, shrinkWrap, clampQty]);
 
   const scrollToQuote = useCallback(() => {
     setFormQuantity(clampQty(quantity));
@@ -127,8 +115,7 @@ export function InstantQuoteSection() {
     setQuantity(clampQty(n));
   };
 
-  const finishLabel =
-    formFinish === 'gloss' ? 'Gloss' : formFinish === 'linen' ? 'Linen' : 'Not sure';
+  const finishLabel = formFinish === 'gloss' ? 'Gloss' : 'Not sure';
   const shrinkWrapLabel = formShrink ? 'Yes please' : 'No thanks';
 
   const onSubmitQuote = async (e: React.FormEvent) => {
@@ -231,88 +218,6 @@ export function InstantQuoteSection() {
                   </p>
                 </div>
 
-                {/* Card stock */}
-                <div>
-                  <span className="block text-sm font-medium" style={{ color: HEADING }}>
-                    Card stock
-                  </span>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <label className="cursor-pointer">
-                      <input
-                        type="radio"
-                        name="stock"
-                        className="sr-only"
-                        checked={stock === '300'}
-                        onChange={() => setStock('300')}
-                      />
-                      <span
-                        className={`inline-block rounded-full border px-4 py-2 text-sm transition-colors ${stock === '300' ? 'border-[#C7A96B] bg-[#C7A96B]/15' : 'border-white/15 bg-black/20'}`}
-                        style={{ color: HEADING }}
-                      >
-                        300gsm Smooth
-                      </span>
-                    </label>
-                    <label className="cursor-pointer">
-                      <input
-                        type="radio"
-                        name="stock"
-                        className="sr-only"
-                        checked={stock === '350'}
-                        onChange={() => setStock('350')}
-                      />
-                      <span
-                        className={`inline-block rounded-full border px-4 py-2 text-sm transition-colors ${stock === '350' ? 'border-[#C7A96B] bg-[#C7A96B]/15' : 'border-white/15 bg-black/20'}`}
-                        style={{ color: HEADING }}
-                      >
-                        350gsm Black Core (+$0.40/deck)
-                      </span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Finish */}
-                <div>
-                  <span className="block text-sm font-medium" style={{ color: HEADING }}>
-                    Finish
-                  </span>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <label className="cursor-pointer">
-                      <input
-                        type="radio"
-                        name="finish"
-                        className="sr-only"
-                        checked={finish === 'gloss'}
-                        onChange={() => setFinish('gloss')}
-                      />
-                      <span
-                        className={`inline-block rounded-full border px-4 py-2 text-sm transition-colors ${finish === 'gloss' ? 'border-[#C7A96B] bg-[#C7A96B]/15' : 'border-white/15 bg-black/20'}`}
-                        style={{ color: HEADING }}
-                      >
-                        Gloss (included)
-                      </span>
-                    </label>
-                    <label className="cursor-pointer">
-                      <input
-                        type="radio"
-                        name="finish"
-                        className="sr-only"
-                        checked={finish === 'linen'}
-                        onChange={() => setFinish('linen')}
-                      />
-                      <span
-                        className={`inline-block rounded-full border px-4 py-2 text-sm transition-colors ${finish === 'linen' ? 'border-[#C7A96B] bg-[#C7A96B]/15' : 'border-white/15 bg-black/20'}`}
-                        style={{ color: HEADING }}
-                      >
-                        Linen (+$0.50/card × 78)
-                      </span>
-                    </label>
-                  </div>
-                  <p className="mt-2 text-xs" style={{ color: CARD_BODY }}>
-                    Linen adds {formatUsdEstimate(0.5)} per card × {CARDS_PER_DECK} cards ={' '}
-                    {formatUsdEstimate(LINEN_PER_DECK)} per deck.
-                  </p>
-                </div>
-
                 {/* Shrink wrap */}
                 <div>
                   <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-black/20 p-4">
@@ -366,15 +271,6 @@ export function InstantQuoteSection() {
                   ) : (
                     <>
                       <p>Base rate: {formatUsdEstimate(estimate.basePerDeck)}/deck</p>
-                      {stock === '350' && (
-                        <p>350gsm Black Core: +{formatUsdEstimate(STOCK_350_EXTRA)}/deck</p>
-                      )}
-                      {finish === 'linen' && (
-                        <p>
-                          Linen finish: +{formatUsdEstimate(0.5)} × {CARDS_PER_DECK} cards = +
-                          {formatUsdEstimate(LINEN_PER_DECK)}/deck
-                        </p>
-                      )}
                       {shrinkWrap && <p>Shrink wrap: +{formatUsdEstimate(SHRINK_WRAP_EXTRA)}/deck</p>}
                       <p>Tuck box: Included</p>
                       <p className="pt-2 font-medium" style={{ color: HEADING }}>
@@ -487,12 +383,11 @@ export function InstantQuoteSection() {
                 <select
                   id="quote-finish"
                   value={formFinish}
-                  onChange={(e) => setFormFinish(e.target.value as 'gloss' | 'linen' | 'unsure')}
+                  onChange={(e) => setFormFinish(e.target.value as 'gloss' | 'unsure')}
                   className={`mt-2 w-full rounded-md border px-4 py-3 text-sm ${focusRing}`}
                   style={{ backgroundColor: INPUT_BG, borderColor: INPUT_BORDER, color: HEADING }}
                 >
                   <option value="gloss">Gloss</option>
-                  <option value="linen">Linen</option>
                   <option value="unsure">Not sure</option>
                 </select>
               </div>

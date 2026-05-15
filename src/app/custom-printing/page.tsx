@@ -507,34 +507,6 @@ export default function CustomPrintingPage() {
         </div>
       </section>
 
-      {/* Template integration — preserved link */}
-      <section className="px-6 py-20 md:px-8">
-        <div className="mx-auto max-w-6xl">
-          <div
-            className="rounded-lg border p-8 md:p-10"
-            style={{ backgroundColor: CARD_BG, borderColor: CARD_BORDER }}
-          >
-            <h2
-              className="font-serif text-2xl font-semibold tracking-tight md:text-[1.75rem]"
-              style={{ color: HEADING }}
-            >
-              Already Using One of Our Tarot Templates?
-            </h2>
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed" style={{ color: CARD_BODY }}>
-              Our tarot templates are already formatted for professional printing. Simply export your
-              artwork and upload your files to start production.
-            </p>
-            <Link
-              href="/templates"
-              className="mt-8 inline-block rounded-sm px-6 py-3 text-sm font-medium transition-opacity hover:opacity-90"
-              style={{ backgroundColor: ACCENT, color: BTN_DARK_TEXT }}
-            >
-              Print My Template
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* SECTION 6 — Testimonials */}
       <section className="px-6 py-20 md:px-8">
         <div className="mx-auto max-w-6xl space-y-10">
