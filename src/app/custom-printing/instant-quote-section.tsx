@@ -53,7 +53,6 @@ export function InstantQuoteSection() {
   const [formEmail, setFormEmail] = useState('');
   const [formQuantity, setFormQuantity] = useState(1);
   const [formFinish, setFormFinish] = useState<'gloss' | 'unsure'>('gloss');
-  const [formShrink, setFormShrink] = useState(false);
   const [formNotes, setFormNotes] = useState('');
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'error'>('idle');
   const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
@@ -110,7 +109,6 @@ export function InstantQuoteSection() {
   };
 
   const finishLabel = formFinish === 'gloss' ? 'Gloss' : 'Not sure';
-  const shrinkWrapLabel = formShrink ? 'Yes please' : 'No thanks';
 
   const onSubmitQuote = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +125,6 @@ export function InstantQuoteSection() {
           email: formEmail,
           quantity: formQuantity,
           finish: finishLabel,
-          shrinkWrap: shrinkWrapLabel,
           specialRequirements: formNotes.trim().length > 0 ? formNotes : undefined,
         }),
       });
@@ -263,25 +260,14 @@ export function InstantQuoteSection() {
                 </p>
 
                 <div className="mt-8 flex flex-col gap-3">
-                  {estimate.qty === 1 ? (
-                    <PrototypeCheckoutButton
-                      totalUsd={estimate.total}
-                      deckQty={estimate.qty}
-                      className="block w-full rounded-sm py-3.5 text-center text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
-                      style={{ backgroundColor: FEATURED_GOLD, color: BTN_DARK_TEXT }}
-                    >
-                      Order Now
-                    </PrototypeCheckoutButton>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={scrollToQuote}
-                      className="w-full rounded-sm py-3.5 text-sm font-semibold transition-opacity hover:opacity-90"
-                      style={{ backgroundColor: FEATURED_GOLD, color: BTN_DARK_TEXT }}
-                    >
-                      Order Now
-                    </button>
-                  )}
+                  <PrototypeCheckoutButton
+                    totalUsd={estimate.total}
+                    deckQty={estimate.qty}
+                    className="block w-full rounded-sm py-3.5 text-center text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
+                    style={{ backgroundColor: FEATURED_GOLD, color: BTN_DARK_TEXT }}
+                  >
+                    Order Now
+                  </PrototypeCheckoutButton>
                   <button
                     type="button"
                     onClick={scrollToQuote}
@@ -366,33 +352,6 @@ export function InstantQuoteSection() {
                   <option value="unsure">Not sure</option>
                 </select>
               </div>
-              <fieldset>
-                <legend className="text-sm font-medium" style={{ color: HEADING }}>
-                  Shrink wrap
-                </legend>
-                <div className="mt-3 flex flex-wrap gap-4">
-                  <label className="flex cursor-pointer items-center gap-2 text-sm" style={{ color: CARD_BODY }}>
-                    <input
-                      type="radio"
-                      name="form-shrink"
-                      checked={formShrink === true}
-                      onChange={() => setFormShrink(true)}
-                      className="accent-[#C7A96B]"
-                    />
-                    Yes please
-                  </label>
-                  <label className="flex cursor-pointer items-center gap-2 text-sm" style={{ color: CARD_BODY }}>
-                    <input
-                      type="radio"
-                      name="form-shrink"
-                      checked={formShrink === false}
-                      onChange={() => setFormShrink(false)}
-                      className="accent-[#C7A96B]"
-                    />
-                    No thanks
-                  </label>
-                </div>
-              </fieldset>
               <div>
                 <label htmlFor="quote-notes" className="block text-sm font-medium" style={{ color: HEADING }}>
                   Special requirements

@@ -42,7 +42,7 @@ export type ParseQuoteResult =
 
 /**
  * Shared parser for POST /api/send-quote-request and POST /api/print-quote.
- * Accepts `finish` or legacy `finishPreference`; `shrinkWrap` as boolean or string.
+ * Accepts `finish` or legacy `finishPreference`; optional `shrinkWrap` (boolean or string), defaults to No thanks.
  */
 export function parseQuoteRequestBody(body: unknown): ParseQuoteResult {
   if (body == null || typeof body !== 'object') {
@@ -57,18 +57,17 @@ export function parseQuoteRequestBody(body: unknown): ParseQuoteResult {
   const finishRaw = b.finish ?? b.finishPreference;
   const finish = typeof finishRaw === 'string' ? resolveFinish(finishRaw) : null;
 
-  const shrinkWrap = resolveShrinkWrap(b.shrinkWrap);
+  const shrinkWrap = resolveShrinkWrap(b.shrinkWrap) ?? 'No thanks';
 
   const specialRequirements =
     typeof b.specialRequirements === 'string' && b.specialRequirements.trim().length > 0
       ? b.specialRequirements.trim()
       : undefined;
 
-  if (!name || !email || !quantity || !finish || !shrinkWrap) {
+  if (!name || !email || !quantity || !finish) {
     return {
       ok: false,
-      error:
-        'Missing required fields: name, email, quantity, finish (or finishPreference), shrinkWrap',
+      error: 'Missing required fields: name, email, quantity, finish (or finishPreference)',
       status: 400,
     };
   }
