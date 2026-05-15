@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { InstantQuoteSection } from './instant-quote-section';
+import { PrototypeCheckoutButton } from './prototype-checkout-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -114,8 +115,8 @@ const PRINT_SPECS: { label: string; value: string }[] = [
   { label: 'Card Size', value: '70 × 120 mm (standard tarot)' },
   { label: 'Export Size', value: '898 × 1488 px at 300 DPI' },
   { label: 'Bleed', value: '3mm on all sides' },
-  { label: 'Card Stock', value: '300gsm smooth · 350gsm black core' },
-  { label: 'Finishes', value: 'Gloss · Linen' },
+  { label: 'Card Stock', value: '300gsm smooth' },
+  { label: 'Finishes', value: 'Gloss' },
   { label: 'Corners', value: 'Rounded (standard tarot)' },
   { label: 'Packaging', value: 'Tuck box (included with all orders)' },
   { label: 'Add-ons', value: 'Shrink wrap (optional)' },
@@ -205,7 +206,7 @@ export default function CustomPrintingPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-4 pt-2 lg:justify-start">
               <Link
-                href="#"
+                href="#quote-form"
                 className="rounded-sm px-6 py-3 text-sm font-medium shadow-lg transition-transform duration-150 hover:-translate-y-0.5"
                 style={{
                   backgroundColor: ACCENT,
@@ -593,9 +594,8 @@ export default function CustomPrintingPage() {
             Start with one prototype deck. No commitment, no minimums. Ships in 5–7 days.
           </p>
           <div className="flex flex-wrap justify-center gap-4 pt-4">
-            <Link
-              href="#"
-              className="rounded-sm px-6 py-3 text-sm font-medium shadow-lg transition-transform duration-150 hover:-translate-y-0.5"
+            <PrototypeCheckoutButton
+              className="rounded-sm px-6 py-3 text-sm font-medium shadow-lg transition-transform duration-150 hover:-translate-y-0.5 disabled:opacity-60"
               style={{
                 backgroundColor: ACCENT,
                 color: BTN_DARK_TEXT,
@@ -603,7 +603,7 @@ export default function CustomPrintingPage() {
               }}
             >
               Order a Prototype — $78
-            </Link>
+            </PrototypeCheckoutButton>
             <Link
               href="#quote-form"
               className="rounded-sm border bg-transparent px-6 py-3 text-sm font-medium transition-colors hover:bg-white/5"

@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTctCurrency } from '@/components/tct-currency-provider';
+import { PrototypeCheckoutButton } from './prototype-checkout-button';
 
 const ACCENT = '#C7A96B';
 const HEADING = '#f0ece4';
@@ -49,6 +51,7 @@ const focusRing =
   'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1814] focus-visible:ring-[#C7A96B]';
 
 export function InstantQuoteSection() {
+  const router = useRouter();
   const { formatUsdEstimate } = useTctCurrency();
   const [quantity, setQuantity] = useState(1);
   const [stock, setStock] = useState<'300' | '350'>('300');
@@ -61,7 +64,7 @@ export function InstantQuoteSection() {
   const [formFinish, setFormFinish] = useState<'gloss' | 'linen' | 'unsure'>('gloss');
   const [formShrink, setFormShrink] = useState(false);
   const [formNotes, setFormNotes] = useState('');
-  const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'error'>('idle');
   const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
   const quoteSubmitLockRef = useRef(false);
 
@@ -161,7 +164,7 @@ export function InstantQuoteSection() {
         quoteSubmitLockRef.current = false;
         return;
       }
-      setFormStatus('success');
+      router.push('/custom-printing/quote-success');
     } catch {
       setFormStatus('error');
       setFormErrorMessage('Network error. Please check your connection and try again.');
@@ -392,13 +395,12 @@ export function InstantQuoteSection() {
 
                 <div className="mt-8 flex flex-col gap-3">
                   {estimate.qty === 1 ? (
-                    <Link
-                      href="#"
-                      className="block w-full rounded-sm py-3.5 text-center text-sm font-semibold transition-opacity hover:opacity-90"
+                    <PrototypeCheckoutButton
+                      className="block w-full rounded-sm py-3.5 text-center text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
                       style={{ backgroundColor: FEATURED_GOLD, color: BTN_DARK_TEXT }}
                     >
                       Order Now
-                    </Link>
+                    </PrototypeCheckoutButton>
                   ) : (
                     <button
                       type="button"
@@ -434,16 +436,7 @@ export function InstantQuoteSection() {
             within one business day.
           </p>
 
-          {formStatus === 'success' ? (
-            <p
-              className="mt-8 rounded-lg border border-[#C7A96B]/40 bg-[#C7A96B]/10 px-4 py-4 text-sm leading-relaxed"
-              style={{ color: HEADING }}
-              role="status"
-            >
-              Quote request sent! Check your inbox for a confirmation.
-            </p>
-          ) : (
-            <form onSubmit={onSubmitQuote} className="mt-10 space-y-6">
+          <form onSubmit={onSubmitQuote} className="mt-10 space-y-6">
               <div>
                 <label htmlFor="quote-name" className="block text-sm font-medium" style={{ color: HEADING }}>
                   Name
@@ -558,7 +551,6 @@ export function InstantQuoteSection() {
                 </p>
               )}
             </form>
-          )}
         </div>
       </section>
     </>
