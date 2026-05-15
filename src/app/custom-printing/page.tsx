@@ -206,7 +206,7 @@ export default function CustomPrintingPage() {
             </p>
             <div className="flex flex-wrap justify-center gap-4 pt-2 lg:justify-start">
               <Link
-                href="#quote-form"
+                href="#instant-estimate"
                 className="rounded-sm px-6 py-3 text-sm font-medium shadow-lg transition-transform duration-150 hover:-translate-y-0.5"
                 style={{
                   backgroundColor: ACCENT,
@@ -573,6 +573,8 @@ export default function CustomPrintingPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4 pt-4">
             <PrototypeCheckoutButton
+              totalUsd={78}
+              deckQty={1}
               className="rounded-sm px-6 py-3 text-sm font-medium shadow-lg transition-transform duration-150 hover:-translate-y-0.5 disabled:opacity-60"
               style={{
                 backgroundColor: ACCENT,

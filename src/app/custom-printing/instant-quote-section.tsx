@@ -17,8 +17,6 @@ const RESULT_PANEL = '#2e2b27';
 const RESULT_BORDER = 'rgba(255,255,255,0.1)';
 const FEATURED_GOLD = '#D4AF37';
 
-const SHRINK_WRAP_EXTRA = 0.15;
-
 /** Matches the published pricing scale (prototype + per-deck tiers). */
 const PROTOTYPE_FLAT = 78;
 
@@ -50,7 +48,6 @@ export function InstantQuoteSection() {
   const router = useRouter();
   const { formatUsdEstimate } = useTctCurrency();
   const [quantity, setQuantity] = useState(1);
-  const [shrinkWrap, setShrinkWrap] = useState(false);
 
   const [formName, setFormName] = useState('');
   const [formEmail, setFormEmail] = useState('');
@@ -78,13 +75,11 @@ export function InstantQuoteSection() {
         perDeck: PROTOTYPE_FLAT,
         total: PROTOTYPE_FLAT,
         basePerDeck: PROTOTYPE_FLAT,
-        shrinkExtra: 0,
       };
     }
 
     const base = baseRatePerDeck(qty);
-    const shrinkExtra = shrinkWrap ? SHRINK_WRAP_EXTRA : 0;
-    const perDeck = base + shrinkExtra;
+    const perDeck = base;
     const total = perDeck * qty;
 
     return {
@@ -93,9 +88,8 @@ export function InstantQuoteSection() {
       perDeck,
       total,
       basePerDeck: base,
-      shrinkExtra: shrinkWrap ? SHRINK_WRAP_EXTRA : 0,
     };
-  }, [quantity, shrinkWrap, clampQty]);
+  }, [quantity, clampQty]);
 
   const scrollToQuote = useCallback(() => {
     setFormQuantity(clampQty(quantity));
@@ -161,7 +155,7 @@ export function InstantQuoteSection() {
 
   return (
     <>
-      <section className="px-6 py-20 md:px-8">
+      <section id="instant-estimate" className="scroll-mt-24 px-6 py-20 md:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto mb-10 max-w-2xl space-y-3 text-center md:mb-12">
             <h2 className="font-serif text-3xl font-semibold tracking-tight md:text-[2rem]" style={{ color: HEADING }}>
@@ -218,26 +212,6 @@ export function InstantQuoteSection() {
                   </p>
                 </div>
 
-                {/* Shrink wrap */}
-                <div>
-                  <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/10 bg-black/20 p-4">
-                    <input
-                      type="checkbox"
-                      checked={shrinkWrap}
-                      onChange={(e) => setShrinkWrap(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/30 accent-[#C7A96B]"
-                    />
-                    <span>
-                      <span className="block text-sm font-medium" style={{ color: HEADING }}>
-                        Shrink wrap (+$0.15/deck)
-                      </span>
-                      <span className="mt-1 block text-xs" style={{ color: CARD_BODY }}>
-                        Optional protective wrap for retail-ready decks.
-                      </span>
-                    </span>
-                  </label>
-                </div>
-
                 <p className="text-sm" style={{ color: CARD_BODY }}>
                   <span style={{ color: ACCENT }}>✓</span> Tuck box included with all orders.
                 </p>
@@ -271,7 +245,6 @@ export function InstantQuoteSection() {
                   ) : (
                     <>
                       <p>Base rate: {formatUsdEstimate(estimate.basePerDeck)}/deck</p>
-                      {shrinkWrap && <p>Shrink wrap: +{formatUsdEstimate(SHRINK_WRAP_EXTRA)}/deck</p>}
                       <p>Tuck box: Included</p>
                       <p className="pt-2 font-medium" style={{ color: HEADING }}>
                         Total per deck: {formatUsdEstimate(estimate.perDeck)}
@@ -292,6 +265,8 @@ export function InstantQuoteSection() {
                 <div className="mt-8 flex flex-col gap-3">
                   {estimate.qty === 1 ? (
                     <PrototypeCheckoutButton
+                      totalUsd={estimate.total}
+                      deckQty={estimate.qty}
                       className="block w-full rounded-sm py-3.5 text-center text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
                       style={{ backgroundColor: FEATURED_GOLD, color: BTN_DARK_TEXT }}
                     >
