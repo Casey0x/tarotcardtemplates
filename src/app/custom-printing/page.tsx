@@ -339,6 +339,14 @@ export default function CustomPrintingPage() {
         >
           <div className="flex flex-col items-stretch gap-10 lg:flex-row lg:items-center lg:gap-12">
             <div className="order-2 min-w-0 flex-1 space-y-6 lg:order-1">
+              <p className="m-0">
+                <span
+                  className="inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em]"
+                  style={{ backgroundColor: ACCENT, color: BTN_DARK_TEXT }}
+                >
+                  Coming Soon
+                </span>
+              </p>
               <h2
                 className="font-serif text-2xl font-semibold tracking-tight md:text-[1.75rem]"
                 style={{ color: HEADING }}
@@ -377,19 +385,17 @@ export default function CustomPrintingPage() {
                 Included with DeckWhisper-powered decks
               </p>
               <div>
-                <Link
-                  href="https://www.nextcard.ai"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex rounded-sm border px-6 py-3.5 text-sm font-semibold transition-all hover:brightness-105"
+                <span
+                  className="inline-flex cursor-not-allowed rounded-sm border px-6 py-3.5 text-sm font-semibold opacity-50"
                   style={{
                     borderColor: FEATURED_GOLD,
                     backgroundColor: FEATURED_GOLD,
                     color: BTN_DARK_TEXT,
                   }}
+                  aria-disabled="true"
                 >
                   Enable DeckWhisper Integration
-                </Link>
+                </span>
               </div>
             </div>
 
