@@ -69,21 +69,21 @@ const FEATURES = [
 const HOW_IT_WORKS_STEPS = [
   {
     step: 1,
-    title: 'Choose a Template',
+    title: 'Place Your Order',
     body:
-      'Browse our print-ready border templates or upload your own artwork. All templates export at the correct resolution.',
+      'Choose your quantity and click Order Now to go through our secure Stripe checkout.',
   },
   {
     step: 2,
-    title: 'Prepare Your Files',
+    title: 'We Get in Touch',
     body:
-      "Export at 300 DPI with 3mm bleed. Our templates handle this automatically — just export and you're done.",
+      'As soon as your order is placed, a member of our art and graphics team will contact you by email within 24 hours.',
   },
   {
     step: 3,
-    title: 'Upload & Approve',
+    title: 'Artwork & Approval',
     body:
-      'We review your files for print issues and send a digital proof. You approve before anything goes to press.',
+      'We work with you on your artwork and send a digital proof for your approval before anything goes to press.',
   },
   {
     step: 4,
