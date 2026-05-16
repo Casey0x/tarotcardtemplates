@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase-server';
 import {
+  sendCustomPrintingPrototypeConfirmationEmail,
+  sendCustomPrintingPrototypeOrderReceivedStaffEmail,
+} from '@/lib/custom-printing-prototype-emails';
+import {
   sendTemplateOrderCustomerEmail,
   sendTemplateOrderOwnerEmail,
 } from '@/lib/template-purchase-emails';
@@ -42,6 +46,43 @@ export async function POST(request: Request) {
 
   const session = event.data.object as Stripe.Checkout.Session;
   const meta = session.metadata;
+
+  if (meta?.orderType === 'custom_printing_prototype') {
+    const email = session.customer_details?.email ?? session.customer_email ?? null;
+    const deckQty = typeof meta.deckQty === 'string' && meta.deckQty.trim().length > 0 ? meta.deckQty.trim() : '—';
+    const amountCents = typeof session.amount_total === 'number' ? session.amount_total : 0;
+    const amountPaidNzd = (amountCents / 100).toFixed(2);
+
+    try {
+      if (email) {
+        await sendCustomPrintingPrototypeConfirmationEmail({
+          to: email,
+          stripeSessionId: session.id,
+        });
+      } else {
+        console.warn('[stripe-webhook] custom_printing_prototype: no customer email on session', {
+          sessionId: session.id,
+        });
+      }
+
+      await sendCustomPrintingPrototypeOrderReceivedStaffEmail({
+        customerEmail: email ?? '(none)',
+        deckQty,
+        amountPaidDisplay: `$${amountPaidNzd}`,
+        stripeSessionId: session.id,
+      });
+
+      console.log('[stripe-webhook] custom_printing_prototype emails sent', { sessionId: session.id });
+    } catch (err) {
+      console.error(
+        '[stripe-webhook] custom_printing_prototype email failed',
+        err instanceof Error ? err.message : err,
+        err instanceof Error ? err.stack : '',
+      );
+    }
+
+    return NextResponse.json({ received: true });
+  }
 
   const supabase = createServiceClient();
 
