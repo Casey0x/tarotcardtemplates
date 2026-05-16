@@ -1,10 +1,31 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import {
+  clampCustomPrintingDeckQty,
+  getCustomPrintingTotalUsd,
+} from '@/lib/custom-printing-estimate-usd';
 
-const ALLOWED_CURRENCIES = new Set(['usd', 'nzd', 'aud', 'gbp']);
-/** Sanity cap: minor units (e.g. 50_000_00 = $500,000 in major units) */
-const MAX_UNIT_AMOUNT = 50_000_00;
-const MIN_UNIT_AMOUNT = 50;
+const FRANKFURTER_USD_TO_NZD = 'https://api.frankfurter.app/latest?from=USD&to=NZD';
+/** Offline fallback — aligned with tct-fx-rates getFxRatesForBrowser catch block */
+const FALLBACK_USD_NZD = 1.65;
+
+const MAX_UNIT_AMOUNT_NZD = 50_000_00;
+const MIN_UNIT_AMOUNT_NZD = 50;
+
+async function fetchUsdToNzdRate(): Promise<number> {
+  try {
+    const res = await fetch(FRANKFURTER_USD_TO_NZD, {
+      next: { revalidate: 3600 },
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) return FALLBACK_USD_NZD;
+    const data = (await res.json()) as { rates?: { NZD?: number } };
+    const n = data.rates?.NZD;
+    return typeof n === 'number' && n > 0 ? n : FALLBACK_USD_NZD;
+  } catch {
+    return FALLBACK_USD_NZD;
+  }
+}
 
 export async function POST(request: Request) {
   const stripeSecret = process.env.STRIPE_SECRET_KEY;
@@ -22,19 +43,32 @@ export async function POST(request: Request) {
   }
 
   const record = body as Record<string, unknown>;
-  const amountCents = Number(record.amountCents);
-  const currency = typeof record.currency === 'string' ? record.currency.trim().toLowerCase() : '';
+  const totalUsd = Number(record.totalUsd);
   const qtyRaw = record.deckQty;
   const deckQtyParsed =
     typeof qtyRaw === 'number' && Number.isFinite(qtyRaw)
-      ? Math.floor(qtyRaw)
+      ? qtyRaw
       : Number.parseInt(String(qtyRaw ?? '1'), 10);
-  const safeQty = Number.isFinite(deckQtyParsed) && deckQtyParsed >= 1 ? Math.min(deckQtyParsed, 10_000) : 1;
 
-  if (!ALLOWED_CURRENCIES.has(currency)) {
-    return NextResponse.json({ error: 'Invalid currency' }, { status: 400 });
+  if (!Number.isFinite(deckQtyParsed)) {
+    return NextResponse.json({ error: 'Invalid deckQty' }, { status: 400 });
   }
-  if (!Number.isInteger(amountCents) || amountCents < MIN_UNIT_AMOUNT || amountCents > MAX_UNIT_AMOUNT) {
+
+  const safeQty = clampCustomPrintingDeckQty(deckQtyParsed);
+
+  if (!Number.isFinite(totalUsd) || totalUsd <= 0) {
+    return NextResponse.json({ error: 'Invalid totalUsd' }, { status: 400 });
+  }
+
+  const expectedUsd = getCustomPrintingTotalUsd(safeQty);
+  if (Math.abs(totalUsd - expectedUsd) > 0.01) {
+    return NextResponse.json({ error: 'Amount does not match quantity' }, { status: 400 });
+  }
+
+  const nzdRate = await fetchUsdToNzdRate();
+  const amountCents = Math.round(totalUsd * nzdRate * 100);
+
+  if (!Number.isInteger(amountCents) || amountCents < MIN_UNIT_AMOUNT_NZD || amountCents > MAX_UNIT_AMOUNT_NZD) {
     return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
   }
 
@@ -50,7 +84,7 @@ export async function POST(request: Request) {
     line_items: [
       {
         price_data: {
-          currency,
+          currency: 'nzd',
           product_data: { name: productName },
           unit_amount: amountCents,
         },
@@ -62,6 +96,7 @@ export async function POST(request: Request) {
     metadata: {
       orderType: 'custom_printing_prototype',
       deckQty: String(safeQty),
+      totalUsd: String(expectedUsd),
     },
   });
 

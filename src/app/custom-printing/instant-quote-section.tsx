@@ -3,6 +3,12 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTctCurrency } from '@/components/tct-currency-provider';
+import {
+  CUSTOM_PRINTING_MAX_ESTIMATE_QTY,
+  CUSTOM_PRINTING_PROTOTYPE_FLAT_USD,
+  clampCustomPrintingDeckQty,
+  getCustomPrintingEstimate,
+} from '@/lib/custom-printing-estimate-usd';
 import { PrototypeCheckoutButton } from './prototype-checkout-button';
 
 const ACCENT = '#C7A96B';
@@ -16,25 +22,6 @@ const INPUT_BORDER = 'rgba(255,255,255,0.15)';
 const RESULT_PANEL = '#2e2b27';
 const RESULT_BORDER = 'rgba(255,255,255,0.1)';
 const FEATURED_GOLD = '#D4AF37';
-
-/** Matches the published pricing scale (prototype + per-deck tiers). */
-const PROTOTYPE_FLAT = 78;
-
-/** Instant estimate slider and form cap (larger runs → exact quote). */
-const MAX_ESTIMATE_QTY = 100;
-
-/**
- * Per-deck USD rate for qty ≥ 2 (prototype is flat total only).
- * Tiers: 5 @ $23.95, 10 @ $21.95, 20 @ $19.95, 50+ @ $15.95; qty 2–4 use the 5-deck rate.
- */
-function baseRatePerDeck(qty: number): number {
-  if (qty <= 1) return 0;
-  if (qty >= 2 && qty < 10) return 23.95;
-  if (qty >= 10 && qty < 20) return 21.95;
-  if (qty >= 20 && qty < 50) return 19.95;
-  return 15.95;
-}
-
 function turnaroundLabel(qty: number): string {
   if (qty === 1) return '5–7 business days';
   if (qty >= 2 && qty < 50) return '10–14 business days';
@@ -58,37 +45,9 @@ export function InstantQuoteSection() {
   const [formErrorMessage, setFormErrorMessage] = useState<string | null>(null);
   const quoteSubmitLockRef = useRef(false);
 
-  const clampQty = useCallback(
-    (n: number) => Math.min(MAX_ESTIMATE_QTY, Math.max(1, Math.floor(n) || 1)),
-    [],
-  );
+  const clampQty = useCallback((n: number) => clampCustomPrintingDeckQty(n), []);
 
-  const estimate = useMemo(() => {
-    const qty = clampQty(quantity);
-    const isPrototype = qty === 1;
-
-    if (isPrototype) {
-      return {
-        qty,
-        isPrototype: true,
-        perDeck: PROTOTYPE_FLAT,
-        total: PROTOTYPE_FLAT,
-        basePerDeck: PROTOTYPE_FLAT,
-      };
-    }
-
-    const base = baseRatePerDeck(qty);
-    const perDeck = base;
-    const total = perDeck * qty;
-
-    return {
-      qty,
-      isPrototype: false,
-      perDeck,
-      total,
-      basePerDeck: base,
-    };
-  }, [quantity, clampQty]);
+  const estimate = useMemo(() => getCustomPrintingEstimate(quantity), [quantity]);
 
   const scrollToQuote = useCallback(() => {
     setFormQuantity(clampQty(quantity));
@@ -179,19 +138,19 @@ export function InstantQuoteSection() {
                     <input
                       type="range"
                       min={1}
-                      max={MAX_ESTIMATE_QTY}
+                      max={CUSTOM_PRINTING_MAX_ESTIMATE_QTY}
                       step={1}
                       value={quantity}
                       onChange={(e) => onRangeChange(Number(e.target.value))}
                       className={`h-2 flex-1 min-w-[8rem] cursor-pointer accent-[#C7A96B] ${focusRing} rounded-full`}
                       aria-valuemin={1}
-                      aria-valuemax={MAX_ESTIMATE_QTY}
+                      aria-valuemax={CUSTOM_PRINTING_MAX_ESTIMATE_QTY}
                       aria-valuenow={quantity}
                     />
                     <input
                       type="number"
                       min={1}
-                      max={MAX_ESTIMATE_QTY}
+                      max={CUSTOM_PRINTING_MAX_ESTIMATE_QTY}
                       value={quantity}
                       onChange={(e) => onNumberChange(e.target.value)}
                       className={`w-24 rounded-md border px-3 py-2 text-sm tabular-nums ${focusRing}`}
@@ -204,7 +163,7 @@ export function InstantQuoteSection() {
                   </div>
                   <p className="mt-2 text-xs leading-relaxed" style={{ color: CARD_BODY }}>
                     Estimates use the same tiers as the scale above: $78 prototype (1 deck), then per-deck rates at
-                    5+, 10+, 20+, and 50+ decks. This slider goes up to {MAX_ESTIMATE_QTY} decks; for larger runs,
+                    5+, 10+, 20+, and 50+ decks. This slider goes up to {CUSTOM_PRINTING_MAX_ESTIMATE_QTY} decks; for larger runs,
                     request an exact quote.
                   </p>
                 </div>
@@ -227,14 +186,14 @@ export function InstantQuoteSection() {
                 </p>
                 <p className="mt-2 text-sm" style={{ color: CARD_BODY }}>
                   {estimate.isPrototype
-                    ? `${formatUsdEstimate(PROTOTYPE_FLAT)} flat · 1 deck`
+                    ? `${formatUsdEstimate(CUSTOM_PRINTING_PROTOTYPE_FLAT_USD)} flat · 1 deck`
                     : `${formatUsdEstimate(estimate.perDeck)} per deck · ${estimate.qty} decks`}
                 </p>
 
                 <div className="mt-6 space-y-2 border-t border-white/10 pt-6 text-sm" style={{ color: CARD_BODY }}>
                   {estimate.isPrototype ? (
                     <>
-                      <p>Prototype rate: {formatUsdEstimate(PROTOTYPE_FLAT)} (fixed)</p>
+                      <p>Prototype rate: {formatUsdEstimate(CUSTOM_PRINTING_PROTOTYPE_FLAT_USD)} (fixed)</p>
                       <p className="text-xs italic" style={{ color: CARD_BODY }}>
                         Prototype price is fixed and includes tuck box and gloss finish.
                       </p>
@@ -330,7 +289,7 @@ export function InstantQuoteSection() {
                   id="quote-qty"
                   type="number"
                   min={1}
-                  max={MAX_ESTIMATE_QTY}
+                  max={CUSTOM_PRINTING_MAX_ESTIMATE_QTY}
                   value={formQuantity}
                   onChange={(e) => setFormQuantity(clampQty(Number(e.target.value)))}
                   className={`mt-2 w-full rounded-md border px-4 py-3 text-sm ${focusRing}`}

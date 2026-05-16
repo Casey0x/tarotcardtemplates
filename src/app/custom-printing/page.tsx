@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { CUSTOM_PRINTING_PROTOTYPE_FLAT_USD } from '@/lib/custom-printing-estimate-usd';
 import { InstantQuoteSection } from './instant-quote-section';
 import { PrototypeCheckoutButton } from './prototype-checkout-button';
 
@@ -573,7 +574,7 @@ export default function CustomPrintingPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-4 pt-4">
             <PrototypeCheckoutButton
-              totalUsd={78}
+              totalUsd={CUSTOM_PRINTING_PROTOTYPE_FLAT_USD}
               deckQty={1}
               className="rounded-sm px-6 py-3 text-sm font-medium shadow-lg transition-transform duration-150 hover:-translate-y-0.5 disabled:opacity-60"
               style={{
@@ -582,7 +583,7 @@ export default function CustomPrintingPage() {
                 border: `1px solid ${ACCENT}`,
               }}
             >
-              Order a Prototype — $78
+              {`Order a Prototype — $${CUSTOM_PRINTING_PROTOTYPE_FLAT_USD}`}
             </PrototypeCheckoutButton>
             <Link
               href="#quote-form"
