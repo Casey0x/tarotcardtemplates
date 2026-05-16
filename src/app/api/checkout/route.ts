@@ -115,8 +115,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'payment',
-      success_url: `${siteUrl}/studio?session_id={CHECKOUT_SESSION_ID}&border=${encodeURIComponent(body.borderSlug)}`,
-      cancel_url: `${siteUrl}/studio?border=${encodeURIComponent(body.borderSlug)}`,
+      success_url: `${siteUrl}/studio-beta?session_id={CHECKOUT_SESSION_ID}&border=${encodeURIComponent(body.borderSlug)}`,
+      cancel_url: `${siteUrl}/studio-beta?border=${encodeURIComponent(body.borderSlug)}`,
       metadata: {
         purchaseType: 'deck_download',
         borderSlug: body.borderSlug,
@@ -153,7 +153,7 @@ export async function POST(request: Request) {
       mode: 'payment',
       customer_creation: 'always',
       success_url: `${siteUrl}/account?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/studio?border=${encodeURIComponent(borderSlug)}`,
+      cancel_url: `${siteUrl}/studio-beta?border=${encodeURIComponent(borderSlug)}`,
       metadata: {
         purchaseType: 'print',
         studioPrint: '1',

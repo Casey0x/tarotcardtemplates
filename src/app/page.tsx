@@ -74,7 +74,7 @@ export default async function Page() {
 
           <div className="mt-8 flex flex-wrap gap-4">
             <a
-              href="/studio"
+              href="/studio-beta"
               className="rounded-lg bg-[#FF5A1F] px-7 py-3.5 font-semibold text-white shadow-md transition hover:scale-[1.02] hover:opacity-90"
             >
               Start Creating Your Deck
@@ -170,7 +170,7 @@ export default async function Page() {
             </p>
 
             <a
-              href="/studio"
+              href="/studio-beta"
               className="mt-4 inline-block rounded-lg bg-[#FF5A1F] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:opacity-90"
             >
               Create a deck like this

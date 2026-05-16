@@ -141,6 +141,10 @@ function StudioVisualPreviewInner({
   };
 
   const [previewByCard, setPreviewByCard] = useState<Record<number, string>>({});
+  const previewByCardRef = useRef(previewByCard);
+  useEffect(() => {
+    previewByCardRef.current = previewByCard;
+  }, [previewByCard]);
 
   const hydrateFromSessionCards = useCallback(
     (rows: SessionCardRow[], opts?: { resetSelection?: boolean; skipRenderedPreviews?: boolean }) => {
@@ -351,7 +355,12 @@ function StudioVisualPreviewInner({
   const artworkSrc = artworkByCard[selectedCardIndex] ?? null;
 
   const previewImage = previewByCard[selectedCardIndex] ?? null;
+  const hasAnyRenderedCard = useMemo(
+    () => Object.values(previewByCard).some((url) => Boolean(url)),
+    [previewByCard],
+  );
   const [renderLoading, setRenderLoading] = useState(false);
+  const [showReRenderOverlay, setShowReRenderOverlay] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -403,6 +412,7 @@ function StudioVisualPreviewInner({
         return null;
       }
       if (manageLoading) {
+        setShowReRenderOverlay(Boolean(previewByCardRef.current[cardIndex]));
         setRenderLoading(true);
         setPreviewError(null);
       }
@@ -449,10 +459,12 @@ function StudioVisualPreviewInner({
           }
           return null;
         }
-        setPreviewByCard((prev) => ({ ...prev, [cardIndex]: previewUrl }));
+        const cacheBusted =
+          previewUrl + (previewUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+        setPreviewByCard((prev) => ({ ...prev, [cardIndex]: cacheBusted }));
         cardFieldsRef.current[cardIndex] = { cardName: card_name, numeral };
         if (manageLoading) setPreviewError(null);
-        return previewUrl;
+        return cacheBusted;
       } catch {
         if (manageLoading) {
           setPreviewByCard((prev) => {
@@ -464,7 +476,10 @@ function StudioVisualPreviewInner({
         }
         return null;
       } finally {
-        if (manageLoading) setRenderLoading(false);
+        if (manageLoading) {
+          setRenderLoading(false);
+          setShowReRenderOverlay(false);
+        }
       }
     },
     [deckId, openSignInPrompt],
@@ -1500,7 +1515,7 @@ function StudioVisualPreviewInner({
         </div>
       ) : null}
 
-      <section className="mt-5 hidden max-w-2xl border-b border-charcoal/5 pb-5 lg:block" aria-label="About this builder">
+      <section className="mt-5 max-w-2xl border-b border-charcoal/5 pb-5" aria-label="About this builder">
         <h2 className="text-xs font-medium uppercase tracking-wide text-charcoal/50">About this builder</h2>
         <p className="mt-2 text-xs leading-relaxed text-charcoal/60">
           This tool lets you create your own tarot deck with a border frame you choose. You are not editing a pre-designed
@@ -1511,6 +1526,17 @@ function StudioVisualPreviewInner({
         </p>
         <p className="mt-1.5 text-xs leading-relaxed text-charcoal/60">Start by selecting a card and uploading your artwork.</p>
       </section>
+
+      {deckId && !hasAnyRenderedCard ? (
+        <div
+          className="mb-4 mt-4 rounded-sm border border-charcoal/20 bg-parchment/40 px-4 py-3 text-sm text-charcoal"
+          role="region"
+          aria-label="Getting started"
+        >
+          <span className="font-semibold text-charcoal">Step 1:</span>{' '}
+          Start by selecting a card from the left, then upload your artwork.
+        </div>
+      ) : null}
 
       <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(11rem,13rem)_1fr_minmax(0,15rem)]">
         {/* mobile order 1 / desktop col 3 row 1: border + card text */}
@@ -1608,6 +1634,19 @@ function StudioVisualPreviewInner({
                     aria-hidden
                   >
                     <span className="text-4xl drop-shadow-md">✅</span>
+                  </div>
+                ) : null}
+                {previewImage && showReRenderOverlay && renderLoading ? (
+                  <div
+                    className="absolute inset-0 z-[35] flex flex-col items-center justify-center bg-charcoal/40 px-3 text-center"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <span
+                      className="inline-block h-10 w-10 animate-spin rounded-full border-2 border-cream/30 border-t-cream"
+                      aria-hidden
+                    />
+                    <p className="mt-3 text-xs font-medium text-cream">Rendering your card…</p>
                   </div>
                 ) : null}
               </div>
