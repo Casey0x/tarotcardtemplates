@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 const footerLinks = [
-  { href: '/templates', label: 'Templates' },
+  { href: '/templates', label: 'Ready-Made Decks' },
   { href: '/borders', label: 'Borders' },
   { href: '/how-it-works', label: 'How It Works' },
   { href: '/blog', label: 'Blog' },

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { CurrencySwitcher } from '@/components/currency-switcher';
 
 const navItems = [
-  { href: '/templates', label: 'Templates' },
+  { href: '/templates', label: 'Ready-Made Decks' },
   { href: '/borders', label: 'Borders' },
   { href: '/studio-beta', label: 'Studio' },
   { href: '/card-meanings', label: 'Card Meanings' },
