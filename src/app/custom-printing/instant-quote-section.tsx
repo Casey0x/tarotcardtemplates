@@ -171,6 +171,12 @@ export function InstantQuoteSection() {
                 <p className="text-sm" style={{ color: CARD_BODY }}>
                   <span style={{ color: ACCENT }}>✓</span> Tuck box included with all orders.
                 </p>
+                <img
+                  src="/tuck-box.png"
+                  alt="Tuck box included with every order"
+                  className="rounded-md"
+                  style={{ maxWidth: 260 }}
+                />
               </div>
 
               {/* Result */}
